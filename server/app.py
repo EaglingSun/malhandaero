@@ -207,10 +207,29 @@ def _update_now() -> dict:
         out = dict(updater.RESULT)
         out["restarting"] = out["updated"]
         if out["updated"]:
-            updater.restart_soon()
+            n = pending_count()
+            out["waiting"] = n
+            if n:
+                out["messages"].append(f"처리 중인 녹음 {n}건이 끝나면 새 버전으로 다시 켤게요.")
+                _restart_when_idle()
+            else:
+                updater.restart_soon()
         return out
     finally:
         _update_lock.release()
+
+
+def _restart_when_idle(poll: float = 5.0) -> None:
+    """처리 중인 입력이 모두 끝난 뒤에 다시 켠다 (Claude Code 호출 도중에 끊기지 않게)."""
+    import threading
+    import time
+
+    def wait():
+        while pending_count():
+            time.sleep(poll)
+        updater.restart_soon(0.5)
+
+    threading.Thread(target=wait, daemon=True).start()
 
 
 @app.post("/api/update")
@@ -288,6 +307,34 @@ def process_input(input_id: int) -> None:
         _set_input(input_id, status="failed", error=str(e))
     except Exception as e:  # 뒤에서 도는 작업이라 사유를 남기고 끝낸다
         _set_input(input_id, status="failed", error=f"처리하지 못했어요: {type(e).__name__}")
+
+
+PENDING = ("received", "transcribing", "ready", "extracting")
+
+
+def pending_count(user_id: int | None = None) -> int:
+    q = "SELECT COUNT(*) AS n FROM inputs WHERE status IN ('received','transcribing','ready','extracting')"
+    with db.session() as con:
+        if user_id is None:
+            return con.execute(q).fetchone()["n"]
+        return con.execute(q + " AND user_id = ?", (user_id,)).fetchone()["n"]
+
+
+def resume_pending() -> int:
+    """서버가 (업데이트 등으로) 꺼졌다 켜질 때, 처리 중이던 입력을 처음부터 다시 돌린다. 안 그러면 '찾는 중'에 영영 멈춘다."""
+    with db.session() as con:
+        ids = [r["id"] for r in con.execute("SELECT id FROM inputs WHERE status IN ('received','transcribing','ready','extracting') ORDER BY id")]
+    for i in ids:
+        _set_input(i, status="received")
+        process_input(i)
+    return len(ids)
+
+
+@app.on_event("startup")
+def _resume_on_startup() -> None:
+    if os.environ.get("PYTEST_CURRENT_TEST"):
+        return
+    __import__("threading").Thread(target=resume_pending, daemon=True).start()
 
 
 def _set_input(input_id: int, **fields) -> None:

@@ -281,3 +281,30 @@ def test_update_button_pulls_and_schedules_restart(monkeypatch):
     monkeypatch.setattr(updater, "main", fake_main2)
     r = client.post("/api/update").json()
     assert r["restarting"] is True and r["log"] == ["화면 고침"] and calls == [1.0]        # 업데이트면 받은 뒤 다시 켠다
+
+
+def test_inputs_stuck_in_processing_resume_after_restart():
+    join("재개")
+    iid = client.post("/api/inputs", data={"kind": "memo", "text": "내일 은행 서류 챙겨야 해."}).json()["id"]
+    with db.session() as con:  # 서버가 꺼져서 처리 중에 멈춘 상태를 만든다
+        con.execute("UPDATE inputs SET status = 'extracting' WHERE id = ?", (iid,))
+        con.execute("DELETE FROM items WHERE input_id = ?", (iid,))
+    assert appmod.pending_count() == 1
+    assert appmod.resume_pending() == 1
+    inp = client.get(f"/api/inputs/{iid}").json()
+    assert inp["status"] == "extracted" and len(inp["items"]) == 1 and appmod.pending_count() == 0
+
+
+def test_update_waits_for_processing_inputs(monkeypatch):
+    from server import updater
+
+    join("대기")
+    iid = client.post("/api/inputs", data={"kind": "memo", "text": "x"}).json()["id"]
+    with db.session() as con:
+        con.execute("UPDATE inputs SET status = 'extracting' WHERE id = ?", (iid,))
+    calls, idle = [], []
+    monkeypatch.setattr(updater, "restart_soon", lambda delay=1.0: calls.append(delay))
+    monkeypatch.setattr(appmod, "_restart_when_idle", lambda: idle.append(1))
+    monkeypatch.setattr(updater, "main", lambda argv: updater.RESULT.update(updated=True, before="a", after="b", messages=["업데이트했어요"], log=[], changed=[]))
+    r = client.post("/api/update").json()
+    assert r["waiting"] == 1 and idle == [1] and calls == [] and "끝나면" in r["messages"][-1]   # 처리 중이면 바로 끄지 않는다

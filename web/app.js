@@ -496,14 +496,14 @@
     api("/api/update", { method: "POST" }).then(function (r) {
       say("update-msg", (r.messages || []).join("\n"));
       if (!r.restarting) { b.disabled = false; return; }
-      var was = state.me && state.me.version, tries = 0;
-      say("update-msg", "업데이트했어요. 다시 켜는 중… (10초쯤)\n" + (r.log || []).map(function (l) { return "· " + l; }).join("\n"));
+      var was = state.me && state.me.version, tries = 0, limit = r.waiting ? 600 : 30;
+      say("update-msg", (r.waiting ? "업데이트했어요. 처리 중인 녹음 " + r.waiting + "건이 끝나면 다시 켜요.\n" : "업데이트했어요. 다시 켜는 중… (10초쯤)\n") + (r.log || []).map(function (l) { return "· " + l; }).join("\n"));
       (function poll() {
         setTimeout(function () {
           api("/api/me").then(function (me) {
             if (me.version && me.version !== was) { location.reload(); return; }
-            if (++tries < 30) poll(); else { say("update-msg", "다시 켜지는 데 시간이 걸려요. 잠시 뒤 새로고침해 주세요.", true); b.disabled = false; }
-          }).catch(function () { if (++tries < 30) poll(); else { say("update-msg", "서버가 다시 켜지지 않았어요. PC의 말한대로 창을 확인해 주세요.", true); b.disabled = false; } });
+            if (++tries < limit) poll(); else { say("update-msg", "다시 켜지는 데 시간이 걸려요. 잠시 뒤 새로고침해 주세요.", true); b.disabled = false; }
+          }).catch(function () { if (++tries < limit) poll(); else { say("update-msg", "서버가 다시 켜지지 않았어요. PC의 말한대로 창을 확인해 주세요.", true); b.disabled = false; } });
         }, 2000);
       })();
     }).catch(function (e) { say("update-msg", e.message, true); b.disabled = false; });
