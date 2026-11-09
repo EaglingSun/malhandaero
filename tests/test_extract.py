@@ -27,6 +27,7 @@ def test_prompt_carries_context():
     p = extract.build_prompt("화자 1: 안녕\n화자 2: 응", ctx)
     assert "2026-11-09 (월요일)" in p and '"화자 2"가 본인' in p
     assert "점심 메뉴 정하기" in p and "우유 사기" in p and "통화 녹음" in p
+    assert "'- '로 시작" in p  # 요약은 목록으로
 
 
 def test_parse_result_object_with_summary_owner_and_time():

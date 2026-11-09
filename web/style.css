@@ -176,7 +176,8 @@ main { padding-bottom: 150px; }
 
 /* 들은 이야기 요약: 접힌 한 줄 */
 .item.brief { background: #fffbe8; border-color: #ffeeaa; }
-.clip.one { -webkit-line-clamp: 1; font-size: 13px; }
-button.what[aria-expanded="true"] .clip.one { display: none; }
+ul.bullets { margin: 0; padding: 10px 14px 10px 28px; background: #fff8d6; border-radius: 12px; font-size: 15px; display: flex; flex-direction: column; gap: 4px; }
+ul.bullets li { overflow-wrap: anywhere; }
+.summary ul.bullets { padding: 0 0 0 18px; background: none; }
 .muted { color: var(--muted); font-size: 12px; }
 #update-msg { text-align: center; font-size: 13px; }

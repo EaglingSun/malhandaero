@@ -200,8 +200,16 @@
       n.appendChild(row); box.appendChild(n);
     });
   }
+  function bullets(text) {
+    /* 요약을 목록으로. 새 판은 '- ' 줄로 오고, 예전 줄글은 문장 단위로 나눈다 */
+    var lines = (text || "").split(/\n+/).map(function (l) { return l.replace(/^\s*[-•·*]\s*/, "").trim(); }).filter(Boolean);
+    if (lines.length <= 1) lines = (text || "").split(/(?<=[.!?。])\s+/).map(function (l) { return l.trim(); }).filter(Boolean);
+    var ul = el("ul", "bullets");
+    lines.forEach(function (l) { ul.appendChild(el("li", "", l)); });
+    return ul;
+  }
   function renderBriefs(list) {
-    /* 회의·통화 요약: 한 줄로 접혀 있고, 누르면 전체가 펼쳐진다 */
+    /* 들은 이야기: 제목만 한 줄씩. 누르면 요약 목록이 펼쳐진다 */
     var ul = $("l-brief"); ul.textContent = "";
     $("s-brief").hidden = !list.length; $("c-brief").textContent = String(list.length);
     list.forEach(function (b) {
@@ -209,9 +217,9 @@
       var what = btn("", "what", function () { more.hidden = !more.hidden; what.setAttribute("aria-expanded", String(!more.hidden)); });
       what.setAttribute("aria-expanded", "false");
       what.appendChild(el("span", "txt", b.title || KIND[b.kind]));
-      what.appendChild(el("span", "msg clip one", b.summary));
+      var m = el("div", "meta"); m.appendChild(el("span", "tag", KIND[b.kind] || b.kind)); what.appendChild(m);
       head.appendChild(what); li.appendChild(head);
-      more.appendChild(el("p", "summary", b.summary));
+      more.appendChild(bullets(b.summary));
       var row = el("div", "row");
       row.appendChild(btn("넣은 것에서 보기", "", function () { document.querySelector('.tabs button[data-tab="inputs"]').click(); openInput(b.id); }));
       more.appendChild(row); li.appendChild(more); ul.appendChild(li);
@@ -364,7 +372,7 @@
         if (inp.status === "extracted") m.appendChild(el("span", "tag", "챙길 것 " + inp.item_count + "건"));
         li.appendChild(m);
         if (inp.error) li.appendChild(el("p", "msg err", inp.error));
-        if (inp.summary) li.appendChild(el("p", "msg clip", inp.summary));
+        if (inp.summary) li.appendChild(el("p", "msg clip", inp.summary.replace(/\n+/g, " ")));
         var row = el("div", "row"); row.appendChild(btn("열어 보기", "", function () { openInput(inp.id); })); li.appendChild(row);
         ul.appendChild(li);
       });
@@ -389,7 +397,7 @@
         });
         n.appendChild(row); box.appendChild(n);
       }
-      if (inp.summary) { box.appendChild(el("h2", "", "요약")); box.appendChild(el("p", "summary", inp.summary)); }
+      if (inp.summary) { box.appendChild(el("h2", "", "요약")); var sb = el("div", "summary"); sb.appendChild(bullets(inp.summary)); box.appendChild(sb); }
       var mine = inp.items.filter(function (it) { return it.status !== "other"; });
       var others = inp.items.filter(function (it) { return it.status === "other"; });
       var LABEL = { "new": "고르기 전", todo: "하기로 함", later: "나중", skipped: "안 함", done: "끝냄" };
