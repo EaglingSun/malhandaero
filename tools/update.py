@@ -44,6 +44,17 @@ def say(msg: str) -> None:
     print(f"  {msg}", flush=True)
 
 
+def adopt() -> None:
+    """저장소가 아닌 폴더를 원격 main에 붙인다. 추적 파일은 저장소 내용으로 맞춰지고(같은 판이면 내용 그대로) 실행 권한도 되살아난다.
+    git이 모르는 파일(data/, .env, .venv/)은 건드리지 않는다."""
+    git("init", "--quiet")
+    git("remote", "add", "origin", REPO_URL)
+    git("fetch", "--quiet", "--depth", "1", "origin", "main")
+    git("checkout", "--quiet", "--force", "-B", "main", "origin/main")
+    git("branch", "--quiet", "--set-upstream-to=origin/main", "main")
+    say(f"연결했어요 ({git('rev-parse', 'HEAD')[:7]}). 이제 켤 때마다 새 판을 받아요.")
+
+
 def install() -> None:
     say("설치를 다시 합니다 (바뀐 것만 받아요)…")
     subprocess.check_call([sys.executable, str(ROOT / "tools" / "install.py")], cwd=ROOT)
@@ -54,13 +65,18 @@ def main(argv: list[str]) -> int:
     if "--no-update" in argv or os.environ.get("MALHAN_AUTO_UPDATE") == "0" or _env_file_says_off():
         say("자동 업데이트가 꺼져 있어요. 지금 판으로 켭니다.")
         return 0
-    if not (ROOT / ".git").exists():
-        say("이 폴더는 저장소에서 받은 것이 아니라 새 판을 자동으로 받지 못해요.")
-        say(f"한 번만 이렇게 옮기면 켤 때마다 새 판을 받아요:  git clone {REPO_URL}  → 예전 폴더의 data/ 와 .env 를 새 폴더로 복사")
-        return 0
     if not shutil.which("git"):
         say("git이 없어서 새 판을 받지 못해요. 지금 판으로 켭니다. (Mac: 터미널에서 git 입력 → 설치 안내 / Windows: https://git-scm.com)")
         return 0
+    if not (ROOT / ".git").exists():
+        # 압축 파일로 풀었거나 파일만 복사된 폴더: 한 번만 저장소에 연결한다. data/와 .env는 git이 모르는 파일이라 그대로 남는다
+        say("이 폴더를 저장소에 연결합니다 (처음 한 번). 자료와 설정은 그대로 둬요.")
+        try:
+            adopt()
+        except (RuntimeError, subprocess.TimeoutExpired) as e:
+            say(f"연결하지 못했어요: {e}. 지금 판으로 켭니다. (인터넷이 되면 다음에 다시 시도해요)")
+            shutil.rmtree(ROOT / ".git", ignore_errors=True)  # 절반만 된 .git이 남지 않게
+            return 0
 
     try:
         if git("status", "--porcelain", "--untracked-files=no"):

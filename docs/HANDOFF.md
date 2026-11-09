@@ -20,7 +20,7 @@
 
 ### 코드 받는 법
 
-`git clone https://github.com/EaglingSun/malhandaero.git` 한 줄이면 된다. 풀고 나서 `python -m pytest -q`가 38개 통과하면 온전한 것이다.
+`git clone https://github.com/EaglingSun/malhandaero.git` 한 줄이면 된다. 풀고 나서 `python -m pytest -q`가 40개 통과하면 온전한 것이다.
 
 아래는 저장소가 없던 때 쓰던 소스 묶음 푸는 법이다(참고용).
 프로젝트 문서 `claude/malhandaero-src-01.txt` ~ `-07.txt` 일곱 개를 한 폴더에 내려받은 뒤 그 폴더에서 실행한다.
@@ -49,9 +49,9 @@ chmod +x malhandaero/*.sh malhandaero/*.command
 - `server/calsync.py` 캘린더 자동 넣기: 네이버(CalDAV + 애플리케이션 비밀번호), 구글(OAuth)
 - `server/stt.py` 음성 인식(faster-whisper, 선택 설치) · `server/db.py` SQLite와 칸 추가(MIGRATIONS)
 - `web/` 빌드 없는 화면(PWA, 공유 받기) · `tools/install.py`, `tools/run.py` 설치와 실행
-- `tools/update.py` 켜기 전 자동 업데이트: `git fetch` → fast-forward만 → requirements 바뀌면 재설치 → manifest 바뀌면 폰 앱 재설치 안내. 실패해도 켜기는 막지 않는다. `run.sh`/`run.bat`/`켜기.command`가 먼저 부른다
+- `tools/update.py` 켜기 전 자동 업데이트: `.git`이 없는 폴더면 먼저 저장소에 연결(adopt: init → fetch → checkout -f; data/·.env는 그대로) → `git fetch` → fast-forward만 → requirements 바뀌면 재설치 → manifest 바뀌면 폰 앱 재설치 안내. 실패해도 켜기는 막지 않는다. `run.sh`/`run.bat`/`켜기.command`가 먼저 부른다
 - `말한대로 처음 설치.command` 파일 하나로 clone → 설치 → 켜기 (Mac)
-- 시험: `python -m pytest -q` → 38개 통과. AI·네이버·구글은 흉내 서버로, 업데이트는 임시 git 저장소로 시험한다
+- 시험: `python -m pytest -q` → 40개 통과. AI·네이버·구글은 흉내 서버로, 업데이트는 임시 git 저장소로 시험한다
 
 지키는 규칙
 
@@ -107,7 +107,7 @@ chmod +x malhandaero/*.sh malhandaero/*.command
 - 사용자 본인은 구글 캘린더, 남편은 네이버 캘린더로 연결하려 함
 - 구글 OAuth 클라이언트는 사용자가 만들어 `.env`에 넣어 둠. 리디렉션 주소에 Tailscale 주소가 들어 있으므로 기기 이름을 바꾸면 구글 쪽도 고쳐야 함
 - 판을 바꿀 때(7판부터): 그냥 켜면 된다. 켜기가 새 판을 받고 requirements가 바뀌었으면 설치도 다시 한다
-- 지금 집 Mac은 압축에서 푼 6판 폴더로 돌고 있다. **한 번만** `git clone` 한 뒤 예전 폴더의 `data/`와 `.env`를 새 폴더로 복사하고 `말한대로 켜기.command`를 실행하면 그 뒤로는 자동이다
+- 집 Mac: 6판은 `~/Downloads/malhandaero 6`(실제로는 5판 manifest + 사용자가 더한 privacy.html). 7판은 Claude가 `~/Downloads/malhandaero-main`에 파일과 data/를 써 두었다(.git·.env는 원격 도구로 못 써서 제외). 처음 켤 때 update.py가 저장소에 연결한다. `.env`만 예전 폴더에서 복사해야 한다
 - 화면이 예전 모양이면 새로고침. manifest가 바뀐 판(6판)은 휴대폰에서 앱 삭제 후 재설치
 
 ## 8. 판별 변경 요약
@@ -120,4 +120,4 @@ chmod +x malhandaero/*.sh malhandaero/*.command
 | 4 | 더블클릭 실행(.command), Tailscale 자동, QR 연결(내 기기 / 가족 초대) |
 | 5 | 목록 중심 화면(+ 버튼 뒤에 넣기), https 인증서 묶음, 연결 실패 사유 표시 |
 | 6 | 공유로 받는 파일 종류 확대 |
-| 7 | GitHub 저장소에 올림. 켤 때 자동 업데이트(`tools/update.py`), `말한대로 처음 설치.command`, 업데이트 시험 3개 |
+| 7 | GitHub 저장소에 올림. 켤 때 자동 업데이트(`tools/update.py`, 압축 폴더 자동 연결 포함), `말한대로 처음 설치.command`, privacy.html, 업데이트 시험 5개 |

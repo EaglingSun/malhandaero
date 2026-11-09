@@ -65,5 +65,27 @@ def test_up_to_date_offline_dirty_and_off_never_block_start(repos, capsys, monke
     sh(mine, "remote", "set-url", "origin", str(mine / "없는곳"))                      # 인터넷이 끊긴 상황
     assert update.main([]) == 0 and "닿지 못해" in capsys.readouterr().out
     assert update.main(["--no-update"]) == 0 and "꺼져 있어요" in capsys.readouterr().out
-    monkeypatch.setattr(update, "ROOT", mine / "web")                                  # git clone이 아닌 폴더
-    assert update.main([]) == 0 and "git clone" in capsys.readouterr().out
+
+
+def test_plain_folder_gets_adopted_into_the_repo_keeping_data(repos, capsys, monkeypatch, tmp_path):
+    origin, work, mine = repos
+    plain = tmp_path / "plain"                                                          # 압축을 풀거나 파일만 복사한 폴더
+    plain.mkdir(); (plain / "requirements.txt").write_text("fastapi\n"); (plain / "web").mkdir(); (plain / "web" / "app.js").write_text("낡은 판")
+    (plain / ".env").write_text("MALHAN_FAMILY_CODE=1234\n"); (plain / "data").mkdir(); (plain / "data" / "malhandaero.db").write_bytes(b"db")
+    monkeypatch.setattr(update, "ROOT", plain); monkeypatch.setattr(update, "REPO_URL", str(origin))
+    monkeypatch.setattr(update, "VENV_PY", plain / "none"); monkeypatch.setattr(update, "install", lambda: None)
+    assert update.main([]) == 0
+    out = capsys.readouterr().out
+    assert "연결했어요" in out and (plain / ".git").is_dir()
+    assert (plain / "web" / "app.js").read_text() == "1"                                # 추적 파일은 저장소 판으로
+    assert (plain / ".env").read_text() == "MALHAN_FAMILY_CODE=1234\n" and (plain / "data" / "malhandaero.db").read_bytes() == b"db"
+    assert sh(plain, "status", "--porcelain", "--untracked-files=no") == "" and sh(plain, "rev-parse", "--abbrev-ref", "@{u}") == "origin/main"
+    assert update.main([]) == 0 and "이미 최신 판" in capsys.readouterr().out             # 두 번째부터는 보통 흐름
+
+
+def test_adopt_failure_leaves_no_half_repo(capsys, monkeypatch, tmp_path):
+    plain = tmp_path / "plain"; plain.mkdir(); (plain / "x.txt").write_text("x")
+    monkeypatch.setattr(update, "ROOT", plain); monkeypatch.setattr(update, "REPO_URL", str(tmp_path / "없는곳"))
+    monkeypatch.delenv("MALHAN_AUTO_UPDATE", raising=False)
+    assert update.main([]) == 0
+    assert "연결하지 못했어요" in capsys.readouterr().out and not (plain / ".git").exists() and (plain / "x.txt").read_text() == "x"
