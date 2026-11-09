@@ -14,7 +14,7 @@ from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-from . import calsync, db, extract, llm, stt, transcript
+from . import calsync, db, extract, llm, stt, transcript, updater
 
 WEB = Path(__file__).resolve().parent.parent / "web"
 TZ = ZoneInfo(os.environ.get("MALHAN_TZ", "Asia/Seoul"))
@@ -183,7 +183,60 @@ def me(user=Depends(current_user)):
         "today": today().isoformat(),
         "ai": llm.mode(),
         "stt": stt.available(),
+        "version": _version(),
     }
+
+
+# ---------- 새 판 ----------
+def _version() -> str:
+    try:
+        return updater.git("rev-parse", "--short", "HEAD")
+    except Exception:
+        return ""
+
+
+_update_lock = __import__("threading").Lock()
+
+
+def _update_now() -> dict:
+    """새 판을 받아 온다. 받았으면 잠시 뒤 서버를 끝내고 run.py가 새 판으로 다시 켠다."""
+    if not _update_lock.acquire(blocking=False):
+        return {"busy": True, "messages": ["이미 확인하는 중이에요."]}
+    try:
+        updater.main([])
+        out = dict(updater.RESULT)
+        out["restarting"] = out["updated"]
+        if out["updated"]:
+            updater.restart_soon()
+        return out
+    finally:
+        _update_lock.release()
+
+
+@app.post("/api/update")
+def update_now(user=Depends(current_user)):
+    """화면의 '새 판 확인'. 새 판이 있으면 받아서 다시 켠다. 자료(data/)와 설정(.env)은 그대로다."""
+    return _update_now()
+
+
+def _nightly_update() -> None:
+    """새벽 4시쯤 하루 한 번 새 판을 확인한다. 아무도 안 쓰는 시간에 저절로 새 판이 된다."""
+    import time
+
+    last = ""
+    while True:
+        time.sleep(600)
+        now = datetime.now(TZ)
+        if now.hour == 4 and last != now.date().isoformat() and os.environ.get("MALHAN_AUTO_UPDATE") != "0":
+            last = now.date().isoformat()
+            try:
+                _update_now()
+            except Exception:
+                pass
+
+
+if os.environ.get("MALHAN_NIGHTLY_UPDATE", "1") == "1" and not os.environ.get("PYTEST_CURRENT_TEST"):
+    __import__("threading").Thread(target=_nightly_update, daemon=True).start()
 
 
 # ---------- 입력 처리(받기 → 글 → 추출) ----------

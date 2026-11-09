@@ -5,8 +5,7 @@ from pathlib import Path
 
 import pytest
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "tools"))
-import update  # noqa: E402
+from server import updater as update  # noqa: E402
 
 pytestmark = pytest.mark.skipif(subprocess.run(["git", "--version"], capture_output=True).returncode != 0, reason="git 없음")
 

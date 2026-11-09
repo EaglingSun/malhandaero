@@ -258,3 +258,26 @@ def test_qr_uses_outside_address_when_there_is_one(monkeypatch):
     pc.post("/api/join", json={"name": "주소", "code": "우리집"})
     link = pc.post("/api/link", json={}).json()
     assert link["url"].startswith("http://192.168.0.12:8000/l/") and link["secure"] is False           # PC에서 localhost로 열었어도 폰이 열 수 있는 주소를 준다
+
+
+def test_update_button_pulls_and_schedules_restart(monkeypatch):
+    from server import updater
+
+    join("새판")
+    assert "version" in client.get("/api/me").json()
+    calls = []
+    monkeypatch.setattr(updater, "restart_soon", lambda delay=1.0: calls.append(delay))
+
+    def fake_main(argv):
+        updater.RESULT.update(updated=False, messages=["이미 최신 판이에요 (abc1234)."], log=[], changed=[])
+        return 0
+    monkeypatch.setattr(updater, "main", fake_main)
+    r = client.post("/api/update").json()
+    assert r["restarting"] is False and "최신" in r["messages"][0] and calls == []       # 새 판이 없으면 그대로 돈다
+
+    def fake_main2(argv):
+        updater.RESULT.update(updated=True, before="abc1234", after="def5678", messages=["새 판을 받았어요"], log=["화면 고침"], changed=["web/app.js"])
+        return 0
+    monkeypatch.setattr(updater, "main", fake_main2)
+    r = client.post("/api/update").json()
+    assert r["restarting"] is True and r["log"] == ["화면 고침"] and calls == [1.0]        # 새 판이면 받은 뒤 다시 켠다

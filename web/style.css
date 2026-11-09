@@ -178,3 +178,5 @@ main { padding-bottom: 150px; }
 .item.brief { background: #fffbe8; border-color: #ffeeaa; }
 .clip.one { -webkit-line-clamp: 1; font-size: 13px; }
 button.what[aria-expanded="true"] .clip.one { display: none; }
+.muted { color: var(--muted); font-size: 12px; }
+#update-msg { text-align: center; font-size: 13px; }

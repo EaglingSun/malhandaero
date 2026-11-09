@@ -112,7 +112,28 @@ def main() -> None:
         except Exception:
             pass
     print("  끄려면 이 창을 닫거나 Ctrl+C\n")
-    uvicorn.run("server.app:app", host="0.0.0.0", port=PORT, log_level="warning")
+    serve()
+
+
+def serve() -> None:
+    """서버를 돌리고, 화면의 '새 판 확인'이나 새벽 자동 확인으로 새 판을 받아 끝나면(RESTART_CODE) 새 코드로 다시 켠다."""
+    import subprocess
+
+    from server import updater
+
+    args = [sys.executable, "-m", "uvicorn", "server.app:app", "--host", "0.0.0.0", "--port", str(PORT), "--log-level", "warning"]
+    while True:
+        try:
+            code = subprocess.call(args, cwd=ROOT)
+        except KeyboardInterrupt:
+            return
+        if code != updater.RESTART_CODE:
+            sys.exit(code)
+        try:
+            ver = updater.git("rev-parse", "--short", "HEAD")
+        except Exception:
+            ver = "?"
+        print(f"\n새 판({ver})으로 다시 켭니다…\n", flush=True)
 
 
 if __name__ == "__main__":

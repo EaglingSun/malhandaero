@@ -20,7 +20,7 @@
 
 ### 코드 받는 법
 
-`git clone https://github.com/EaglingSun/malhandaero.git` 한 줄이면 된다. 풀고 나서 `python -m pytest -q`가 40개 통과하면 온전한 것이다.
+`git clone https://github.com/EaglingSun/malhandaero.git` 한 줄이면 된다. 풀고 나서 `python -m pytest -q`가 41개 통과하면 온전한 것이다.
 
 아래는 저장소가 없던 때 쓰던 소스 묶음 푸는 법이다(참고용).
 프로젝트 문서 `claude/malhandaero-src-01.txt` ~ `-07.txt` 일곱 개를 한 폴더에 내려받은 뒤 그 폴더에서 실행한다.
@@ -49,9 +49,9 @@ chmod +x malhandaero/*.sh malhandaero/*.command
 - `server/calsync.py` 캘린더 자동 넣기: 네이버(CalDAV + 애플리케이션 비밀번호), 구글(OAuth)
 - `server/stt.py` 음성 인식(faster-whisper, 선택 설치) · `server/db.py` SQLite와 칸 추가(MIGRATIONS)
 - `web/` 빌드 없는 화면(PWA, 공유 받기) · `tools/install.py`, `tools/run.py` 설치와 실행
-- `tools/update.py` 켜기 전 자동 업데이트: `.git`이 없는 폴더면 먼저 저장소에 연결(adopt: init → fetch → checkout -f; data/·.env는 그대로) → `git fetch` → fast-forward만 → requirements 바뀌면 재설치 → manifest 바뀌면 폰 앱 재설치 안내. 실패해도 켜기는 막지 않는다. `run.sh`/`run.bat`/`켜기.command`가 먼저 부른다
+- `server/updater.py`(+ 얇은 `tools/update.py`) 자동 업데이트: `.git`이 없는 폴더면 먼저 저장소에 연결(adopt: init → fetch → checkout -f; data/·.env는 그대로) → `git fetch` → fast-forward만 → requirements 바뀌면 재설치 → manifest 바뀌면 폰 앱 재설치 안내. 실패해도 켜기는 막지 않는다. 세 곳에서 부른다: ① 켜기 전(`run.sh`/`run.bat`/`켜기.command`) ② 화면 맨 아래 「새 판 확인」(`POST /api/update`) ③ 매일 04시 자동. ②③은 받은 뒤 서버를 `RESTART_CODE(3)`로 끝내고 `tools/run.py`의 감시 루프가 새 코드로 다시 켠다. 자료·설정은 그대로
 - `말한대로 처음 설치.command` 파일 하나로 clone → 설치 → 켜기 (Mac)
-- 시험: `python -m pytest -q` → 40개 통과. AI·네이버·구글은 흉내 서버로, 업데이트는 임시 git 저장소로 시험한다
+- 시험: `python -m pytest -q` → 41개 통과. AI·네이버·구글은 흉내 서버로, 업데이트는 임시 git 저장소로 시험한다
 
 지키는 규칙
 
@@ -80,7 +80,7 @@ chmod +x malhandaero/*.sh malhandaero/*.command
 | 5판의 목록 중심 화면, QR 연결, 더블클릭 실행 | 헤드리스 브라우저와 자동 시험으로만 확인. 실제 기기 의견 아직 없음 |
 | 음성 파일 변환 | 코드만 있음. Mac에 faster-whisper 미설치. 음성 파일을 공유하면 "못 했어요"로 남음 |
 | Windows 설치·실행 | 한 번도 안 돌려 봄 |
-| 자동 업데이트의 '새 판 받기' | 연결·설치는 실제 Mac에서 확인. 새 커밋이 생긴 뒤 켜서 fast-forward가 되는 것은 아직 시험 저장소로만 확인 |
+| 켠 채 새 판 받기(9판) | 샌드박스 e2e(원격에 커밋 → `/api/update` → 새 코드로 재시작)는 통과. **실제 Mac·폰에서 「새 판 확인」 버튼은 미확인** |
 
 ## 5. 다음 할 일 (순서대로)
 
@@ -120,5 +120,6 @@ chmod +x malhandaero/*.sh malhandaero/*.command
 | 4 | 더블클릭 실행(.command), Tailscale 자동, QR 연결(내 기기 / 가족 초대) |
 | 5 | 목록 중심 화면(+ 버튼 뒤에 넣기), https 인증서 묶음, 연결 실패 사유 표시 |
 | 6 | 공유로 받는 파일 종류 확대 |
+| 9 | 켠 채로 새 판 받기: 화면 「새 판 확인」 버튼 + 매일 04시 자동 확인 → 받으면 스스로 다시 켬(`tools/run.py` 감시 루프). 판 번호 표시. updater를 `server/`로 이동 |
 | 8 | 첫 화면에 「들은 이야기 요약」(그날 넣은 회의·통화 요약, 접힌 한 줄 → 누르면 펼침, 넣은 것으로 이동). `/api/day`에 `briefs` |
 | 7 | GitHub 저장소에 올림. 켤 때 자동 업데이트(`tools/update.py`, 압축 폴더 자동 연결 포함), `말한대로 처음 설치.command`, privacy.html, 업데이트 시험 5개 |

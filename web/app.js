@@ -39,6 +39,7 @@
       state.me = me; state.today = me.today; state.date = state.date || me.today;
       $("v-join").hidden = true; $("v-main").hidden = false;
       $("who").textContent = me.name + " 님";
+      $("ver").textContent = me.version ? "판 " + me.version : "";
       var q = new URLSearchParams(location.search).get("shared");
       if (q) { say("in-msg", q === "0" ? "받을 내용이 없었어요." : q + "건 받았어요. 챙길 것을 찾고 있어요."); history.replaceState(null, "", "/"); }
       if (params.get("link") === "ok") { history.replaceState(null, "", "/"); say("in-msg", "이 기기를 연결했어요."); }
@@ -479,6 +480,25 @@
   });
   $("cal-unlink").addEventListener("click", function () {
     api("/api/calendar", { method: "DELETE" }).then(renderCal).catch(function (e) { $("cal-err").textContent = e.message; });
+  });
+
+  /* ---------- 새 판 확인 ---------- */
+  $("btn-update").addEventListener("click", function () {
+    var b = $("btn-update"); b.disabled = true; say("update-msg", "새 판이 있는지 보고 있어요…");
+    api("/api/update", { method: "POST" }).then(function (r) {
+      say("update-msg", (r.messages || []).join("\n"));
+      if (!r.restarting) { b.disabled = false; return; }
+      var was = state.me && state.me.version, tries = 0;
+      say("update-msg", "새 판을 받았어요. 다시 켜는 중… (10초쯤)\n" + (r.log || []).map(function (l) { return "· " + l; }).join("\n"));
+      (function poll() {
+        setTimeout(function () {
+          api("/api/me").then(function (me) {
+            if (me.version && me.version !== was) { location.reload(); return; }
+            if (++tries < 30) poll(); else { say("update-msg", "다시 켜지는 데 시간이 걸려요. 잠시 뒤 새로고침해 주세요.", true); b.disabled = false; }
+          }).catch(function () { if (++tries < 30) poll(); else { say("update-msg", "서버가 다시 켜지지 않았어요. PC의 말한대로 창을 확인해 주세요.", true); b.disabled = false; } });
+        }, 2000);
+      })();
+    }).catch(function (e) { say("update-msg", e.message, true); b.disabled = false; });
   });
 
   /* ---------- 탭 ---------- */
