@@ -164,8 +164,11 @@ def test_meeting_keeps_summary_and_other_peoples_items_recoverable(monkeypatch):
     assert by["회의실 예약하기"]["status"] == "other" and by["회의실 예약하기"]["who"] == "민수"
     assert by["고객사에 일정 알리기"]["status"] == "new" and by["고객사에 일정 알리기"]["owner"] == "unclear"
 
-    new = client.get("/api/day").json()["new"]
+    day = client.get("/api/day").json()
+    new = day["new"]
     assert sorted(i["text"] for i in new) == ["고객사에 일정 알리기", "시험 결과서 검토 의견 보내기"]  # 남의 일은 목록에 안 뜬다
+    assert [b["id"] for b in day["briefs"]] == [iid] and "출시 일정" in day["briefs"][0]["summary"]   # 요약은 첫 화면에도 보인다
+    assert client.get("/api/day", params={"date": "2000-01-01"}).json()["briefs"] == []                # 그날 넣은 것만
     assert client.get("/api/inputs").json()[0]["item_count"] == 2
 
     # '나'를 정해 다시 뽑아도 남의 일은 입력 안에 남아 있고, 내 일로 가져올 수 있다

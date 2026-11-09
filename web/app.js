@@ -199,6 +199,23 @@
       n.appendChild(row); box.appendChild(n);
     });
   }
+  function renderBriefs(list) {
+    /* 회의·통화 요약: 한 줄로 접혀 있고, 누르면 전체가 펼쳐진다 */
+    var ul = $("l-brief"); ul.textContent = "";
+    $("s-brief").hidden = !list.length; $("c-brief").textContent = String(list.length);
+    list.forEach(function (b) {
+      var li = el("li", "item brief"), head = el("div", "head"), more = el("div", "more"); more.hidden = true;
+      var what = btn("", "what", function () { more.hidden = !more.hidden; what.setAttribute("aria-expanded", String(!more.hidden)); });
+      what.setAttribute("aria-expanded", "false");
+      what.appendChild(el("span", "txt", b.title || KIND[b.kind]));
+      what.appendChild(el("span", "msg clip one", b.summary));
+      head.appendChild(what); li.appendChild(head);
+      more.appendChild(el("p", "summary", b.summary));
+      var row = el("div", "row");
+      row.appendChild(btn("넣은 것에서 보기", "", function () { document.querySelector('.tabs button[data-tab="inputs"]').click(); openInput(b.id); }));
+      more.appendChild(row); li.appendChild(more); ul.appendChild(li);
+    });
+  }
   function renderDay(d) {
     state.today = d.today;
     var isToday = d.is_today, past = d.date < d.today;
@@ -215,6 +232,7 @@
     $("btn-sum").hidden = d.date > d.today;
     $("btn-sum").textContent = d.summary ? "다시 정리해 줘" : "정리해 줘";
     renderNeedMe(d.need_me || []);
+    renderBriefs(d.briefs || []);
     $("pending").hidden = !d.pending_inputs;
     $("bulk").hidden = !(isToday && d["new"].length > 1);
     clearTimeout(state.poll);

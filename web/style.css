@@ -173,3 +173,8 @@ button.quick { flex: none; padding: 6px 12px; font-size: 14px; }
 .speak { display: flex; flex-direction: column; gap: 10px; }
 .mic { width: 92px; height: 92px; font-size: 19px; align-self: center; }
 main { padding-bottom: 150px; }
+
+/* 들은 이야기 요약: 접힌 한 줄 */
+.item.brief { background: #fffbe8; border-color: #ffeeaa; }
+.clip.one { -webkit-line-clamp: 1; font-size: 13px; }
+button.what[aria-expanded="true"] .clip.one { display: none; }

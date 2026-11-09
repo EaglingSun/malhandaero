@@ -426,6 +426,11 @@ def day(date_: str | None = Query(None, alias="date"), user=Depends(current_user
             "SELECT id, title, kind, speakers FROM inputs WHERE user_id = ? AND status = 'extracted' AND me_speaker IS NULL AND speakers != '[]' ORDER BY id DESC LIMIT 3",
             uid,
         ) if d == t else []
+        # 이날 넣은 회의·통화의 요약. 첫 화면에 접힌 한 줄로 보여 준다
+        briefs = q(
+            "SELECT id, title, kind, summary FROM inputs WHERE user_id = ? AND received_date = ? AND summary != '' ORDER BY id DESC LIMIT 10",
+            uid, ds,
+        )
     return {
         "date": ds,
         "today": t.isoformat(),
@@ -437,6 +442,7 @@ def day(date_: str | None = Query(None, alias="date"), user=Depends(current_user
         "summary": log["summary"] if log else "",
         "pending_inputs": pending,
         "need_me": [{"id": r["id"], "title": r["title"], "kind": r["kind"], "speakers": json.loads(r["speakers"])} for r in need_me],
+        "briefs": [dict(r) for r in briefs],
     }
 
 
