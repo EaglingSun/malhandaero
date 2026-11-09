@@ -1,0 +1,9 @@
+fastapi>=0.115
+uvicorn[standard]>=0.30
+python-multipart>=0.0.9
+anthropic>=0.40
+pillow>=10
+certifi>=2024.2.2        # https 인증서 묶음 (Mac의 python.org 판에는 기본 인증서가 없다)
+segno>=1.6               # QR 그리기
+tzdata>=2024.1          # Windows에는 시간대 자료가 없어서 필요
+# 녹음 파일을 글로 바꾸려면(선택): pip install faster-whisper

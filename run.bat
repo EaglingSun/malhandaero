@@ -1,0 +1,17 @@
+@echo off
+rem malhandaero run (Windows). Pulls the latest version, installs if needed, then starts.
+rem   outside home: run.bat --remote      skip update: run.bat --no-update
+cd /d "%~dp0"
+where py >nul 2>nul
+if %errorlevel%==0 (py -3 tools\update.py %*) else (python tools\update.py %*)
+if errorlevel 1 (
+  pause
+  exit /b 1
+)
+if not exist .venv\Scripts\python.exe (
+  echo Run install.bat first.
+  pause
+  exit /b 1
+)
+.venv\Scripts\python.exe tools\run.py %*
+pause

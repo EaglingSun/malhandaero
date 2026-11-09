@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#eaf6ff">
+<title>말한대로</title>
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" href="/icon-192.png">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<main id="app">
+  <!-- 들어오기 -->
+  <section id="v-join" hidden>
+    <h1 class="brand"><mark>말한대로</mark></h1>
+    <p class="lead">말만 하세요. 기억은 제가 할게요.</p>
+    <form id="join-form" class="card">
+      <label for="join-name">이름</label>
+      <input id="join-name" autocomplete="nickname" maxlength="20" required placeholder="예: 엄마">
+      <label for="join-code" id="join-code-label">가족 코드</label>
+      <input id="join-code" autocomplete="off" placeholder="알려 받은 코드">
+      <p class="msg" id="join-invited" hidden>초대를 받았어요. 이름만 정하면 돼요.</p>
+      <button class="primary" type="submit">들어가기</button>
+      <p class="msg err" id="join-msg" role="alert"></p>
+    </form>
+  </section>
+
+  <!-- 본 화면 -->
+  <section id="v-main" hidden>
+    <header class="top">
+      <button class="icon" id="d-prev" type="button" aria-label="전날">‹</button>
+      <div class="date">
+        <strong id="d-label"></strong>
+        <button class="link" id="d-today" type="button" hidden>오늘로</button>
+      </div>
+      <button class="icon" id="d-next" type="button" aria-label="다음 날">›</button>
+    </header>
+    <ol class="week" id="week" aria-label="이번 주"></ol>
+
+    <div id="tab-today">
+      <p class="msg" id="in-msg" role="status" aria-live="polite"></p>
+      <p class="notice" id="pending" hidden>챙길 것을 찾고 있어요. 보통 10~30초 걸려요.</p>
+      <div id="need-me"></div>
+
+      <section aria-labelledby="h-new" id="s-new">
+        <h2 id="h-new">대신 적어 뒀어요 <span class="count" id="c-new">0</span></h2>
+        <div class="row" id="bulk" hidden>
+          <button type="button" class="pick" id="btn-bulk">모두 넣기</button>
+          <span class="msg">날짜가 있으면 그 날짜로, 없으면 오늘로 들어가요.</span>
+        </div>
+        <ul class="list" id="l-new"></ul>
+      </section>
+      <section aria-labelledby="h-todo">
+        <h2 id="h-todo"><span id="t-todo">오늘</span> <span class="count" id="c-todo">0</span></h2>
+        <ul class="list" id="l-todo"></ul>
+      </section>
+      <section aria-labelledby="h-due" id="s-due" hidden>
+        <h2 id="h-due">이날이 기한이에요 <span class="count" id="c-due">0</span></h2>
+        <ul class="list" id="l-due"></ul>
+      </section>
+      <section aria-labelledby="h-done" id="s-done" hidden>
+        <h2 id="h-done">끝낸 일 <span class="count" id="c-done">0</span></h2>
+        <ul class="list" id="l-done"></ul>
+      </section>
+      <section aria-labelledby="h-sum">
+        <h2 id="h-sum">하루 정리</h2>
+        <div class="card">
+          <p class="msg" id="sum-text" role="status" aria-live="polite"></p>
+          <button id="btn-sum" type="button">정리해 줘</button>
+        </div>
+      </section>
+    </div>
+
+    <div id="tab-later" hidden>
+      <h2>나중 <span class="count" id="c-later">0</span></h2>
+      <ul class="list" id="l-later"></ul>
+    </div>
+
+    <div id="tab-inputs" hidden>
+      <div id="inputs-list">
+        <h2>넣은 것</h2>
+        <ul class="list" id="l-inputs"></ul>
+      </div>
+      <div id="input-detail" hidden></div>
+    </div>
+
+    <section id="link-box" class="card" hidden aria-labelledby="h-link">
+      <h2 id="h-link">휴대폰 연결</h2>
+      <div class="row">
+        <button type="button" class="pick" id="link-me">내 휴대폰 연결</button>
+        <button type="button" id="link-family">가족 초대</button>
+      </div>
+      <p class="msg" id="link-msg">QR을 휴대폰 카메라로 찍으면 주소나 코드를 치지 않고 바로 들어와요.</p>
+      <div id="link-qr" class="qr" hidden></div>
+      <p class="msg" id="link-url"></p>
+    </section>
+
+    <section id="cal-box" class="card" hidden aria-labelledby="h-cal">
+      <h2 id="h-cal">캘린더 연결</h2>
+      <p class="msg" id="cal-state"></p>
+      <p class="msg err" id="cal-err" role="alert"></p>
+      <div id="cal-linked" hidden>
+        <label for="cal-mode">캘린더에 자동으로 넣을 일</label>
+        <select id="cal-mode">
+          <option value="timed">시각을 정한 일만</option>
+          <option value="all">날짜가 정해진 모든 일</option>
+        </select>
+        <button type="button" class="danger" id="cal-unlink">연결 끊기</button>
+        <p class="msg">연결을 끊어도 이미 캘린더에 들어간 일정은 그대로 있어요.</p>
+      </div>
+      <div id="cal-choose" hidden>
+        <form id="naver-form" class="card">
+          <strong>네이버 캘린더</strong>
+          <label for="naver-id">네이버 아이디</label>
+          <input id="naver-id" autocomplete="username" required>
+          <label for="naver-pw">애플리케이션 비밀번호</label>
+          <input id="naver-pw" type="password" autocomplete="off" required>
+          <p class="msg">로그인 비밀번호가 아니에요. 네이버 → 내정보 → 보안설정 → 2단계 인증 → 애플리케이션 비밀번호에서 만든 값을 넣어 주세요.</p>
+          <button class="primary small" type="submit">네이버 연결</button>
+        </form>
+        <div class="card">
+          <strong>구글 캘린더</strong>
+          <p class="msg" id="google-hint"></p>
+          <a class="filebtn" id="google-go" href="/api/calendar/google/start" hidden>구글 계정으로 연결</a>
+        </div>
+      </div>
+    </section>
+
+    <p class="foot"><span id="who"></span> · <button class="link" id="btn-link" type="button">휴대폰 연결</button> · <button class="link" id="btn-cal" type="button">캘린더 연결</button> · <button class="link" id="btn-leave" type="button">나가기</button></p>
+
+    <button type="button" class="fab" id="btn-add" aria-haspopup="dialog" aria-expanded="false" aria-label="할 일 넣기">+</button>
+    <div id="sheet" hidden>
+      <div class="sheet-back" id="sheet-back"></div>
+      <div class="sheet-body" role="dialog" aria-modal="true" aria-labelledby="h-sheet">
+        <div class="row between">
+          <h2 id="h-sheet">할 일 넣기</h2>
+          <button type="button" class="ghost" id="sheet-close">닫기</button>
+        </div>
+        <form id="add-form" class="row">
+          <label class="sr" for="add-text">직접 적기</label>
+          <input id="add-text" maxlength="200" placeholder="직접 적기">
+          <button type="submit" class="pick">더하기</button>
+        </form>
+        <p class="msg" id="add-on"></p>
+        <div class="speak" id="capture">
+        <button class="mic" id="btn-mic" type="button">말하기</button>
+        <p class="msg" id="mic-msg" role="status" aria-live="polite">누르고 할 일을 말해 주세요.</p>
+        <div class="row center">
+          <button id="btn-paste" type="button">글 붙여넣기</button>
+          <label class="filebtn" for="photo">사진 찍어 넣기</label>
+          <input id="photo" type="file" accept="image/*" capture="environment">
+          <label class="filebtn" for="file">파일 넣기</label>
+          <input id="file" type="file" multiple>
+        </div>
+        <form id="paste-form" hidden>
+          <label for="paste-kind">어떤 녹음인가요?</label>
+          <select id="paste-kind">
+            <option value="call">통화</option>
+            <option value="meeting">회의</option>
+            <option value="memo">내 메모</option>
+          </select>
+          <label for="paste-text">녹음을 글로 바꾼 내용</label>
+          <textarea id="paste-text" rows="5" required></textarea>
+          <button class="primary small" type="submit">보내기</button>
+        </form>
+        </div>
+      </div>
+    </div>
+
+    <nav class="tabs" aria-label="화면">
+      <button type="button" data-tab="today" class="on">오늘</button>
+      <button type="button" data-tab="later">나중</button>
+      <button type="button" data-tab="inputs">넣은 것</button>
+    </nav>
+  </section>
+</main>
+<script src="/app.js"></script>
+</body>
+</html>
