@@ -49,14 +49,14 @@ chmod +x malhandaero/*.sh malhandaero/*.command
 - `server/calsync.py` 캘린더 자동 넣기: 네이버(CalDAV + 애플리케이션 비밀번호), 구글(OAuth)
 - `server/stt.py` 음성 인식(faster-whisper, 선택 설치) · `server/db.py` SQLite와 칸 추가(MIGRATIONS)
 - `web/` 빌드 없는 화면(PWA, 공유 받기) · `tools/install.py`, `tools/run.py` 설치와 실행
-- `server/updater.py`(+ 얇은 `tools/update.py`) 자동 업데이트: `.git`이 없는 폴더면 먼저 저장소에 연결(adopt: init → fetch → checkout -f; data/·.env는 그대로) → `git fetch` → fast-forward만 → requirements 바뀌면 재설치 → manifest 바뀌면 폰 앱 재설치 안내. 실패해도 켜기는 막지 않는다. 세 곳에서 부른다: ① 켜기 전(`run.sh`/`run.bat`/`켜기.command`) ② 화면 맨 아래 「새 판 확인」(`POST /api/update`) ③ 매일 04시 자동. ②③은 받은 뒤 서버를 `RESTART_CODE(3)`로 끝내고 `tools/run.py`의 감시 루프가 새 코드로 다시 켠다. 자료·설정은 그대로
+- `server/updater.py`(+ 얇은 `tools/update.py`) 자동 업데이트: `.git`이 없는 폴더면 먼저 저장소에 연결(adopt: init → fetch → checkout -f; data/·.env는 그대로) → `git fetch` → fast-forward만 → requirements 바뀌면 재설치 → manifest 바뀌면 폰 앱 재설치 안내. 실패해도 켜기는 막지 않는다. 세 곳에서 부른다: ① 켜기 전(`run.sh`/`run.bat`/`켜기.command`) ② 화면 맨 아래 「업데이트」(`POST /api/update`) ③ 매일 04시 자동. ②③은 받은 뒤 서버를 `RESTART_CODE(3)`로 끝내고 `tools/run.py`의 감시 루프가 새 코드로 다시 켠다. 자료·설정은 그대로
 - `말한대로 처음 설치.command` 파일 하나로 clone → 설치 → 켜기 (Mac)
 - 시험: `python -m pytest -q` → 41개 통과. AI·네이버·구글은 흉내 서버로, 업데이트는 임시 git 저장소로 시험한다
 
 지키는 규칙
 
 - 사람이 하는 일은 말하기·고르기·체크뿐. 캘린더 등 바깥 연결이 실패해도 할 일 저장은 막지 않는다.
-- 화면과 안내 문구는 쉬운 한국어. 못 한 일은 "못 했어요 + 사유"로 화면에 남긴다.
+- 화면과 안내 문구는 쉬운 한국어. 단, '업데이트'·'버전'처럼 누구나 아는 외래어는 억지로 바꾸지 않는다('새 판'은 어색하다는 의견). 못 한 일은 "못 했어요 + 사유"로 화면에 남긴다.
 - 음성·사진 원본은 글로 바꾼 뒤 지운다. DB 칸을 더할 때는 `db.MIGRATIONS`에 적는다(사용자가 이미 자료를 쌓고 있다).
 - 커밋 메시지 끝에 Claude 공동 저자 줄을 붙인다.
 
@@ -79,7 +79,7 @@ chmod +x malhandaero/*.sh malhandaero/*.command
 | 5판의 목록 중심 화면, QR 연결, 더블클릭 실행 | 헤드리스 브라우저와 자동 시험으로만 확인. 실제 기기 의견 아직 없음 |
 | 음성 파일 변환 | 코드만 있음. Mac에 faster-whisper 미설치. 음성 파일을 공유하면 "못 했어요"로 남음 |
 | Windows 설치·실행 | 한 번도 안 돌려 봄 |
-| 켠 채 새 판 받기(9판) | 샌드박스 e2e(원격에 커밋 → `/api/update` → 새 코드로 재시작)는 통과. **실제 Mac·폰에서 「새 판 확인」 버튼은 미확인** |
+| 켠 채 새 판 받기(9판) | 샌드박스 e2e(원격에 커밋 → `/api/update` → 새 코드로 재시작)는 통과. 폰에서 「업데이트」 버튼으로 9→10판 적용 확인(11/10 08:40) |
 
 ## 5. 다음 할 일 (순서대로)
 
@@ -119,6 +119,7 @@ chmod +x malhandaero/*.sh malhandaero/*.command
 | 4 | 더블클릭 실행(.command), Tailscale 자동, QR 연결(내 기기 / 가족 초대) |
 | 5 | 목록 중심 화면(+ 버튼 뒤에 넣기), https 인증서 묶음, 연결 실패 사유 표시 |
 | 6 | 공유로 받는 파일 종류 확대 |
+| 11 | 문구: '새 판' → '업데이트'/'버전' (사용자 의견: '새 판 확인'이 어색함) |
 | 10 | 사용자 의견: 요약을 줄글 → 항목 목록('- ' 줄, 예전 줄글은 화면에서 문장 단위로 나눔). 「들은 이야기」를 할 일 목록 아래·하루 정리 위로 옮기고 제목만 한 줄씩 |
 | 9 | 켠 채로 새 판 받기: 화면 「새 판 확인」 버튼 + 매일 04시 자동 확인 → 받으면 스스로 다시 켬(`tools/run.py` 감시 루프). 판 번호 표시. updater를 `server/`로 이동 |
 | 8 | 첫 화면에 「들은 이야기 요약」(그날 넣은 회의·통화 요약, 접힌 한 줄 → 누르면 펼침, 넣은 것으로 이동). `/api/day`에 `briefs` |

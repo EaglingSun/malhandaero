@@ -39,7 +39,7 @@
       state.me = me; state.today = me.today; state.date = state.date || me.today;
       $("v-join").hidden = true; $("v-main").hidden = false;
       $("who").textContent = me.name + " 님";
-      $("ver").textContent = me.version ? "판 " + me.version : "";
+      $("ver").textContent = me.version ? "버전 " + me.version : "";
       var q = new URLSearchParams(location.search).get("shared");
       if (q) { say("in-msg", q === "0" ? "받을 내용이 없었어요." : q + "건 받았어요. 챙길 것을 찾고 있어요."); history.replaceState(null, "", "/"); }
       if (params.get("link") === "ok") { history.replaceState(null, "", "/"); say("in-msg", "이 기기를 연결했어요."); }
@@ -201,7 +201,7 @@
     });
   }
   function bullets(text) {
-    /* 요약을 목록으로. 새 판은 '- ' 줄로 오고, 예전 줄글은 문장 단위로 나눈다 */
+    /* 요약을 목록으로. 새 버전은 '- ' 줄로 오고, 예전 줄글은 문장 단위로 나눈다 */
     var lines = (text || "").split(/\n+/).map(function (l) { return l.replace(/^\s*[-•·*]\s*/, "").trim(); }).filter(Boolean);
     if (lines.length <= 1) lines = (text || "").split(/(?<=[.!?。])\s+/).map(function (l) { return l.trim(); }).filter(Boolean);
     var ul = el("ul", "bullets");
@@ -490,14 +490,14 @@
     api("/api/calendar", { method: "DELETE" }).then(renderCal).catch(function (e) { $("cal-err").textContent = e.message; });
   });
 
-  /* ---------- 새 판 확인 ---------- */
+  /* ---------- 업데이트 ---------- */
   $("btn-update").addEventListener("click", function () {
-    var b = $("btn-update"); b.disabled = true; say("update-msg", "새 판이 있는지 보고 있어요…");
+    var b = $("btn-update"); b.disabled = true; say("update-msg", "업데이트가 있는지 보고 있어요…");
     api("/api/update", { method: "POST" }).then(function (r) {
       say("update-msg", (r.messages || []).join("\n"));
       if (!r.restarting) { b.disabled = false; return; }
       var was = state.me && state.me.version, tries = 0;
-      say("update-msg", "새 판을 받았어요. 다시 켜는 중… (10초쯤)\n" + (r.log || []).map(function (l) { return "· " + l; }).join("\n"));
+      say("update-msg", "업데이트했어요. 다시 켜는 중… (10초쯤)\n" + (r.log || []).map(function (l) { return "· " + l; }).join("\n"));
       (function poll() {
         setTimeout(function () {
           api("/api/me").then(function (me) {

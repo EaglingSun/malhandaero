@@ -40,7 +40,7 @@ def test_pulls_new_version_and_tells_what_changed(repos, capsys, monkeypatch):
     monkeypatch.setattr(update, "install", lambda: installed.append(1))
     assert update.main([]) == 0
     out = capsys.readouterr().out
-    assert "새 판을 받았어요" in out and "화면 고침" in out and "새로고침" in out
+    assert "업데이트했어요" in out and "화면 고침" in out and "새로고침" in out
     assert sh(mine, "rev-parse", "HEAD") == sh(work, "rev-parse", "HEAD")
     assert installed == []                                             # requirements가 그대로면 설치는 안 한다
 
@@ -57,7 +57,7 @@ def test_reinstalls_when_requirements_change_and_warns_about_manifest(repos, cap
 
 def test_up_to_date_offline_dirty_and_off_never_block_start(repos, capsys, monkeypatch):
     origin, work, mine = repos
-    assert update.main([]) == 0 and "이미 최신 판" in capsys.readouterr().out
+    assert update.main([]) == 0 and "지금이 최신" in capsys.readouterr().out
     (mine / "requirements.txt").write_text("내가 고침\n")                              # 직접 고친 파일은 덮어쓰지 않는다
     assert update.main([]) == 0 and "덮어쓰지 않고" in capsys.readouterr().out
     sh(mine, "checkout", "-q", "--", "requirements.txt")
@@ -79,7 +79,7 @@ def test_plain_folder_gets_adopted_into_the_repo_keeping_data(repos, capsys, mon
     assert (plain / "web" / "app.js").read_text() == "1"                                # 추적 파일은 저장소 판으로
     assert (plain / ".env").read_text() == "MALHAN_FAMILY_CODE=1234\n" and (plain / "data" / "malhandaero.db").read_bytes() == b"db"
     assert sh(plain, "status", "--porcelain", "--untracked-files=no") == "" and sh(plain, "rev-parse", "--abbrev-ref", "@{u}") == "origin/main"
-    assert update.main([]) == 0 and "이미 최신 판" in capsys.readouterr().out             # 두 번째부터는 보통 흐름
+    assert update.main([]) == 0 and "지금이 최신" in capsys.readouterr().out             # 두 번째부터는 보통 흐름
 
 
 def test_adopt_failure_leaves_no_half_repo(capsys, monkeypatch, tmp_path):

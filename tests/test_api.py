@@ -269,15 +269,15 @@ def test_update_button_pulls_and_schedules_restart(monkeypatch):
     monkeypatch.setattr(updater, "restart_soon", lambda delay=1.0: calls.append(delay))
 
     def fake_main(argv):
-        updater.RESULT.update(updated=False, messages=["이미 최신 판이에요 (abc1234)."], log=[], changed=[])
+        updater.RESULT.update(updated=False, messages=["지금이 최신이에요 (abc1234)."], log=[], changed=[])
         return 0
     monkeypatch.setattr(updater, "main", fake_main)
     r = client.post("/api/update").json()
-    assert r["restarting"] is False and "최신" in r["messages"][0] and calls == []       # 새 판이 없으면 그대로 돈다
+    assert r["restarting"] is False and "최신" in r["messages"][0] and calls == []       # 업데이트가 없으면 그대로 돈다
 
     def fake_main2(argv):
-        updater.RESULT.update(updated=True, before="abc1234", after="def5678", messages=["새 판을 받았어요"], log=["화면 고침"], changed=["web/app.js"])
+        updater.RESULT.update(updated=True, before="abc1234", after="def5678", messages=["업데이트했어요"], log=["화면 고침"], changed=["web/app.js"])
         return 0
     monkeypatch.setattr(updater, "main", fake_main2)
     r = client.post("/api/update").json()
-    assert r["restarting"] is True and r["log"] == ["화면 고침"] and calls == [1.0]        # 새 판이면 받은 뒤 다시 켠다
+    assert r["restarting"] is True and r["log"] == ["화면 고침"] and calls == [1.0]        # 업데이트면 받은 뒤 다시 켠다

@@ -26,7 +26,7 @@
 ## 설치와 실행
 
 [INSTALL.md](INSTALL.md)를 따라 하면 됩니다. 요약하면 `git clone` → `install.bat` → `run.bat` → `http://localhost:8000` 입니다.
-Mac은 `말한대로 처음 설치.command` 하나로 받기·설치·켜기를 한 번에 합니다. 켤 때마다 저장소의 새 판을 알아서 받아 설치한 뒤 켭니다.
+Mac은 `말한대로 처음 설치.command` 하나로 받기·설치·켜기를 한 번에 합니다. 켤 때마다 저장소의 업데이트를 알아서 받아 설치한 뒤 켭니다.
 
 AI 연결은 세 가지입니다(`server/llm.py`). `.env`의 `MALHAN_AI`로 고정하거나, 비워 두면 되는 것을 고릅니다.
 
@@ -68,4 +68,4 @@ python -m pytest -q
 | `server/llm.py` | AI 호출 (모델을 바꿀 때 이 파일만) |
 | `server/stt.py` | 음성 인식 (엔진을 바꿀 때 이 파일만) |
 | `web/` | 화면 (빌드 단계 없음) |
-| `server/updater.py` | 새 판 받기(git fast-forward) → 필요 시 재설치. 켜기 전(`tools/update.py`), 화면의 '새 판 확인', 새벽 자동 확인이 부른다 |
+| `server/updater.py` | 업데이트(git fast-forward) → 필요 시 재설치. 켜기 전(`tools/update.py`), 화면의 '업데이트', 새벽 자동 확인이 부른다 |

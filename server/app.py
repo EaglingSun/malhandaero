@@ -187,7 +187,7 @@ def me(user=Depends(current_user)):
     }
 
 
-# ---------- 새 판 ----------
+# ---------- 업데이트 ----------
 def _version() -> str:
     try:
         return updater.git("rev-parse", "--short", "HEAD")
@@ -199,7 +199,7 @@ _update_lock = __import__("threading").Lock()
 
 
 def _update_now() -> dict:
-    """새 판을 받아 온다. 받았으면 잠시 뒤 서버를 끝내고 run.py가 새 판으로 다시 켠다."""
+    """업데이트를 받아 온다. 받았으면 잠시 뒤 서버를 끝내고 run.py가 새 버전으로 다시 켠다."""
     if not _update_lock.acquire(blocking=False):
         return {"busy": True, "messages": ["이미 확인하는 중이에요."]}
     try:
@@ -215,12 +215,12 @@ def _update_now() -> dict:
 
 @app.post("/api/update")
 def update_now(user=Depends(current_user)):
-    """화면의 '새 판 확인'. 새 판이 있으면 받아서 다시 켠다. 자료(data/)와 설정(.env)은 그대로다."""
+    """화면의 '업데이트'. 업데이트가 있으면 받아서 다시 켠다. 자료(data/)와 설정(.env)은 그대로다."""
     return _update_now()
 
 
 def _nightly_update() -> None:
-    """새벽 4시쯤 하루 한 번 새 판을 확인한다. 아무도 안 쓰는 시간에 저절로 새 판이 된다."""
+    """새벽 4시쯤 하루 한 번 업데이트를 확인한다. 아무도 안 쓰는 시간에 저절로 새 버전이 된다."""
     import time
 
     last = ""
