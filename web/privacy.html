@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>말한대로 개인정보처리방침</title>
+<link rel="icon" href="/icon-192.png">
+<style>
+  :root {
+    --sky: #eaf6ff; --paper: #ffffff; --ink: #223244; --muted: #64788c; --line: #dce8f2; --mint: #12b58a;
+    --font: "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", system-ui, sans-serif;
+    color-scheme: light;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body { background: linear-gradient(var(--sky), var(--paper) 420px) var(--paper); color: var(--ink); font-family: var(--font); font-size: 17px; line-height: 1.65; }
+  main { max-width: 720px; margin: 0 auto; padding: 32px 16px 64px; }
+  h1 { font-size: 1.6rem; margin: 0 0 4px; }
+  h2 { font-size: 1.15rem; margin: 32px 0 8px; padding-top: 16px; border-top: 1px solid var(--line); }
+  p, li { margin: 6px 0; }
+  ul { padding-left: 1.2em; }
+  .muted { color: var(--muted); font-size: .95rem; }
+  a { color: var(--mint); }
+</style>
+</head>
+<body>
+<main>
+  <h1>말한대로 개인정보처리방침</h1>
+  <p class="muted">시행일 2026년 11월 10일</p>
+
+  <p>말한대로는 가족이 집 PC에 직접 설치해 쓰는 개인용 할 일 앱입니다. 통화·회의 녹음, 말로 한 메모, 사진에서 내가 챙길 일을 뽑아 날짜별로 정리합니다.
+    PC 주인이 자기 PC에서 실행하며, 같은 Tailscale 네트워크에 들어온 가족 기기에서만 열립니다.</p>
+
+  <h2>1. 다루는 정보</h2>
+  <ul>
+    <li>들어올 때 적은 이름</li>
+    <li>넣은 글, 녹음을 글로 바꾼 내용, 사진에서 읽은 내용 (사진과 녹음 파일은 글로 옮긴 뒤 지웁니다)</li>
+    <li>뽑힌 할 일과 그 날짜·시각, 하루 정리</li>
+    <li>캘린더를 연결한 경우: 네이버 아이디와 애플리케이션 비밀번호, 또는 구글 연결 값(리프레시 토큰)</li>
+  </ul>
+
+  <h2>2. 보관 장소</h2>
+  <p>모든 정보는 말한대로를 실행하는 PC의 <code>data/</code> 폴더에만 저장됩니다. 따로 운영하는 바깥 서버는 없습니다.</p>
+
+  <h2>3. 바깥으로 보내는 정보</h2>
+  <ul>
+    <li><b>Anthropic(Claude)</b>: 할 일을 뽑고 요약하기 위해 넣은 글과 사진을 보냅니다.</li>
+    <li><b>구글 캘린더</b>(연결한 경우만): 고른 할 일의 제목, 날짜, 시각, 근거 문장을 내 기본 캘린더에 일정으로 넣고, 고치거나 지웁니다.</li>
+    <li><b>네이버 캘린더</b>(연결한 경우만): 위와 같습니다.</li>
+  </ul>
+  <p>광고에 쓰거나, 팔거나, 위에 적지 않은 곳에 넘기지 않습니다.</p>
+
+  <h2>4. 구글 사용자 데이터</h2>
+  <ul>
+    <li>요청하는 권한은 <code>https://www.googleapis.com/auth/calendar.events</code> 하나입니다.</li>
+    <li>이 권한으로 말한대로가 만든 일정만 만들고, 고치고, 지웁니다. 캘린더의 다른 일정은 읽거나 보관하지 않습니다.</li>
+    <li>구글에서 받은 연결 값은 이 PC의 <code>data/</code> 폴더에만 저장하고, 캘린더에 일정을 넣는 데에만 씁니다.</li>
+    <li>말한대로가 구글 API에서 받은 정보를 쓰고 다른 앱으로 옮기는 것은 제한적 사용(Limited Use) 요건을 포함한
+      <a href="https://developers.google.com/terms/api-services-user-data-policy" rel="noopener">Google API 서비스 사용자 데이터 정책</a>을 따릅니다.</li>
+  </ul>
+
+  <h2>5. 지우기와 연결 끊기</h2>
+  <ul>
+    <li>할 일: 목록에서 <b>지우기</b>를 누릅니다.</li>
+    <li>넣은 글·녹음: <b>넣은 것</b> 탭에서 항목을 열고 <b>이 녹음 지우기</b>를 누릅니다.</li>
+    <li>캘린더 연결: 화면 아래 <b>캘린더 연결 → 연결 끊기</b>를 누릅니다. 구글 쪽 권한까지 거두려면
+      <a href="https://myaccount.google.com/permissions" rel="noopener">구글 계정의 서드파티 연결</a>에서 말한대로를 삭제합니다.</li>
+    <li>모든 정보를 지우려면 PC 주인에게 요청합니다. <code>data/</code> 폴더를 지우면 모두 사라집니다.</li>
+  </ul>
+
+  <h2>6. 문의</h2>
+  <p><a href="mailto:basilis1120@gmail.com">basilis1120@gmail.com</a></p>
+
+  <p class="muted" style="margin-top:40px"><a href="/">말한대로로 돌아가기</a></p>
+</main>
+</body>
+</html>
