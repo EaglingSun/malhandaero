@@ -42,7 +42,7 @@ Claude Code가 없으면 AI 없이 할 일 관리 앱으로 돌아가요. **다�
 
 ## 더 알아보기
 
-- [docs/START.md](docs/START.md) — 한 장 안내 (설치 → 폰 → 캘린더 → 막히면)
+- [docs/START.md](docs/START.md) — 5단계 시작 안내 (그림 포함 한 파일: `docs/START.html`, 앱 바닥 「시작 안내」)
 - [INSTALL.md](INSTALL.md) — 자세한 설치, 집 밖에서 쓰기(Tailscale), 가족·팀원 폰 들이기, 안 될 때
 - [docs/DESIGN.md](docs/DESIGN.md) — 설계 · [CLAUDE.md](CLAUDE.md) — Claude Code로 고치거나 더할 때
 

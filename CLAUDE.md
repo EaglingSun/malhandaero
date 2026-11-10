@@ -36,3 +36,4 @@ AI는 이 PC의 Claude Code(`claude -p`)를 부른다. 자료는 전부 `data/`(
 ## 하지 않을 것
 - 공용 서버에 한 사람의 Claude Code 로그인으로 여러 명이 쓰게 하는 구조. 각자 PC·각자 로그인이 전제다.
 - 음성·사진 원본을 남기는 것. 글로 바꾼 뒤 지운다.
+8. `docs/START.md`를 고치면 `python tools/build_start_html.py`로 `docs/START.html`(그림 포함 한 파일)도 다시 만든다. 앱의 `/start`와 릴리스 첨부가 이 파일이다.

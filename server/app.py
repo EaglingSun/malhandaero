@@ -1353,6 +1353,15 @@ def help_prompt(topic: str, request: Request, user=Depends(current_user)):
     return {"topic": topic, "text": text}
 
 
+@app.get("/start")
+def start_guide():
+    """시작 안내(docs/START.html, 그림 포함). 앱 바닥의 「시작 안내」가 연다."""
+    p = ROOT / "docs" / "START.html"
+    if not p.exists():
+        return HTMLResponse("<p>시작 안내 파일이 없어요. docs/START.md를 보세요.</p>", status_code=404)
+    return FileResponse(p, media_type="text/html", headers={"Cache-Control": "no-cache"})
+
+
 @app.get("/manifest.webmanifest")
 def manifest():
     """앱 이름에 서버 이름을 붙여 낸다. 이름이 바뀌면 폰에서 앱을 다시 설치해야 반영된다."""
