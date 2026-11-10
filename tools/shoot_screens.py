@@ -55,7 +55,7 @@ def seed(data_dir: Path) -> None:
     items = [
         # text, scope, status, plan_date, done_at, input_id, owner, who, due_text, cal_ref
         ("교육생 공유 자료 전달하기", "회사", "todo", D, None, ids[4], "me", "", "", None),
-        ("공모전 출품하기", "개인", "todo", D, None, None, "me", "", "", None),
+        ("공모전 출품하기", "개인", "todo", (TODAY - timedelta(days=1)).isoformat(), None, None, "me", "", "", None),   # 어제에서 넘어옴
         ("시나리오 목록 초안 공유하기", "회사", "todo", (TODAY + timedelta(days=3)).isoformat(), None, ids[0], "me", "", "금요일까지", None),
         ("일정표 갱신해 공지하기", "회사", "other", None, None, ids[0], "other", "무당이", "", None),
         ("외부 자료 도착 시점 확인해 알려 주기", "회사", "other", None, None, ids[0], "other", "슈구리", "이번 주", None),
