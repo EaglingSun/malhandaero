@@ -491,7 +491,10 @@
   $("btn-mic").addEventListener("click", function () {
     if (mic.on) { if (mic.rec) mic.rec.stop(); else if (mic.media) mic.media.stop(); return; }
     if (!window.isSecureContext) {
-      say("mic-msg", "말하기는 https 주소로 열었을 때만 돼요. 지금 주소에서는 글 붙여넣기나 사진을 써 주세요.", true); return;
+      var isChrome = /Chrome\//.test(navigator.userAgent) && !/SamsungBrowser|EdgA|OPR|Whale|NAVER|KAKAOTALK|FB_IAB|Instagram/i.test(navigator.userAgent);
+      say("mic-msg", isChrome
+        ? "이 주소에서 말하기를 쓰려면 아래 「앱으로 설치하기」에서 주소를 예외로 등록해 주세요 (한 번만). 설치한 앱에서는 바로 돼요."
+        : "말하기는 폰 Chrome으로 열어 「앱으로 설치하기」를 하면 돼요. 이 브라우저에서는 글 붙여넣기나 사진을 써 주세요.", true); return;
     }
     mic.on = true; mic.rec = null; mic.media = null;
     $("btn-mic").classList.add("rec"); micLabel("다 말했어요", "듣고 있어요…"); say("mic-msg", "듣고 있어요…");
