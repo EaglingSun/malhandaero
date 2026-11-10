@@ -120,8 +120,20 @@ def main() -> None:
             segno.make(best, error="m").terminal(compact=True, border=1)
         except Exception:
             pass
+    if not _autostart_registered():
+        print("  PC를 켤 때 알아서 켜지게 하려면: " + ("바탕 화면의 「말한대로 자동 시작」" if os.name == "nt" else "autostart-on.command") + " 한 번 더블클릭")
     print("  끄려면 이 창을 닫거나 Ctrl+C\n")
     serve()
+
+
+def _autostart_registered() -> bool:
+    """로그인 시 자동 시작이 이미 등록돼 있는지 (tools/autostart.py와 같은 위치를 본다)."""
+    from pathlib import Path
+    if os.name == "nt":
+        return (Path(os.environ.get("APPDATA", "")) / "Microsoft" / "Windows" / "Start Menu" / "Programs" / "Startup" / "말한대로.bat").exists()
+    if sys.platform == "darwin":
+        return (Path.home() / "Library" / "LaunchAgents" / "com.malhandaero.server.plist").exists()
+    return True
 
 
 def _open_browser_when_ready(port_free) -> None:
