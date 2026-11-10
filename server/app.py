@@ -603,7 +603,11 @@ def day(date_: str | None = Query(None, alias="date"), user=Depends(current_user
             todo = q("SELECT * FROM items WHERE user_id = ? AND status = 'todo' AND plan_date = ? ORDER BY (plan_time IS NULL), plan_time, id", uid, ds)
             new = []
         done = q("SELECT * FROM items WHERE user_id = ? AND status = 'done' AND done_at = ? ORDER BY updated_at", uid, ds)
+        # 오늘 화면에선 '대신 적어 뒀어요'에 이미 보이는 새 항목을 '기한' 칸에 또 보이지 않게
         due = q("SELECT * FROM items WHERE user_id = ? AND status IN ('new','later') AND due_date = ? ORDER BY id", uid, ds)
+        if new:
+            shown = {r["id"] for r in new}
+            due = [r for r in due if r["id"] not in shown]
         log = con.execute("SELECT summary, note, mood FROM day_logs WHERE user_id = ? AND date = ?", (uid, ds)).fetchone()
         pending_rows = con.execute(
             "SELECT id, title, kind, status, length(transcript) AS chars, created_at FROM inputs WHERE user_id = ? AND status IN ('received','transcribing','ready','extracting') ORDER BY id",
