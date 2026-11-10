@@ -46,7 +46,7 @@ hr { border:0; height:0; margin:0 }
 <td>1분</td>
 </tr>
 <tr>
-<td>⑤ 집 밖에서도 쓰기 (선택)</td>
+<td>⑤ 회사 밖에서도 쓰기 (선택)</td>
 <td>PC + 폰</td>
 <td>5분</td>
 </tr>
@@ -135,8 +135,8 @@ hr { border:0; height:0; margin:0 }
 </table>
 <p>할 일마다 <strong>오늘 · 나중 · 안 함</strong> 중 하나만 누르면 돼요. 못 끝낸 일은 다음 날로 넘어가요. 하루를 마칠 땐 「오늘은 여기까지」를 누르고, 지난날은 「달력」에서 봐요.</p>
 <hr />
-<h2 id="⑤-집-밖에서도-쓰기--tailscale-5분-선택">⑤ 집 밖에서도 쓰기 — Tailscale, 5분 (선택)</h2>
-<p>③은 같은 와이파이에서만 돼요. 밖에서도 쓰려면 Tailscale(무료)로 PC와 폰을 연결해요. 내 기기끼리만 연결돼요.</p>
+<h2 id="⑤-회사-밖에서도-쓰기--tailscale-5분-선택">⑤ 회사 밖에서도 쓰기 — Tailscale, 5분 (선택)</h2>
+<p>③은 같은 와이파이에서만 돼요. 퇴근 뒤나 출장지에서도 쓰려면 Tailscale(무료)로 PC와 폰을 연결해요. 내 기기끼리만 연결돼요.</p>
 <ol>
 <li><a href="https://tailscale.com/download">tailscale.com/download</a>에서 <strong>PC와 폰에 설치</strong>하고 <strong>같은 계정</strong>(구글 등)으로 로그인. Windows는 <code>winget install --id Tailscale.Tailscale -e</code>, Mac은 App Store.</li>
 <li>처음 한 번: <a href="https://login.tailscale.com/admin/dns">login.tailscale.com/admin/dns</a>에서 <strong>MagicDNS</strong>와 <strong>HTTPS Certificates</strong>를 켜요.</li>
@@ -144,25 +144,26 @@ hr { border:0; height:0; margin:0 }
 <li>폰(Tailscale 켠 상태)에서 그 주소로 들어가 「앱으로 설치하기」. https라 플래그 없이 바로 설치돼요.</li>
 </ol>
 <p><strong>됐는지 확인</strong>: 와이파이를 끄고 LTE로 그 주소가 열리면 잘 된 거예요.</p>
-<p>막히면 앱 맨 아래 「휴대폰에서 쓰기」(폰에서는 「앱으로 설치하기」)를 열고 「가족·팀과 같이 쓰기」에서 <strong>도우미 글 복사</strong>를 눌러, 복사한 글을 Claude나 ChatGPT에 붙여넣어요. 가족·팀원 폰은 <a href="#가족팀원-폰-들이기">가족·팀원 폰 들이기</a>를 보세요.</p>
+<p>막히면 앱 맨 아래 「휴대폰에서 쓰기」(폰에서는 「앱으로 설치하기」)를 열고 「다른 사람과 같이 쓰기」에서 <strong>도우미 글 복사</strong>를 눌러, 복사한 글을 Claude나 ChatGPT에 붙여넣어요. 팀원·가족 폰은 <a href="#같이-쓸-사람-폰-연결하기">같이 쓸 사람 폰 연결하기</a>를 보세요.</p>
 <hr />
 <h1 id="더-자세히">더 자세히</h1>
-<h2 id="집-밖에서-쓸-때-지킬-것">집 밖에서 쓸 때 지킬 것</h2>
+<h2 id="밖에서-쓸-때-지킬-것">밖에서 쓸 때 지킬 것</h2>
 <ul>
-<li>PC가 켜져 있고 말한대로가 떠 있어야 해요. 회사 PC를 퇴근 때 끄면 그동안은 안 열려요. 집 PC에 설치하거나, 「자동 시작」을 등록하고 PC를 켜 두세요.</li>
+<li>PC가 켜져 있고 말한대로가 떠 있어야 해요. 회사 PC를 퇴근 때 끄면 그동안은 안 열려요. 늘 켜 둘 수 있는 컴퓨터에 설치하거나, 「자동 시작」을 등록하고 끄지 마세요.</li>
 <li>Mac은 덮개를 닫으면 잠들어요. 시스템 설정 → 배터리 → 전원 어댑터에서 "디스플레이가 꺼져 있을 때 자동으로 잠자기 방지"를 켜요. Windows는 설정 → 시스템 → 전원의 절전을 "안 함"으로 해요.</li>
-<li>켤 때 집 밖 주소를 열지 않으려면 <code>tools\run.bat --local</code>(Mac <code>tools/run.sh --local</code>)로 켜요. 전에 열어 둔 주소는 남아 있으니, 닫으려면 PC의 Tailscale을 꺼요.</li>
+<li>밖에서 쓰는 주소를 만들지 않으려면 <code>tools\run.bat --local</code>(Mac <code>tools/run.sh --local</code>)로 켜요. 전에 열어 둔 주소도 같이 닫혀요(이 PC의 Tailscale serve 설정이 모두 지워져요. 말한대로만 쓰고 있다면 상관없어요).</li>
 </ul>
-<h2 id="가족팀원-폰-들이기">가족·팀원 폰 들이기</h2>
-<p>같은 와이파이에서만 쓸 사람은 Tailscale 없이: 앱의 「휴대폰에서 쓰기 → 가족·팀과 같이 쓰기 → 같은 와이파이용 QR」을 찍으면 이름만 정하고 들어와요(목록은 사람마다 따로).</p>
-<p>집 밖에서도 쓰게 하려면 그 사람 폰이 내 Tailscale 네트워크에 들어와야 해요. 둘 중 하나:</p>
+<h2 id="같이-쓸-사람-폰-연결하기">같이 쓸 사람 폰 연결하기</h2>
+<p>팀원이나 가족과 같이 쓸 수 있어요. 목록은 사람마다 따로예요.</p>
+<p>같은 와이파이에서만 쓸 사람은 Tailscale 없이: 앱의 「휴대폰에서 쓰기 → 다른 사람과 같이 쓰기 → 같은 와이파이용 QR」을 찍으면 이름만 정하고 들어와요.</p>
+<p>밖에서도 쓰게 하려면 그 사람 폰이 내 Tailscale 네트워크에 들어와야 해요. 둘 중 하나:</p>
 <ul>
-<li><strong>같이 사는 가족 — 같은 계정으로</strong>: 가족 폰에 Tailscale 앱을 깔고 <strong>내 계정</strong>으로 로그인. 가장 간단해요.</li>
+<li><strong>내 계정을 같이 써도 되는 사람</strong>: 그 폰에 Tailscale 앱을 깔고 내 계정으로 로그인. 가장 간단해요.</li>
 <li><strong>따로 계정을 쓰는 사람 — 초대</strong>: <a href="https://login.tailscale.com/admin/users">login.tailscale.com/admin/users</a> → <strong>Invite external users</strong> → 초대 링크를 카카오톡 등으로 보내요. 받은 사람은 링크를 열어 본인 계정으로 수락 → 폰에 Tailscale 설치 → 그 계정으로 로그인 → 연결 켜기. 그 사람 폰의 Tailscale 기기 목록에 내 PC 이름이 보이면 된 거예요.</li>
 </ul>
-<p>그다음 앱의 「가족·팀과 같이 쓰기 → 초대 QR」을 찍으면 이름만 정하고 들어와요. 로그인 코드는 「들어올 때 쓰는 코드 바꾸기」에서 바꿀 수 있어요.</p>
+<p>그다음 앱의 「다른 사람과 같이 쓰기 → 초대 QR」을 찍으면 이름만 정하고 들어와요. 로그인 코드는 「들어올 때 쓰는 코드 바꾸기」에서 바꿀 수 있어요.</p>
 <blockquote>
-<p>주의: 한 사람의 Claude Code 로그인으로 여러 명이 쓰는 공용 서버는 구독 약관에 맞지 않아요. 가족·팀이 같이 쓸 땐 AI가 PC 주인의 구독을 쓴다는 점을 알고, 팀이면 각자 PC에 설치하는 쪽을 권해요.</p>
+<p>주의: 한 사람의 Claude Code 로그인으로 여러 명이 쓰는 공용 서버는 구독 약관에 맞지 않아요. 여럿이 같이 쓸 땐 AI가 PC 주인의 구독을 쓴다는 점을 알고, 팀이면 각자 PC에 설치하는 쪽을 권해요.</p>
 </blockquote>
 <h2 id="캘린더-자세히">캘린더 자세히</h2>
 <ul>
@@ -249,7 +250,7 @@ hr { border:0; height:0; margin:0 }
 <td>이미 켜져 있어요. 열린 창을 쓰거나 닫고 다시 켜요</td>
 </tr>
 <tr>
-<td>집 밖 주소가 안 열려요</td>
+<td>밖에서 주소가 안 열려요</td>
 <td>폰 Tailscale 켜짐? PC 켜짐? <code>tailscale serve --bg 8000</code> 직접 실행</td>
 </tr>
 </tbody>

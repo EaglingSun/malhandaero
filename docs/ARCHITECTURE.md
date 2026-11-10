@@ -47,7 +47,7 @@ records(id, user_id, addon, type, input_id, data, date, status, created_at)
 | 음성 인식 | faster-whisper가 깔려 있으면 그것, 없고 Gemini 키가 있으면 Gemini(`stt.engine()`). `MALHAN_STT`로 고정 |
 | 구글 캘린더 | 앱에 내장한 데스크톱형 OAuth 클라이언트. PC의 localhost에서만 연결을 받는다. `.env`에 본인 클라이언트가 있으면 그쪽이 우선 |
 | 네이버 캘린더 | CalDAV + 애플리케이션 비밀번호 |
-| 폰 접속 | 기본은 같은 와이파이 http. 설치 · 공유 · 마이크는 폰 Chrome에 주소를 예외 등록해 푼다. 집 밖 · 가족 · 팀은 Tailscale https |
+| 폰 접속 | 기본은 같은 와이파이 http. 설치 · 공유 · 마이크는 폰 Chrome에 주소를 예외 등록해 푼다. 회사 밖 · 같이 쓸 사람(팀원 · 가족)은 Tailscale https |
 
 ## 4. 켜기와 업데이트
 
@@ -92,7 +92,7 @@ records(id, user_id, addon, type, input_id, data, date, status, created_at)
 | 문서 | 역할 | 이 문서가 기준인 내용 |
 |---|---|---|
 | `README.md` | 저장소 첫 화면 | 앱 한 줄 소개, 설치 파일 주소, 파일별 설명(「개발」 표) |
-| `docs/POSTER.html` | 홍보 — 앱의 가치 | 홍보 문구와 화면 모형 |
+| `docs/POSTER.html` | 홍보 — 앱의 가치 | 홍보 문구와 실제 화면 캡처(`docs/img/screens/`, `tools/shoot_screens.py`로 찍고 `tools/build_poster.py`로 넣음) |
 | `docs/STYLE.html` | 디자인 덱 — 포스터의 색 · 글꼴 · 부품 견본 | 색 값(`:root`) |
 | `docs/START.md` | 설치 · 운영 안내 | 5단계 이름과 순서, 안 될 때, 설정(`.env`) 안내 |
 | `docs/START.html` | START.md를 그림까지 넣어 만든 한 파일. 앱의 `/start` | 없음 — 손으로 고치지 않는다(G-08) |
@@ -103,7 +103,7 @@ records(id, user_id, addon, type, input_id, data, date, status, created_at)
 | `docs/ARCHIVE.md` | 지난 기록 — 판별 변경, 끝난 일, 적을 때의 환경 메모. 다른 문서에서 덜어낸 것을 덧붙이는 곳 | 없음 — 지금 상태의 기준으로 쓰지 않는다 |
 | `CLAUDE.md` | Claude Code로 고칠 때의 규칙 | G-NN 규칙 |
 
-폴더: `docs/handoffs/` 세션 인계(최신 파일이 현재 상태) · `docs/dev-sessions/` 세션 일지 · `docs/reports/` 점검 보고 · `docs/prompts/` 앱이 내주는 도우미 글 · `docs/img/` START의 그림.
+폴더: `docs/handoffs/` 세션 인계(최신 파일이 현재 상태) · `docs/dev-sessions/` 세션 일지 · `docs/reports/` 점검 보고 · `docs/prompts/` 앱이 내주는 도우미 글 · `docs/img/` START의 그림 · `docs/img/screens/` 포스터용 실제 화면 캡처
 
 ## 7. 바꾸면 같이 고칠 곳
 
@@ -119,6 +119,6 @@ records(id, user_id, addon, type, input_id, data, date, status, created_at)
 | 홍보 문구(약속) | `docs/DESIGN.md` 1장 약속 표 | 아니오 |
 | AI로 가는 것(무엇이 언제) | 5절 D-14, `docs/DESIGN.md` 8장, `docs/START.md`와 `README.md`의 「알아 둘 것」, 포스터의 「내 PC에만」 카드 | 아니오 |
 | 업데이트 동작 | 4절, `docs/START.md` 「업데이트」, `CLAUDE.md` 「내가 고친 것을 남에게도 보내려면」 | 아니오 |
-| 화면 구성 · 문구 | `docs/DESIGN.md` 6장, `docs/START.md`, 포스터의 화면 모형 | 아니오 |
+| 화면 구성 · 문구 | `docs/DESIGN.md` 6장, `docs/START.md`, 포스터의 화면 캡처(`python tools/shoot_screens.py && python tools/build_poster.py`로 다시 찍음) | 아니오 |
 | 회의록 형식 | `docs/MINUTES_FORMAT.md` 먼저 (G-06) | 예 (`tests/test_minutes_sync.py`) |
 | 결정을 새로 내리거나 바꿈 | 5절 표 | 번호 형식만 |

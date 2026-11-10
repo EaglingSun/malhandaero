@@ -115,7 +115,7 @@ def input_dict(r, with_text: bool = False) -> dict:
 class JoinBody(BaseModel):
     name: str
     code: str = ""
-    invite: str = ""   # QR로 받은 초대. 있으면 가족 코드 대신 쓴다
+    invite: str = ""   # QR로 받은 초대. 있으면 로그인 코드 대신 쓴다
 
 
 # ---------- QR로 연결 ----------
@@ -131,7 +131,7 @@ def _link_get(token: str) -> dict | None:
 
 
 def public_base(request: Request) -> str:
-    """휴대폰이 열 주소. 집 밖 주소(https)가 있으면 그것, 없으면 지금 열어 본 주소."""
+    """휴대폰이 열 주소. 밖에서도 열리는 주소(https)가 있으면 그것, 없으면 지금 열어 본 주소."""
     fixed = os.environ.get("MALHAN_PUBLIC_URL", "").rstrip("/")
     if fixed:
         return fixed
@@ -145,7 +145,7 @@ def public_base(request: Request) -> str:
 
 
 class LinkBody(BaseModel):
-    kind: str = "me"   # me(내 다른 기기) | family(가족·팀원 초대)
+    kind: str = "me"   # me(내 다른 기기) | family(같이 쓸 사람 초대)
     via: str = ""      # "lan"이면 같은 와이파이 주소(http)로 만든다. 비우면 가장 좋은 주소(Tailscale https가 있으면 그것)
 
 
@@ -193,9 +193,9 @@ def join(body: JoinBody):
     code = family_code()
     if not invited:
         if not code:
-            raise HTTPException(503, "서버에 가족 코드가 설정되지 않았어요. .env의 MALHAN_FAMILY_CODE를 정해 주세요.")
+            raise HTTPException(503, "서버에 로그인 코드가 설정되지 않았어요. .env의 MALHAN_FAMILY_CODE를 정해 주세요.")
         if not secrets.compare_digest(body.code.strip().encode(), code.encode()):
-            raise HTTPException(403, "가족 코드가 맞지 않아요.")
+            raise HTTPException(403, "로그인 코드가 맞지 않아요.")
     with db.session() as con:
         row = con.execute("SELECT id, name, token FROM users WHERE name = ?", (name,)).fetchone()
         if row:
@@ -1348,7 +1348,7 @@ def help_prompt(topic: str, request: Request, user=Depends(current_user)):
         RESTART="「말한대로 켜기」 더블클릭" if win else "「start.command」 더블클릭",
         LAN=lan or "http://(PC 주소):8000",
         RUNFILE="말한대로 켜기" if win else "start.command",
-        RUNREMOTE="tools\\run.bat --remote (명령 프롬프트에서)" if win else "터미널에서 tools/run.sh --remote",
+        RUNREMOTE="Tailscale을 켠 뒤 「말한대로 켜기」로 다시 켜면 알아서 열려요" if win else "Tailscale을 켠 뒤 start.command로 다시 켜면 알아서 열려요",
     )
     return {"topic": topic, "text": text}
 

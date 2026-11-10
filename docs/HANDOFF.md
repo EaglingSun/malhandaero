@@ -29,11 +29,7 @@
 5. 팀원 1~2명 시험 사용과 전/후 수치 측정(11/12~16) → 공모 게시글과 사용 안내(11/16~17). 측정 항목은 `docs/DESIGN.md` 10장
 6. 앱 알림(웹 푸시): 아침 "오늘 할 일 N건", 정한 시각 알림
 7. 개인/회사 나눠 보기(지금은 표시만)
-8. 코드 안의 낡은 안내 글 정리(문서는 고쳤고 코드 쪽이 남았다)
-   - `--remote`: 켜는 코드는 `--local`만 본다(`tools/run.py`). `docs/prompts/tailscale.md`, `server/app.py`의 `RUNREMOTE`, `tools/run.bat` 주석이 아직 `--remote`를 붙이라고 안내한다(붙여도 해는 없다)
-   - 메뉴 이름: 지금은 「휴대폰에서 쓰기」인데 `tools/run.py`가 켜질 때와 `docs/prompts/tailscale.md`는 「휴대폰 연결」이라고 안내한다
-   - 로그인 코드: `tools/install.py`가 「.env 파일 첫 줄에 있어요」라고 알리지만 실제로는 둘째 줄이다. 입력이 끊기면 코드가 1234로 들어간다(D-17과 어긋남)
-   - `--local`로 켜도 전에 열어 둔 Tailscale 주소는 닫지 않는다
+8. ~~코드 안의 낡은 안내 글 정리~~ 11/11 끝 — `--remote` 안내 삭제(켜면 Tailscale이 있을 때 알아서), 메뉴 이름 「휴대폰에서 쓰기」, install.py 코드 안내 `MALHAN_FAMILY_CODE=` 줄·입력 끊기면 멈춤(D-17), `--local`이면 `tailscale serve reset`. 사용자 문서·화면의 「집/가족」은 「회사 밖/같이 쓸 사람(팀원·가족)」으로. 포스터 폰 화면은 실제 캡처(`tools/shoot_screens.py` → `tools/build_poster.py`)
 9. 공모 이후: 다양한 AI 연결 안내(Codex · GPT · Gemini. 회사 AI가 OpenAI 호환이면 `openai` 모드로) → 폰 전용 라이트판(정적 PWA + Gemini 직접 호출, 녹음도 Gemini가 들음, IndexedDB 저장. 가족 · 네이버 캘린더 없음. 2~3일 예상) → 더하기(애드온) 틀(`docs/DESIGN.md` 11장) → 맡긴 일 챙김 → 회의 음성 화자 분리
 
 ## 4. 결정이 남은 것

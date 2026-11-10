@@ -61,6 +61,16 @@ def open_remote(exe: str) -> tuple[bool, str]:
         return False, str(e)
 
 
+def close_remote(exe: str) -> None:
+    """--local로 켤 때 전에 열어 둔 Tailscale serve를 닫는다. 실패해도 켜는 데는 지장 없다."""
+    import subprocess
+
+    try:
+        subprocess.run([exe, "serve", "reset"], capture_output=True, text=True, timeout=15)
+    except Exception:
+        pass
+
+
 def main() -> None:
     try:
         sys.stdout.reconfigure(line_buffering=True)  # 창에 바로바로 보이게
@@ -81,9 +91,11 @@ def main() -> None:
     public, remote_note = "", ""
     ts = tailscale_bin()
     if "--local" in sys.argv:
-        remote_note = "집 밖 주소는 껐어요 (--local)"
+        remote_note = "밖에서 여는 주소는 껐어요 (--local)"
+        if ts:
+            close_remote(ts)   # 전에 열어 둔 Tailscale 주소도 닫는다
     elif not ts:
-        remote_note = "집 밖에서도 쓰려면 Tailscale을 설치하세요 (앱의 「휴대폰 연결」에 안내)"
+        remote_note = "밖에서도 쓰려면 Tailscale을 설치하세요 (앱의 「휴대폰에서 쓰기」에 안내)"
     else:
         name = tailscale_name(ts)
         if not name:
@@ -101,7 +113,7 @@ def main() -> None:
     print("\n말한대로가 켜졌어요.\n")
     if best:
         print(f"  휴대폰 → Chrome 주소창에   {best}")
-        print(f"  {'(Tailscale을 켠 내 기기에서 어디서나)' if public else '(같은 와이파이에서만)'}  이름과 가족 코드로 들어가요")
+        print(f"  {'(Tailscale을 켠 내 기기에서 어디서나)' if public else '(같은 와이파이에서만)'}  이름과 로그인 코드로 들어가요")
     print(f"  이 PC → http://localhost:{PORT}")
     eng = stt.engine()
     stt_text = {"whisper": "켜짐", "gemini": "켜짐(Gemini)"}.get(eng, "꺼짐")
@@ -109,7 +121,7 @@ def main() -> None:
     if remote_note:
         print("  " + remote_note)
     if not os.environ.get("MALHAN_FAMILY_CODE"):
-        print("  ! 가족 코드가 없어요. 설치를 다시 실행하거나 .env에 MALHAN_FAMILY_CODE를 넣어 주세요.")
+        print("  ! 로그인 코드가 없어요. 설치를 다시 실행하거나 .env에 MALHAN_FAMILY_CODE를 넣어 주세요.")
     if llm.mode() == "none":
         print("  ! AI 없이 켜졌어요. 직접 적기·캘린더는 되고, 녹음·글에서 뽑기는 AI를 연결해야 해요 — 터미널에서 claude 를 실행해 로그인하고 다시 켜면 돼요. 구독이 없으면 .env에 키).")
     if best:

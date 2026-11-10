@@ -35,7 +35,7 @@
         if (!r.ok) { var e = new Error(body.detail || "지금은 연결이 안 돼요. 잠시 뒤에 다시 해 주세요."); e.status = r.status; throw e; }
         return body;
       });
-    }, function () { throw new Error("서버에 닿지 못했어요. 집 PC가 켜져 있는지 확인해 주세요."); });
+    }, function () { throw new Error("서버에 닿지 못했어요. 말한대로를 켠 PC가 켜져 있는지 확인해 주세요."); });
   }
   function el(tag, cls, text) { var n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; }
   function btn(label, cls, fn) { var b = el("button", cls, label); b.type = "button"; b.addEventListener("click", fn); return b; }
@@ -632,7 +632,7 @@
       box.innerHTML = r.svg;                       /* 서버가 만든 QR 그림 */
       var svg = box.querySelector("svg"); if (svg) { svg.setAttribute("role", "img"); svg.setAttribute("aria-label", "연결용 QR"); }
       say("link-msg", (kind === "family" ? "찍으면 이름만 정하고 들어와요. " : "폰 카메라로 찍으면 바로 들어와요. ") + r.minutes + "분 안에 찍어 주세요.");
-      $("link-url").textContent = r.secure ? r.url + "\n상대 폰도 Tailscale에 들어와 있어야 열려요 (시작 안내 「가족·팀원 폰 들이기」)" : r.url + "\n같은 와이파이에서만 열려요";
+      $("link-url").textContent = r.secure ? r.url + "\n상대 폰도 Tailscale에 들어와 있어야 열려요 (시작 안내 「같이 쓸 사람 폰 연결하기」)" : r.url + "\n같은 와이파이에서만 열려요";
       $("link-lan").hidden = !(r.has_lan && kind === "family");
     }).catch(fail("link-msg"));
   }

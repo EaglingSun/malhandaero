@@ -1,6 +1,6 @@
 @echo off
 rem malhandaero run (Windows). Pulls the latest version, installs if needed, then starts.
-rem   outside home: tools\run.bat --remote      skip update: tools\run.bat --no-update
+rem   no Tailscale address: tools\run.bat --local      skip update: tools\run.bat --no-update
 chcp 65001 >nul
 set PYTHONUTF8=1
 set PYTHONIOENCODING=utf-8

@@ -76,8 +76,8 @@ def main() -> int:
             try:
                 code = input("   로그인할 때 사용할 코드를 정해 주세요 (예: 1234): ").strip()
             except EOFError:
-                code = "1234"
-                break
+                print("\n   코드를 받지 못했어요. 창에서 직접 실행해 다시 정해 주세요.")
+                return 1
         env.write_text(
             "# 말한대로 설정. 바꾼 뒤에는 서버를 껐다 켜 주세요.\n"
             f"MALHAN_FAMILY_CODE={code}\n\n"
@@ -88,7 +88,7 @@ def main() -> int:
             "# GEMINI_API_KEY=\n",
             encoding="utf-8",
         )
-        print(f"   만들었어요. 로그인 코드: {code}   (잊으면 .env 파일 첫 줄에 있어요)")
+        print(f"   만들었어요. 로그인 코드: {code}   (잊으면 .env 의 MALHAN_FAMILY_CODE= 줄에 있어요)")
 
     if os.name == "nt":
         _win_shortcuts()

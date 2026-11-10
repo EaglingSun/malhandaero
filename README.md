@@ -12,7 +12,7 @@
 | **Windows** | [setup-windows.bat](https://github.com/EaglingSun/malhandaero/releases/download/v1.0.0/setup-windows.bat) | 더블클릭하면 `C:\Users\이름\malhandaero`에 설치되고, 바탕 화면에 「말한대로 켜기」가 생겨요 |
 | **Mac** | [setup-mac.command](https://github.com/EaglingSun/malhandaero/releases/download/v1.0.0/setup-mac.command) | 우클릭 → 열기를 누르면 설치돼요. 그 뒤엔 `start.command`로 켜요 |
 
-그다음은 **[셋업 가이드](docs/START.md)** 5단계(15분)를 따라 하면 돼요. 막힐 때, 가족·팀과 같이 쓸 때, 캘린더 상세도 같은 문서 뒷부분에 있어요. 앱 안에서는 맨 아래 「시작 안내」로 열어요.
+그다음은 **[셋업 가이드](docs/START.md)** 5단계(15분)를 따라 하면 돼요. 막힐 때, 팀원·가족과 같이 쓸 때, 캘린더 상세도 같은 문서 뒷부분에 있어요. 앱 안에서는 맨 아래 「시작 안내」로 열어요.
 
 Claude 구독(Pro 이상)이 없어도 할 일 관리 앱으로 쓸 수 있어요. Codex·GPT·Gemini 같은 다른 AI 연결은 다음 버전에서 안내할 예정이에요.
 
@@ -54,6 +54,6 @@ python -m pytest -q
 | `server/db.py` | SQLite 스키마와 `MIGRATIONS`(칸 추가) |
 | `server/updater.py` | 자동 업데이트(git fast-forward → 필요 시 재설치) |
 | `web/` | 화면 (빌드 없음, PWA). `app.js` 하나에 다 있다 |
-| `tools/` | 켜기(`run.py`)·설치(`install.py`)·자동 시작(`autostart.py`)·켜기 전 업데이트(`update.py`)·`build_start_html.py` |
+| `tools/` | 켜기(`run.py`)·설치(`install.py`)·자동 시작(`autostart.py`)·켜기 전 업데이트(`update.py`)·`build_start_html.py`(시작 안내 HTML)·`shoot_screens.py`+`build_poster.py`(포스터용 실제 화면 캡처) |
 | `tests/` | pytest. AI·캘린더·업데이트는 흉내 서버/임시 git으로 시험. `tests/test_docs_sync.py`는 문서 속 경로·설정 이름·데이터 모델·5단계 이름이 맞는지 본다 |
 | `.claude/skills/` · `.claude/agents/` | Claude Code 스킬 `meeting-minutes`(회의록 형식) · `harness-tidy`(CLAUDE.md와 스킬 정리), 검수 서브에이전트 `reviewer` |
