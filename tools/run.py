@@ -111,7 +111,7 @@ def main() -> None:
     if not os.environ.get("MALHAN_FAMILY_CODE"):
         print("  ! 가족 코드가 없어요. 설치를 다시 실행하거나 .env에 MALHAN_FAMILY_CODE를 넣어 주세요.")
     if llm.mode() == "none":
-        print("  ! AI 없이 켜졌어요. 직접 적기·캘린더는 되고, 녹음·글에서 뽑기는 AI를 연결해야 해요 (Claude Code 로그인 또는 .env 키).")
+        print("  ! AI 없이 켜졌어요. 직접 적기·캘린더는 되고, 녹음·글에서 뽑기는 AI를 연결해야 해요 — 터미널에서 claude 를 실행해 로그인하고 다시 켜면 돼요. 구독이 없으면 .env에 키).")
     if best:
         try:
             import segno

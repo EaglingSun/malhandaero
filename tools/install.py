@@ -102,7 +102,7 @@ def main() -> int:
     elif os.environ.get("GEMINI_API_KEY") or "GEMINI_API_KEY=" in env.read_text(encoding="utf-8-sig").replace("# GEMINI_API_KEY=", ""):
         print("· AI: Gemini")
     else:
-        print("· AI 없음 — 직접 적기·캘린더는 돼요. Claude Code를 로그인하면 바로 연결돼요.")
+        print("· AI 없음 — 직접 적기·캘린더는 돼요. 터미널에서 claude 를 실행해 로그인하고 다시 켜면 연결돼요.")
     if os.name == "nt":
         print("· 방화벽 창이 뜨면 '액세스 허용'. 다음부터는 바탕 화면의 「말한대로 켜기」")
     else:

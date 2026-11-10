@@ -14,6 +14,12 @@ else
   DIR="malhandaero"
 fi
 cd "$DIR" || exit 1
+if ! command -v claude >/dev/null 2>&1 && [ ! -x "$HOME/.local/bin/claude" ]; then
+  echo "Claude Code를 설치합니다 (AI 연결용)…"
+  curl -fsSL https://claude.ai/install.sh | bash || echo "Claude Code 설치는 못 했어요. 나중에 claude.com/claude-code 를 참고해 설치하면 돼요."
+  echo "설치 뒤 터미널에서 claude 를 한 번 실행해 로그인하고 앱을 다시 켜면 AI가 연결돼요."
+  echo
+fi
 chmod +x ./*.command tools/*.sh 2>/dev/null
 sh tools/install.sh || { read -r _; exit 1; }
 sh tools/run.sh "$@"

@@ -45,5 +45,13 @@ goto here
 :sub
 cd malhandaero
 :here
+where claude >nul 2>nul
+if errorlevel 1 (
+  echo Claude Code not found. Installing with winget...
+  winget install --id Anthropic.ClaudeCode -e --source winget --accept-package-agreements --accept-source-agreements
+  echo.
+  echo Claude Code installed. Open a new terminal, run: claude  and log in. Then restart the app to connect AI.
+  echo.
+)
 call tools\install.bat
 call tools\run.bat %*

@@ -13,9 +13,9 @@
 |---|---|---|
 | Python 3.10+ | python.org/downloads | Windows는 설치 때 **"Add python.exe to PATH"** 체크 |
 | Git | git-scm.com | Mac은 터미널에서 `git` 한 번 치면 설치 안내가 떠요 |
-| **Claude 구독(Pro 이상) + Claude Code** | claude.com/claude-code 안내대로 설치 → 터미널에서 `claude` 실행해 로그인 | API 결제 없음. 앱이 이 로그인을 그대로 써요 |
+| **Claude 구독(Pro 이상)** | 설치 파일이 Claude Code를 깔아 줘요 → 터미널에서 `claude` 한 번 실행해 로그인 | API 결제 없음. 앱이 이 로그인을 그대로 써요 |
 
-Windows는 `setup-windows.bat`이 Git·Python이 없으면 알아서 깔아요(winget). 직접 깔려면 명령 프롬프트에:
+Windows는 `setup-windows.bat`이 Git·Python·Claude Code가 없으면 알아서 깔아요(winget). Mac도 Claude Code는 알아서 깔아요. 직접 깔려면 명령 프롬프트에:
 ```
 winget install --id Git.Git -e
 winget install --id Python.Python.3.12 -e

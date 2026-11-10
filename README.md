@@ -12,7 +12,7 @@
 | **Windows** | [setup-windows.bat](https://raw.githubusercontent.com/EaglingSun/malhandaero/main/setup-windows.bat) (링크 우클릭 → 다른 이름으로 저장) | 더블클릭 → `C:\Users\이름\malhandaero`에 설치, 바탕 화면에 「말한대로 켜기」 바로가기 |
 | **Mac** | [setup-mac.command](https://raw.githubusercontent.com/EaglingSun/malhandaero/main/setup-mac.command) (링크 우클릭 → 다른 이름으로 저장) | 우클릭 → 열기 → 설치 뒤엔 `start.command` |
 
-준비물은 Python·Git·**Claude Code(Pro 이상 구독)** 세 가지. 처음부터 끝까지는 **[docs/START.md](docs/START.md)** 한 장을 따라 하면 돼요(설치 10분 → 폰에 앱으로 넣기 3분).
+준비물은 Python·Git·**Claude 구독(Pro 이상)**. Claude Code는 설치 파일이 깔아 주고, 터미널에서 `claude` 한 번 실행해 로그인하면 돼요. 처음부터 끝까지는 **[docs/START.md](docs/START.md)** 한 장을 따라 하면 돼요(설치 10분 → 폰에 앱으로 넣기 3분).
 이 목록의 나머지 파일은 설치가 알아서 쓰는 것들이라 따로 받을 필요 없어요.
 
 **Claude 구독이 없어도** 설치하면 **할 일 관리 앱으로 그대로 써요** — 직접 적기, 오늘·나중·안 함, 캘린더 연결, 하루 마무리, 달력, 폰 앱 설치까지 전부. 녹음·글에서 AI가 대신 뽑아 주는 것만 쉬고, 나중에 Claude Code를 로그인하면 그때부터 바로 돼요.
