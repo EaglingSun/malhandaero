@@ -165,7 +165,7 @@ def test_meeting_keeps_summary_and_other_peoples_items_recoverable(monkeypatch):
     by = {i["text"]: i for i in inp["items"]}
     assert by["시험 결과서 검토 의견 보내기"]["details"] == ["커버리지 표 확인", "의견 문서로 정리"]       # 세부는 상위 할 일 아래 묶인다
     md = client.get(f"/api/inputs/{iid}/minutes.md")
-    assert md.status_code == 200 and "### 출시 일정" in md.text and "- [ ] 회의실 예약하기 (민수)" in md.text and "    - 커버리지 표 확인" in md.text
+    assert md.status_code == 200 and "## 1. 출시 일정" in md.text and "- [ ] 회의실 예약하기 (민수)" in md.text and "    - 커버리지 표 확인" in md.text
     assert by["회의실 예약하기"]["status"] == "other" and by["회의실 예약하기"]["who"] == "민수"
     assert by["고객사에 일정 알리기"]["status"] == "new" and by["고객사에 일정 알리기"]["owner"] == "unclear"
 

@@ -36,27 +36,29 @@ def test_parse_result_object_with_summary_owner_and_time():
     assert summary == "일정을 정했어요."
     assert (c[0].owner, c[0].who, c[0].time, c[0].due_date) == ("unclear", "화자 2", "09:05", "2026-11-14")
     assert (c[1].owner, c[1].time) == ("me", None)  # 모르는 값은 기본값으로
-    assert minutes == {"topics": [], "questions": []}
-    assert extract.parse_result('[{"text":"옛 꼴"}]') == ("", [extract.Candidate("옛 꼴")], {"topics": [], "questions": []})
+    empty = {"attendees": [], "topics": [], "questions": [], "next": []}
+    assert minutes == empty
+    assert extract.parse_result('[{"text":"옛 꼴"}]') == ("", [extract.Candidate("옛 꼴")], empty)
 
 
 def test_parse_minutes_and_details_then_markdown():
     raw = ('{"summary":"- 일정 확정","items":[{"text":"LCT 테스트 계획 확정하기","owner":"me","details":["요구사항 받기","기한 정하기", 3]},'
            '{"text":"리스트 받아 오기","owner":"other","who":"승렬"}],'
-           '"minutes":{"topics":[{"topic":"RT 일정","points":["다음 주 월요일 시작이에요."],"decisions":["CT 30% 비중"]},{"topic":"","points":[],"decisions":[]},"잡음"],'
-           '"questions":["GTest 범위는 어디까지?"]}}')
+           '"minutes":{"attendees":["김선숙","박승렬"],"topics":[{"topic":"RT 일정","points":["다음 주 월요일 시작"],"decisions":["CT 30% 비중"]},{"topic":"","points":[],"decisions":[]},"잡음"],'
+           '"questions":["GTest 범위는 어디까지?"],"next":["11/16 RT 시작"]}}')
     summary, c, m = extract.parse_result(raw)
     assert c[0].details == ["요구사항 받기", "기한 정하기", "3"] and c[1].details == []
     assert [t["topic"] for t in m["topics"]] == ["RT 일정"] and m["questions"] == ["GTest 범위는 어디까지?"]
     md = extract.minutes_markdown("주간 회의", "2026-11-10", summary, m,
                                   [{"text": c[0].text, "status": "new", "details": c[0].details, "who": "", "due_text": "내일"},
                                    {"text": c[1].text, "status": "other", "details": [], "who": "승렬", "due_text": ""}])
-    assert md.startswith("# 주간 회의\n") and "### RT 일정" in md and "결정:\n- CT 30% 비중" in md
-    assert "## 내 할 일\n- [ ] LCT 테스트 계획 확정하기 (내일)\n    - 요구사항 받기" in md and "## 맡긴 일\n- [ ] 리스트 받아 오기 (승렬)" in md
+    assert md.startswith("# 주간 회의\n\n일시: 2026-11-10\n참석: 김선숙, 박승렬\n\n안건: 1. RT 일정\n")
+    assert "## 1. RT 일정\n- 다음 주 월요일 시작\n- **결정** CT 30% 비중" in md and "## 결정 사항\n- CT 30% 비중" in md
+    assert "## 할 일\n- [ ] LCT 테스트 계획 확정하기 (나 · 내일)\n    - 요구사항 받기\n" in md and "\n- [ ] 리스트 받아 오기 (승렬)\n" in md and "## 다음 일정\n- 11/16 RT 시작" in md
 
 
 def test_meeting_prompt_asks_for_grouping_and_minutes():
     ctx = extract.Context(today=date(2026, 11, 10), kind="meeting", me_speaker="화자 1")
     p = extract.build_prompt("화자 1: 네\n화자 2: 네", ctx)
-    assert "5개를 넘기지 않는다" in p and "details" in p and '"minutes"' in p and '반드시 owner "other"' in p
+    assert "5개를 넘기지 않는다" in p and "details" in p and '"minutes"' in p and '반드시 owner "other"' in p and "대화 중계는 쓰지 않고" in p
     assert '"minutes"' not in extract.build_prompt("우유 사기", extract.Context(today=date(2026, 11, 10), kind="memo"))

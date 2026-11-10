@@ -235,6 +235,7 @@
   function minutesView(inp) {
     /* 회의록: 주제별 논의·결정, 확인할 것, 내 일·맡긴 일. 복사하거나 파일로 받을 수 있다 */
     var wrap = el("div", "minutes"), m = inp.minutes || {};
+    if (m.attendees && m.attendees.length) wrap.appendChild(el("p", "msg", "참석: " + m.attendees.join(", ")));
     (m.topics || []).forEach(function (t) {
       var sec = el("div", "topic"); sec.appendChild(el("strong", "", t.topic));
       var ul = el("ul", "bullets plain"); (t.points || []).forEach(function (x) { ul.appendChild(el("li", "", x)); }); if (t.points && t.points.length) sec.appendChild(ul);
@@ -242,6 +243,7 @@
       wrap.appendChild(sec);
     });
     if (m.questions && m.questions.length) { var q = el("div", "topic"); q.appendChild(el("strong", "", "확인할 것")); var ql = el("ul", "bullets plain"); m.questions.forEach(function (x) { ql.appendChild(el("li", "", x)); }); q.appendChild(ql); wrap.appendChild(q); }
+    if (m.next && m.next.length) { var nx = el("div", "topic"); nx.appendChild(el("strong", "", "다음 일정")); var nl = el("ul", "bullets plain"); m.next.forEach(function (x) { nl.appendChild(el("li", "", x)); }); nx.appendChild(nl); wrap.appendChild(nx); }
     var others = (inp.items || []).filter(function (i) { return i.status === "other"; });
     if (others.length) { var o = el("div", "topic"); o.appendChild(el("strong", "", "맡긴 일")); var ol = el("ul", "bullets plain"); others.forEach(function (i) { ol.appendChild(el("li", "", i.text + (i.who ? " · " + i.who : "") + (i.due_text ? " · " + i.due_text : ""))); }); o.appendChild(ol); wrap.appendChild(o); }
     if (inp.has_minutes || others.length) {

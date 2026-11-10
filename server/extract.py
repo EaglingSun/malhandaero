@@ -83,14 +83,16 @@ def build_prompt(text: str, ctx: Context) -> str:
     ]
     if long_form:
         parts += [
-            "회의록(minutes) 규칙:",
-            "- topics: 이야기한 주제마다 하나. topic은 짧은 제목, points는 논의 요점(각 한 문장, 해요체), decisions는 그 주제에서 정해진 것.",
-            "- questions: 결론이 나지 않아 확인이 필요한 것.",
-            "- 할 일로 뽑지 않은 작은 언급도 points에 남겨 빠지는 내용이 없게 한다. 녹음에 없는 내용은 쓰지 않는다. 내용이 짧은 메모·통화면 topics를 비워도 된다.",
+            "회의록(minutes) 규칙 — 다른 사람에게 그대로 보낼 문서다. 녹취 요약이 아니라 회의록처럼 쓴다:",
+            "- 한 줄 30자 안팎으로 짧게. '~라고 했어요', '~라고 봤어요' 같은 대화 중계는 쓰지 않고 내용 자체를 적는다(예: 'GTest 100% 호환 지원이 고객 요구예요').",
+            "- 발언자는 의견이 갈렸을 때만 괄호로 붙인다(예: '전부 가져와야 가치 (김선숙) / 샘플만이면 충분 (개발팀)').",
+            "- topics: 주제마다 하나, 회의 순서대로. topic은 짧은 제목. points는 배경·현황·쟁점을 3~5개로 압축(비슷한 말은 합친다). decisions는 그 주제에서 정해진 것.",
+            "- attendees: 녹음에 나온 참석자 이름이나 화자 표기. next: 정해진 다음 일정(날짜·회의·기한). questions: 결론이 안 나 확인이 필요한 것.",
+            "- 할 일로 뽑지 않은 작은 언급도 points나 questions에 남겨 빠지는 내용이 없게 한다. 녹음에 없는 내용은 쓰지 않는다. 짧은 메모·통화면 topics를 비워도 된다.",
             "",
         ]
     fmt_items = '"items":[{"text":"","owner":"me","who":"","due":"","dueDate":null,"time":null,"scope":"개인","quote":"","details":[]}]'
-    fmt_minutes = ',"minutes":{"topics":[{"topic":"","points":[],"decisions":[]}],"questions":[]}' if long_form else ""
+    fmt_minutes = ',"minutes":{"attendees":[],"topics":[{"topic":"","points":[],"decisions":[]}],"questions":[],"next":[]}' if long_form else ""
     parts += [
         "출력: JSON 객체 하나만. 다른 글은 쓰지 않는다.",
         '형식: {"summary":"",' + fmt_items + fmt_minutes + "}",
@@ -133,9 +135,11 @@ def _strs(v, limit: int = 300, n: int = 40) -> list[str]:
 def parse_minutes(data) -> dict:
     """회의록 부분만 정리한다. 없거나 깨졌으면 빈 회의록."""
     m = data.get("minutes") if isinstance(data, dict) else None
-    out: dict = {"topics": [], "questions": []}
+    out: dict = {"attendees": [], "topics": [], "questions": [], "next": []}
     if not isinstance(m, dict):
         return out
+    out["attendees"] = _strs(m.get("attendees"), limit=30, n=20)
+    out["next"] = _strs(m.get("next"))
     for t in (m.get("topics") if isinstance(m.get("topics"), list) else [])[:30]:
         if not isinstance(t, dict):
             continue
@@ -185,46 +189,53 @@ def parse_candidates(raw: str) -> list[Candidate]:
 
 
 def merge_minutes(parts: list[dict]) -> dict:
-    out: dict = {"topics": [], "questions": []}
+    out: dict = {"attendees": [], "topics": [], "questions": [], "next": []}
     for m in parts:
         out["topics"] += m.get("topics", [])
-        out["questions"] += [q for q in m.get("questions", []) if q not in out["questions"]]
+        for k in ("attendees", "questions", "next"):
+            out[k] += [q for q in m.get(k, []) if q not in out[k]]
     return out
 
 
 def minutes_markdown(title: str, date_: str, summary: str, minutes: dict, items: list[dict]) -> str:
-    """회의록을 Markdown으로. 복사하거나 파일로 받아 다른 곳에 붙인다."""
-    L = [f"# {title or '회의'}", "", f"날짜: {date_}", ""]
+    """회의록 Markdown. 머리(일시·참석·안건) → 주제별 논의·결정 → 결정 모음 → 확인할 것 → 할 일 → 다음 일정."""
+    topics = minutes.get("topics") or []
+    L = [f"# {title or '회의'}", ""]
+    head = [f"일시: {date_}"]
+    if minutes.get("attendees"):
+        head.append("참석: " + ", ".join(minutes["attendees"]))
+    L += head + [""]
+    if topics:
+        L += ["안건: " + " · ".join(f"{i + 1}. {t.get('topic') or '기타'}" for i, t in enumerate(topics)), ""]
     if summary:
         L += ["## 요약"] + [("- " + x.lstrip("-•· ").strip()) for x in summary.splitlines() if x.strip()] + [""]
-    if minutes.get("topics"):
-        L += ["## 논의"]
-        for t in minutes["topics"]:
-            L.append(f"### {t.get('topic') or '기타'}")
-            L += [f"- {p}" for p in t.get("points", [])]
-            if t.get("decisions"):
-                L += ["", "결정:"] + [f"- {d}" for d in t["decisions"]]
-            L.append("")
+    for i, t in enumerate(topics):
+        L.append(f"## {i + 1}. {t.get('topic') or '기타'}")
+        L += [f"- {p}" for p in t.get("points", [])]
+        L += [f"- **결정** {d}" for d in t.get("decisions", [])]
+        L.append("")
+    decisions = [d for t in topics for d in t.get("decisions", [])]
+    if decisions:
+        L += ["## 결정 사항"] + [f"- {d}" for d in decisions] + [""]
     if minutes.get("questions"):
         L += ["## 확인할 것"] + [f"- {q}" for q in minutes["questions"]] + [""]
-    mine = [i for i in items if i.get("status") != "other"]
+    mine = [i for i in items if i.get("status") not in ("other", "skipped")]
     others = [i for i in items if i.get("status") == "other"]
 
-    def line(i):
-        tail = " · ".join(x for x in (i.get("who") or "", i.get("due_text") or "") if x)
-        s_ = f"- [ ] {i['text']}" + (f" ({tail})" if tail else "")
-        return [s_] + [f"    - {d}" for d in (i.get("details") or [])]
+    def line(i, who_default=""):
+        who = i.get("who") or who_default
+        tail = " · ".join(x for x in (who, i.get("due_text") or "") if x)
+        return [f"- [ ] {i['text']}" + (f" ({tail})" if tail else "")] + [f"    - {d}" for d in (i.get("details") or [])]
 
-    if mine:
-        L += ["## 내 할 일"]
+    if mine or others:
+        L += ["## 할 일"]
         for i in mine:
-            L += line(i)
-        L.append("")
-    if others:
-        L += ["## 맡긴 일"]
+            L += line(i, "나")
         for i in others:
             L += line(i)
         L.append("")
+    if minutes.get("next"):
+        L += ["## 다음 일정"] + [f"- {n}" for n in minutes["next"]] + [""]
     return "\n".join(L).rstrip() + "\n"
 
 
