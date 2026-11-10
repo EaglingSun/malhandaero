@@ -122,6 +122,7 @@ chmod +x malhandaero/*.sh malhandaero/*.command
 | 4 | 더블클릭 실행(.command), Tailscale 자동, QR 연결(내 기기 / 가족 초대) |
 | 5 | 목록 중심 화면(+ 버튼 뒤에 넣기), https 인증서 묶음, 연결 실패 사유 표시 |
 | 6 | 공유로 받는 파일 종류 확대 |
+| 26 | 「오늘 한 줄」(쓰고 싶은 사람만): 하루 마무리 카드의 「오늘 한 줄도 남길래요」로 켬(`POST /api/settings/diary`, `addon_settings` addon='diary', `/api/me`의 `diary`). 기분 이모지 5개(다시 누르면 해제) + 문구 칩(누르면 입력칸에 덧붙임) + 직접 입력(≤200자). `POST /api/day/note?date=` → `day_logs.note/mood`(마무리 글이 없어도 저장, 마무리를 써도 유지). `/api/day`에 `note`, `mood`. 「오늘은 여기까지」 때 `summary_prompt(..., note)`로 들어가 마무리 글에 사실대로 한 문장 녹임(이모지는 글에 안 넣음). 한 일이 없어도 한 줄만 있으면 마무리 가능 |
 | 25 | 「중복 일정 정리」 제거(일회성, 수동 정리로). 캘린더 태그는 글자만(✓ 그림이 폰에서 엉뚱한 자리에 그려짐). 「하루 정리 / 정리해 줘」 → 「하루 마무리 / 오늘은 여기까지 / 마무리 다시 쓰기」 |
 | 24 | 일정 중복 원인 수정: ① 연결 끊기가 할 일의 일정 번호를 지워 재연결 시 전부 다시 올라가던 것 → 끊어도 번호 보관(종류가 바뀔 때만 끊음) ② 올릴 캘린더를 같은 것으로 골라도 다시 올리던 것 → 실제로 바뀔 때만, 예전 캘린더에서 지우고 새 데로 옮김 ③ ~~중복 일정 정리~~ 25판에서 제거. 네이버는 UID가 항목 번호라 PUT이 덮어써 중복이 안 생김 |
 | 23 | 올릴 캘린더 선택(`POST /api/calendar/target`; 구글 write_calendar_id, 네이버 calendar_url. 바꾸면 예전 cal_ref를 끊고 앞으로 할 일을 새 캘린더에 올림). 캘린더 일정 「숨기기 / 다시 보기」(`calendar_hidden` 표, `/api/calendar/events/hide|unhide`) |
