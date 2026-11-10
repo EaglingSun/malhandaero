@@ -1,0 +1,8 @@
+[
+  {"query": "2차수 덱 15~20장 발표자 대본 써 줘. 녹화용이라 그대로 읽을 거야", "should_trigger": true},
+  {"query": "외부 특강 덱 대본 작업 시작하자, 3장부터 섹션 흐름 이어서", "should_trigger": true},
+  {"query": "어제 쓴 대본 codex 검수 한 번 돌려줘", "should_trigger": true},
+  {"query": "확정한 2차수 덱 다시 훑어보고 장 정리해줘", "should_trigger": false},
+  {"query": "슬라이드 7장 화면 글에 Mutation Testing 병기 빠졌어, 화면만 고쳐줘", "should_trigger": false},
+  {"query": "발표 끝나고 수강생한테 보낼 안내 메일 써 줘", "should_trigger": false}
+]
