@@ -447,12 +447,22 @@
     r.onresult = function (e) {
       // 안드로이드 Chrome은 매번 전체 결과를 다시 주고(resultIndex 0), 중간 결과가 조금씩 자라며 반복된다.
       // 그래서 덧붙이지 않고 매번 처음부터 다시 만든다: 확정된 것은 모두, 중간 것은 마지막 하나만.
+      // 게다가 자라는 중간 문장을 전부 '확정'으로 주기도 한다. 그래서 앞 문장을 늘인 것이면 갈아 끼우고, 앞 문장에 이미 든 것이면 버린다.
       var fin = [], live = "";
+      function absorb(t) {
+        var last = fin[fin.length - 1];
+        if (last && t.indexOf(last) === 0) fin[fin.length - 1] = t;        // 앞 것을 늘인 문장
+        else if (last && last.indexOf(t) === 0) return;                    // 앞 것에 이미 포함
+        else fin.push(t);
+      }
       for (var i = 0; i < e.results.length; i++) {
         var t = e.results[i][0].transcript.trim();
         if (!t) continue;
-        if (e.results[i].isFinal) { if (fin[fin.length - 1] !== t) fin.push(t); } else live = t;
+        if (e.results[i].isFinal) absorb(t); else live = t;
       }
+      var lastF = fin[fin.length - 1] || "";
+      if (live && (live.indexOf(lastF) === 0 && lastF)) { fin[fin.length - 1] = live; live = ""; }   // 중간 문장이 확정 문장을 늘인 것
+      else if (live && lastF.indexOf(live) === 0) live = "";
       mic.text = fin.join(" "); mic.live = live;
       say("mic-msg", (mic.text + " " + live).trim() || "듣고 있어요…");
     };
