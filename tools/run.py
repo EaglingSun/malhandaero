@@ -27,7 +27,12 @@ def tailscale_bin() -> str | None:
     import shutil
 
     mac_app = "/Applications/Tailscale.app/Contents/MacOS/Tailscale"
-    return shutil.which("tailscale") or (mac_app if os.path.exists(mac_app) else None)
+    win_app = os.path.join(os.environ.get("ProgramFiles", r"C:\Program Files"), "Tailscale", "tailscale.exe")
+    found = shutil.which("tailscale")
+    for cand in (mac_app, win_app):
+        if not found and os.path.exists(cand):
+            found = cand
+    return found
 
 
 def tailscale_name(exe: str) -> str | None:

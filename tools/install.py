@@ -59,8 +59,9 @@ def main() -> int:
             "# 말한대로 설정. 바꾼 뒤에는 서버를 껐다 켜 주세요.\n"
             f"MALHAN_FAMILY_CODE={code}\n\n"
             "# AI 연결: 비워 두면 이 PC의 Claude Code 로그인을 씁니다 (API 결제 없음).\n"
-            "# API 키로 쓰려면 아래 줄의 #을 지우고 키를 넣으세요.\n"
-            "# ANTHROPIC_API_KEY=\n",
+            "# Claude 구독이 없으면 둘 중 하나의 #을 지우고 키를 넣으세요.\n"
+            "# GEMINI_API_KEY=          # 구글 Gemini. aistudio.google.com 에서 무료 발급\n"
+            "# ANTHROPIC_API_KEY=       # Anthropic API. 쓴 만큼 과금\n",
             encoding="utf-8",
         )
         print(f"   만들었어요. 가족 코드: {code}")
@@ -70,9 +71,14 @@ def main() -> int:
         print("· Claude Code를 찾았어요. 로그인되어 있으면 바로 쓸 수 있습니다.")
         print("  (로그인 확인: 터미널에서 claude auth status)")
     else:
-        print("· 이 PC에서 Claude Code를 찾지 못했어요. 둘 중 하나를 해 주세요.")
-        print("  1) Claude Code를 설치하고 로그인한다  2) .env에 ANTHROPIC_API_KEY를 넣는다")
-        print("  아무것도 없이 화면만 보려면 .env에 MALHAN_AI=fake 를 넣으세요.")
+        if os.environ.get("GEMINI_API_KEY") or "GEMINI_API_KEY=" in env.read_text(encoding="utf-8-sig").replace("# GEMINI_API_KEY=", ""):
+            print("· Gemini 키로 연결합니다.")
+        else:
+            print("· 이 PC에서 Claude Code를 찾지 못했어요. 셋 중 하나를 해 주세요.")
+            print("  1) Claude Code를 설치하고 로그인한다  2) .env에 GEMINI_API_KEY를 넣는다 (무료)  3) .env에 ANTHROPIC_API_KEY를 넣는다")
+            print("  아무것도 없이 화면만 보려면 .env에 MALHAN_AI=fake 를 넣으세요.")
+    if os.name == "nt":
+        print("· 처음 켤 때 Windows 방화벽 창이 뜨면 '액세스 허용'을 눌러야 폰에서 들어올 수 있어요.")
     print("· 이제 " + ("run.bat" if os.name == "nt" else "./run.sh") + " 을 실행하세요.")
     return 0
 

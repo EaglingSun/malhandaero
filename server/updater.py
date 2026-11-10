@@ -34,7 +34,7 @@ def _env_file_says_off() -> bool:
     env = ROOT / ".env"
     if not env.exists():
         return False
-    for line in env.read_text(encoding="utf-8", errors="ignore").splitlines():
+    for line in env.read_text(encoding="utf-8-sig", errors="ignore").splitlines():
         line = line.strip()
         if line.startswith("MALHAN_AUTO_UPDATE="):
             return line.split("=", 1)[1].strip().strip('"').strip("'") in ("0", "false", "no", "off")

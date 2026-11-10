@@ -24,7 +24,7 @@ Claude Code가 없으면 `.env`에 `ANTHROPIC_API_KEY`를 넣어 API 키로 쓸 
 
 ## 설치 (한 번만)
 
-가장 쉬운 길 (Mac): 저장소의 `말한대로 처음 설치.command` 파일 하나만 내려받아 더블클릭합니다.
+가장 쉬운 길: 저장소의 `말한대로 처음 설치.command`(Mac) 또는 `말한대로 처음 설치.bat`(Windows) 파일 하나만 내려받아 더블클릭합니다. Windows는 [Git for Windows](https://git-scm.com/download/win)와 [Python 3.10+](https://www.python.org/downloads/)(설치 때 "Add python.exe to PATH" 체크)가 먼저 있어야 합니다.
 저장소를 받고, 설치하고, 켜는 것까지 한 번에 합니다. 이렇게 받아 두면 **켤 때마다 업데이트를 알아서 받습니다.**
 
 직접 할 때:
