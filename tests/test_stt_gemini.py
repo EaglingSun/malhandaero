@@ -82,7 +82,8 @@ def test_stt_503_retries_then_gives_readable_error(monkeypatch, tmp_path):
     f = tmp_path / "a.m4a"; f.write_bytes(b"x")
     n = {"calls": 0}
     def busy(req, timeout=0):
-        n["calls"] += 1
+        if ":generateContent" in req.full_url:
+            n["calls"] += 1
         raise urllib.error.HTTPError(req.full_url, 503, "busy", {}, io.BytesIO(b"{}"))
     monkeypatch.setattr(urllib.request, "urlopen", busy)
     with pytest.raises(stt.SttUnavailable, match="바빠요"):

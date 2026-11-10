@@ -126,3 +126,25 @@ def test_503_without_fallback_is_readable(monkeypatch):
     monkeypatch.setattr(urllib.request, "urlopen", busy)
     with pytest.raises(llm.LlmUnavailable, match="바빠요"):
         llm.complete("x")
+
+
+def test_503_discovers_alternative_model(monkeypatch):
+    monkeypatch.setenv("MALHAN_AI", "gemini"); monkeypatch.setenv("GEMINI_API_KEY", "k"); monkeypatch.delenv("MALHAN_GEMINI_FALLBACK", raising=False)
+    monkeypatch.setattr("time.sleep", lambda s: None)
+    models = []
+    def fake(req, timeout=0):
+        if "/v1beta/models?" in req.full_url:
+            return FakeResp(json.dumps({"models": [
+                {"name": "models/gemini-3.8-flash", "supportedGenerationMethods": ["generateContent"]},
+                {"name": "models/gemini-3.8-flash-lite", "supportedGenerationMethods": ["generateContent"]},
+                {"name": "models/gemini-3.8-pro", "supportedGenerationMethods": ["generateContent"]},
+                {"name": "models/gemini-3.8-flash-image", "supportedGenerationMethods": ["generateContent"]},
+                {"name": "models/embedding-001", "supportedGenerationMethods": ["embedContent"]},
+            ]}).encode())
+        models.append(json.loads(req.data)["model"])
+        if models[-1] == "gemini-3.8-flash":
+            raise urllib.error.HTTPError(req.full_url, 503, "busy", {}, io.BytesIO(b"{}"))
+        return _answer("ok")
+    monkeypatch.setattr(urllib.request, "urlopen", fake)
+    assert llm.complete("x") == "ok" and models[-1] == "gemini-3.8-flash-lite"
+    assert llm.gemini_alternatives("k", "gemini-3.8-flash") == ["gemini-3.8-flash-lite"]

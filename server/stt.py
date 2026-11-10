@@ -157,6 +157,11 @@ def _transcribe_gemini(path: Path, model: str = "") -> str:
             if _busy_retry("Gemini", model, b.args[0], attempt):
                 continue
             fallback = os.environ.get("MALHAN_GEMINI_FALLBACK", "").strip()
+            if retry and not fallback:
+                from server.llm import gemini_alternatives
+
+                alts = gemini_alternatives(key, model)
+                fallback = alts[0] if alts else ""
             if retry and fallback and fallback != model:
                 print(f"[stt] Gemini {model}이 계속 바빠요. 예비 모델 {fallback}로 시도", flush=True)
                 return _transcribe_gemini(path, fallback)

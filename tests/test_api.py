@@ -154,7 +154,7 @@ def test_calendar_export_all_day_and_timed():
 MEETING_REPLY = """{"summary": "출시 일정을 14일로 정했어요. 시험 결과는 금요일에 다시 봐요.",
  "items": [
   {"text": "시험 결과서 검토 의견 보내기", "owner": "me", "due": "14일", "dueDate": "2099-11-14", "time": "15:00", "scope": "회사", "quote": "제가 14일 3시까지 보내겠습니다.", "details": ["커버리지 표 확인", "의견 문서로 정리"]},
-  {"text": "회의실 예약하기", "owner": "other", "who": "민수", "scope": "회사"},
+  {"text": "회의실 예약하기", "owner": "other", "who": "슈구리", "scope": "회사"},
   {"text": "고객사에 일정 알리기", "owner": "unclear", "who": "", "scope": "회사"}
  ],
  "minutes": {"topics": [{"topic": "출시 일정", "points": ["14일 출시로 정했어요."], "decisions": ["14일 출시"]}], "questions": ["고객사 통보 담당은 누구?"]}}"""
@@ -165,15 +165,15 @@ def test_meeting_keeps_summary_and_other_peoples_items_recoverable(monkeypatch):
 
     monkeypatch.setattr(llm, "complete", lambda prompt, max_tokens=2000: MEETING_REPLY)
     join("회의")
-    iid = client.post("/api/inputs", data={"kind": "meeting", "text": "화자 1: 제가 14일 3시까지 보내겠습니다.\n화자 2: 회의실은 민수 씨가요."}).json()["id"]
+    iid = client.post("/api/inputs", data={"kind": "meeting", "text": "화자 1: 제가 14일 3시까지 보내겠습니다.\n화자 2: 회의실은 슈구리 씨가요."}).json()["id"]
     inp = client.get(f"/api/inputs/{iid}").json()
     assert "출시 일정" in inp["summary"]
     assert inp["has_minutes"] and inp["minutes"]["topics"][0]["topic"] == "출시 일정" and inp["minutes"]["questions"] == ["고객사 통보 담당은 누구?"]
     by = {i["text"]: i for i in inp["items"]}
     assert by["시험 결과서 검토 의견 보내기"]["details"] == ["커버리지 표 확인", "의견 문서로 정리"]       # 세부는 상위 할 일 아래 묶인다
     md = client.get(f"/api/inputs/{iid}/minutes.md")
-    assert md.status_code == 200 and "## 1. 출시 일정" in md.text and "- [ ] 회의실 예약하기 (민수)" in md.text and "    - 커버리지 표 확인" in md.text
-    assert by["회의실 예약하기"]["status"] == "other" and by["회의실 예약하기"]["who"] == "민수"
+    assert md.status_code == 200 and "## 1. 출시 일정" in md.text and "- [ ] 회의실 예약하기 (슈구리)" in md.text and "    - 커버리지 표 확인" in md.text
+    assert by["회의실 예약하기"]["status"] == "other" and by["회의실 예약하기"]["who"] == "슈구리"
     assert by["고객사에 일정 알리기"]["status"] == "new" and by["고객사에 일정 알리기"]["owner"] == "unclear"
 
     day = client.get("/api/day").json()

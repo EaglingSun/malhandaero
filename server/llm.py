@@ -99,6 +99,28 @@ def _busy_retry(name: str, model: str, code: int, attempt: int) -> bool:
     return True
 
 
+def gemini_alternatives(key: str, current: str) -> list[str]:
+    """이 키로 쓸 수 있는 다른 flash 계열 모델. lite·이전 판 순으로(덜 붐비는 쪽부터)."""
+    import urllib.request
+
+    try:
+        req = urllib.request.Request(f"https://generativelanguage.googleapis.com/v1beta/models?key={key}&pageSize=200")
+        with urllib.request.urlopen(req, timeout=20) as r:
+            models = json.loads(r.read().decode("utf-8")).get("models", [])
+    except Exception:
+        return []
+    names = [mm.get("name", "").removeprefix("models/") for mm in models
+             if "generateContent" in mm.get("supportedGenerationMethods", [])]
+    cands = [n for n in names if "flash" in n and n != current and not any(x in n for x in ("image", "tts", "audio", "live", "preview", "exp", "embedding"))]
+    def rank(n: str):
+        return (0 if "lite" in n else 1, -float("".join(c for c in n.split("-")[1] if c.isdigit() or c == ".") or 0) if "-" in n else 0)
+    try:
+        cands.sort(key=rank)
+    except Exception:
+        pass
+    return cands[:3]
+
+
 def _run_openai(m: str, content, max_tokens: int, model_override: str = "", plain: bool = False, attempt: int = 0) -> str:
     """OpenAI 호환 chat/completions 한 번. 표준 라이브러리만 쓴다(설치 없음).
     Gemini는 '생각' 수준을 낮춰(reasoning_effort) 빨리 답하게 한다. 그 옵션을 거부하면 빼고 한 번 더.
@@ -136,9 +158,17 @@ def _run_openai(m: str, content, max_tokens: int, model_override: str = "", plai
             if _busy_retry(name, model, e.code, attempt):
                 return _run_openai(m, content, max_tokens, model_override, plain, attempt + 1)
             fallback = os.environ.get("MALHAN_GEMINI_FALLBACK", "").strip() if m == "gemini" else ""
-            if fallback and fallback != model:
-                print(f"[llm] {name} {model}이 계속 바빠요. 예비 모델 {fallback}로 시도", flush=True)
-                return _run_openai(m, content, max_tokens, fallback, plain, attempt=len(BUSY_WAITS) - 1)
+            tried = set(os.environ.get("_MALHAN_TRIED", "").split(",")) | {model}
+            if m == "gemini" and not fallback:
+                alts = [a for a in gemini_alternatives(key, model) if a not in tried]
+                fallback = alts[0] if alts else ""
+            if fallback and fallback not in tried:
+                print(f"[llm] {name} {model}이 계속 바빠요. 대신 {fallback}로 시도", flush=True)
+                os.environ["_MALHAN_TRIED"] = ",".join(tried | {fallback})
+                try:
+                    return _run_openai(m, content, max_tokens, fallback, plain, attempt=len(BUSY_WAITS) - 1)
+                finally:
+                    os.environ.pop("_MALHAN_TRIED", None)
             if e.code == 429:
                 raise LlmUnavailable(f"{name} 사용량 한도예요. 잠시 뒤 '다시 뽑기'를 눌러 주세요.")
             raise LlmUnavailable(f"{name}가 지금 너무 바빠요(503). 몇 분 뒤 '다시 뽑기'를 눌러 주세요.")
