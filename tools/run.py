@@ -98,6 +98,9 @@ def main() -> None:
                 if detail:
                     print("                   " + detail.splitlines()[0][:150])
     print(f"  AI 연결          {names.get(llm.mode(), llm.mode())}")
+    if llm.mode() == "claude":
+        short, long_ = llm.claude_model_for(""), llm.claude_model_for("x" * 10 ** 6)
+        print(f"  모델             짧은 글 {short or 'Claude Code 기본'} · 긴 글(회의록) {long_ or 'Claude Code 기본'}")
     print(f"  녹음 파일 변환    {'켜짐' if stt.available() else '꺼짐 (글·사진·말하기는 됩니다)'}")
     if not os.environ.get("MALHAN_FAMILY_CODE"):
         print("  ! 가족 코드가 없어요. 설치를 다시 실행하거나 .env에 MALHAN_FAMILY_CODE를 넣어 주세요.")

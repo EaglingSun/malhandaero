@@ -6,9 +6,12 @@
   fake   : 키도 로그인도 없이 화면만 확인하는 규칙 기반 흉내 (정확도 낮음)
 
 그 밖의 환경 변수
-  MALHAN_MODEL       : api 방식의 모델 이름 (기본 claude-sonnet-5-5)
-  MALHAN_CLAUDE_BIN  : claude 실행 파일 위치 (기본: PATH에서 찾음)
-  MALHAN_FAKE_LLM=1  : MALHAN_AI=fake와 같다
+  MALHAN_MODEL              : api 방식의 모델 이름 (기본 claude-sonnet-5-5)
+  MALHAN_CLAUDE_MODEL       : claude 방식에서 짧은 글에 쓸 모델. 비우면 Claude Code의 기본 모델 (기본: 비움)
+  MALHAN_CLAUDE_MODEL_LONG  : claude 방식에서 긴 글(회의록 등)에 쓸 모델 (기본 opus). 비우면 짧은 글과 같게
+  MALHAN_LONG_CHARS         : 이 글자 수를 넘는 지시문이면 '긴 글'로 본다 (기본 10000)
+  MALHAN_CLAUDE_BIN         : claude 실행 파일 위치 (기본: PATH에서 찾음)
+  MALHAN_FAKE_LLM=1         : MALHAN_AI=fake와 같다
 """
 from __future__ import annotations
 
@@ -47,6 +50,13 @@ def mode() -> str:
 NO_AI = "AI가 연결되지 않았어요. 이 PC에 Claude Code를 설치해 로그인하거나, .env에 ANTHROPIC_API_KEY를 넣어 주세요."
 
 
+def claude_model_for(prompt: str) -> str:
+    """긴 글(회의록)은 더 센 모델로. 비어 있으면 Claude Code 기본 모델을 쓴다."""
+    long_ = len(prompt) > int(os.environ.get("MALHAN_LONG_CHARS", "10000"))
+    model = os.environ.get("MALHAN_CLAUDE_MODEL_LONG", "opus") if long_ else os.environ.get("MALHAN_CLAUDE_MODEL", "")
+    return (model or os.environ.get("MALHAN_CLAUDE_MODEL", "")).strip()
+
+
 def _run_claude(prompt: str, workdir: Path | None = None, allow_read: bool = False) -> str:
     """이 PC의 Claude Code를 한 번 불러 답을 받는다. 본인 로그인(구독)을 쓰도록 API 키는 넘기지 않는다."""
     exe = _claude_bin()
@@ -54,6 +64,9 @@ def _run_claude(prompt: str, workdir: Path | None = None, allow_read: bool = Fal
         raise LlmUnavailable(NO_AI)
     env = {k: v for k, v in os.environ.items() if k not in ("ANTHROPIC_API_KEY", "ANTHROPIC_AUTH_TOKEN")}
     cmd = [exe, "-p", "--output-format", "json"]
+    model = claude_model_for(prompt)
+    if model:
+        cmd += ["--model", model]
     if allow_read:
         cmd += ["--allowedTools", "Read"]
     with tempfile.TemporaryDirectory(prefix="malhan-cc-") as tmp:

@@ -34,7 +34,13 @@ print(json.dumps({{"type": "result", "is_error": False, "result": "[{{\\"text\\"
     assert llm.mode() == "claude"
     assert llm.complete("녹음 내용: 우유 사야 해") == '[{"text": "우유 사기"}]'
     seen = json.loads(log.read_text())
-    assert seen["argv"] == ["-p", "--output-format", "json"] and "우유 사야 해" in seen["stdin"]
+    assert seen["argv"] == ["-p", "--output-format", "json"] and "우유 사야 해" in seen["stdin"]   # 짧은 글: 모델 지정 없음(Claude Code 기본)
+    monkeypatch.setenv("MALHAN_LONG_CHARS", "10")
+    llm.complete("녹음 내용: 우유 사야 해 (긴 회의록이라고 치자)")
+    assert json.loads(log.read_text())["argv"] == ["-p", "--output-format", "json", "--model", "opus"]   # 긴 글: opus
+    monkeypatch.setenv("MALHAN_CLAUDE_MODEL_LONG", ""); monkeypatch.setenv("MALHAN_CLAUDE_MODEL", "sonnet")
+    llm.complete("녹음 내용: 우유 사야 해 (긴 회의록이라고 치자)")
+    assert json.loads(log.read_text())["argv"][-2:] == ["--model", "sonnet"]
     assert seen["has_key"] is False                      # 구독 로그인을 쓰도록 키는 넘기지 않는다
     assert "malhandaero-repo" not in seen["cwd"]         # 저장소 밖 빈 폴더에서 돈다
 
