@@ -28,10 +28,10 @@ foreach ($pair in @(@('말한대로 켜기', 'run.bat'), @('말한대로 자동 
   $lnk = $sh.CreateShortcut((Join-Path $desk ($pair[0] + '.lnk')))
   $lnk.TargetPath = Join-Path '%s' $pair[1]
   $lnk.WorkingDirectory = '%s'
-  $lnk.IconLocation = 'shell32.dll,138'
+  $lnk.IconLocation = (Join-Path '%s' 'web\icon.ico') + ',0'
   $lnk.Save()
 }
-""" % (str(ROOT).replace("'", "''"), str(ROOT).replace("'", "''"))
+""" % ((str(ROOT).replace("'", "''"),) * 3)
     try:
         subprocess.run(["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", ps], check=True, capture_output=True, timeout=60)
         print("· 바탕 화면에 「말한대로 켜기」「말한대로 자동 시작」 바로가기를 만들었어요.")
