@@ -697,6 +697,16 @@
     if (insecure) { $("http-origin").textContent = location.origin; $("http-help").open = true; }
     $("http-copy").addEventListener("click", function () { navigator.clipboard && navigator.clipboard.writeText(location.origin).then(function () { $("http-copy").textContent = "복사됨"; }); });
   })();
+  (function () {
+    // 삼성 카메라로 QR을 찍으면 기본 브라우저(삼성 인터넷)로 열린다. 안드로이드에서 Chrome이 아니면 Chrome으로 여는 단추를 보여 준다
+    var ua = navigator.userAgent, android = /Android/i.test(ua), chrome = /Chrome\//.test(ua) && !/SamsungBrowser|EdgA|OPR|Whale|NAVER|KAKAOTALK|FB_IAB|Instagram/i.test(ua);
+    var standalone = window.matchMedia("(display-mode: standalone)").matches;
+    if (android && !chrome && !standalone) {
+      var u = location.href.replace(/^https?:\/\//, "");
+      $("chromebar-go").href = "intent://" + u + "#Intent;scheme=" + location.protocol.replace(":", "") + ";package=com.android.chrome;S.browser_fallback_url=" + encodeURIComponent(location.href) + ";end";
+      $("chromebar").hidden = false;
+    }
+  })();
   $("upbar-go").addEventListener("click", function () { $("upbar").hidden = true; $("btn-update").click(); window.scrollTo(0, document.body.scrollHeight); });
   $("btn-update").addEventListener("click", function () {
     var b = $("btn-update"); b.disabled = true; say("update-msg", "업데이트가 있는지 보고 있어요…");
