@@ -412,3 +412,13 @@ def test_without_ai_manual_items_and_wrap_up_still_work(monkeypatch):
     inp = client.post("/api/inputs", data={"kind": "memo", "text": "내일 전화할게"}).json()
     row = next(x for x in client.get("/api/inputs").json() if x["id"] == inp["id"])
     assert row["status"] == "failed" and "직접 적기와 캘린더는" in row["error"]   # 글은 보관, 사유 안내
+
+
+def test_manifest_carries_server_label(monkeypatch):
+    monkeypatch.setenv("MALHAN_LABEL", "회사")
+    m = client.get("/manifest.webmanifest").json()
+    assert m["name"] == "말한대로 · 회사" and m["short_name"] == "말한대로 회사" and m["share_target"]["action"] == "/share"
+    join("라벨")
+    assert client.get("/api/me").json()["label"] == "회사"
+    monkeypatch.delenv("MALHAN_LABEL")
+    assert client.get("/manifest.webmanifest").json()["name"].startswith("말한대로")

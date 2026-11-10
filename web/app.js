@@ -56,7 +56,8 @@
       state.me = me; state.today = me.today; state.date = state.date || me.today;
       $("v-join").hidden = true; $("v-main").hidden = false;
       $("who").textContent = me.name + " 님";
-      $("ver").textContent = me.version ? "버전 " + me.version : "";
+      $("ver").textContent = (me.label ? me.label + " · " : "") + (me.version ? "버전 " + me.version : "");
+      if (me.label) document.title = "말한대로 · " + me.label;
       var q = new URLSearchParams(location.search).get("shared");
       if (q) { say("in-msg", q === "0" ? "받을 내용이 없었어요." : q + "건 받았어요. 듣고 적어 둘게요."); history.replaceState(null, "", "/"); }
       if (params.get("link") === "ok") { history.replaceState(null, "", "/"); say("in-msg", "이 기기를 연결했어요."); }

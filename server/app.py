@@ -198,6 +198,7 @@ def me(user=Depends(current_user)):
         "ai": llm.mode(),
         "stt": stt.available(),
         "version": _version(),
+        "label": app_label(),
         "diary": _diary_on(user["id"]),
         "post_url": os.environ.get("MALHAN_POST_URL", "").strip(),
     }
@@ -1221,6 +1222,28 @@ def close_day(date_: str | None = Query(None, alias="date"), user=Depends(curren
 @app.get("/")
 def index():
     return FileResponse(WEB / "index.html", headers={"Cache-Control": "no-cache"})
+
+
+def app_label() -> str:
+    """이 서버를 구분하는 이름. .env의 MALHAN_LABEL, 비우면 PC 종류(Mac/Windows/Linux).
+    한 폰에 서버 두 개(집 Mac·회사 Windows)를 각각 앱으로 깔 때 이름이 달라야 구분이 된다."""
+    label = os.environ.get("MALHAN_LABEL", "").strip()
+    if label:
+        return label
+    import platform
+
+    return {"Darwin": "Mac", "Windows": "Windows"}.get(platform.system(), platform.system() or "")
+
+
+@app.get("/manifest.webmanifest")
+def manifest():
+    """앱 이름에 서버 이름을 붙여 낸다. 이름이 바뀌면 폰에서 앱을 다시 설치해야 반영된다."""
+    data = json.loads((WEB / "manifest.webmanifest").read_text(encoding="utf-8"))
+    label = app_label()
+    if label:
+        data["name"] = f"말한대로 · {label}"
+        data["short_name"] = f"말한대로 {label}"[:12]
+    return JSONResponse(data, media_type="application/manifest+json", headers={"Cache-Control": "no-cache"})
 
 
 @app.get("/sw.js")
