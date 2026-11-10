@@ -355,6 +355,8 @@ def _resume_on_startup() -> None:
 
 
 def _set_input(input_id: int, **fields) -> None:
+    if fields.get("status") in ("extracted", "failed"):
+        fields["done_at"] = datetime.now(calsync.UTC).strftime("%Y-%m-%d %H:%M:%S")
     cols = ", ".join(f"{k} = ?" for k in fields)
     with db.session() as con:
         con.execute(f"UPDATE inputs SET {cols} WHERE id = ?", (*fields.values(), input_id))
@@ -589,6 +591,43 @@ def day(date_: str | None = Query(None, alias="date"), user=Depends(current_user
         "pending": [{"id": r["id"], "title": r["title"], "kind": r["kind"], "status": r["status"], "long": (r["chars"] or 0) > 10000} for r in pending_rows],
         "need_me": [{"id": r["id"], "title": r["title"], "kind": r["kind"], "speakers": json.loads(r["speakers"])} for r in need_me],
         "briefs": [dict(r) for r in briefs],
+    }
+
+
+@app.get("/api/stats")
+def stats(days: int = 30, user=Depends(current_user)):
+    """쓰임새 수치 (공모 글·회고용). 최근 N일: 넣은 것, 처리 시간, 뽑힌 할 일과 '안 함' 비율, 직접 적은 것, 끝낸 것."""
+    days = max(1, min(days, 365))
+    uid = user["id"]
+    with db.session() as con:
+        since = f"-{days} days"
+        inputs = con.execute(
+            "SELECT kind, status, length(transcript) AS chars, (julianday(done_at) - julianday(created_at)) * 86400 AS secs, minutes != '' AS has_minutes"
+            " FROM inputs WHERE user_id = ? AND created_at >= datetime('now', ?)", (uid, since)).fetchall()
+        items = con.execute(
+            "SELECT status, owner, input_id IS NULL AS manual, input_id FROM items WHERE user_id = ? AND created_at >= datetime('now', ?)", (uid, since)).fetchall()
+        meeting_ids = {r["id"] for r in con.execute(
+            "SELECT id FROM inputs WHERE user_id = ? AND kind = 'meeting' AND status = 'extracted' AND created_at >= datetime('now', ?)", (uid, since))}
+    done_inputs = [r for r in inputs if r["status"] == "extracted" and r["secs"] is not None]
+    secs = sorted(r["secs"] for r in done_inputs)
+    long_secs = sorted(r["secs"] for r in done_inputs if (r["chars"] or 0) > 10000)
+    med = (lambda a: a[len(a) // 2] if a else None)
+    from_inputs = [r for r in items if not r["manual"]]
+    mine = [r for r in from_inputs if r["status"] != "other"]
+    by_kind: dict = {}
+    for r in inputs:
+        by_kind[r["kind"]] = by_kind.get(r["kind"], 0) + 1
+    meeting_mine = [r for r in mine if r["input_id"] in meeting_ids]
+    return {
+        "days": days,
+        "inputs": {"total": len(inputs), "by_kind": by_kind, "failed": sum(1 for r in inputs if r["status"] == "failed"),
+                   "with_minutes": sum(1 for r in inputs if r["has_minutes"])},
+        "seconds_to_list": {"median": med(secs), "median_long": med(long_secs), "max": secs[-1] if secs else None},
+        "items": {"extracted_mine": len(mine), "delegated": len(from_inputs) - len(mine), "manual": sum(1 for r in items if r["manual"]),
+                  "skipped": sum(1 for r in mine if r["status"] == "skipped"),
+                  "skip_ratio": round(sum(1 for r in mine if r["status"] == "skipped") / len(mine), 3) if mine else None,
+                  "done": sum(1 for r in items if r["status"] == "done"),
+                  "per_meeting": round(len(meeting_mine) / len(meeting_ids), 1) if meeting_ids else None},
     }
 
 

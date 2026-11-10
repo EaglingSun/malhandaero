@@ -337,3 +337,16 @@ def test_skip_all_clears_new_items_of_one_input():
     assert client.post("/api/items/skip-all", json={}).json()["skipped"] == 1 and client.get("/api/day").json()["new"] == []
     assert client.post("/api/items/restore", json={"ids": r["ids"]}).json()["restored"] == 2       # 되돌리기
     assert sorted(i["input_id"] for i in client.get("/api/day").json()["new"]) == [a, a]
+
+
+def test_stats_summarize_usage():
+    join("수치")
+    client.post("/api/inputs", data={"kind": "meeting", "text": "화자 1: 우유 사야 해.\n화자 2: 빵은 제가 사야 해요."})
+    client.post("/api/items", json={"text": "직접 적은 일"})
+    new = client.get("/api/day").json()["new"]
+    client.patch(f"/api/items/{new[0]['id']}", json={"status": "skipped"})
+    st = client.get("/api/stats", params={"days": 7}).json()
+    assert st["inputs"]["total"] == 1 and st["inputs"]["by_kind"] == {"meeting": 1}
+    assert st["seconds_to_list"]["median"] is not None and st["seconds_to_list"]["median"] >= 0
+    assert st["items"]["manual"] == 1 and st["items"]["extracted_mine"] == 2 and st["items"]["skipped"] == 1 and st["items"]["skip_ratio"] == 0.5
+    assert st["items"]["per_meeting"] == 2.0

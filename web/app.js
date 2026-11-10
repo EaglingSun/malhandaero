@@ -443,6 +443,16 @@
       });
       clearTimeout(state.poll);
       if (busy && state.tab === "inputs") state.poll = setTimeout(refresh, 2500);
+      api("/api/stats?days=30").then(function (st) {
+        if (!st.inputs.total) { $("stats").textContent = ""; return; }
+        var m = st.seconds_to_list.median, parts = ["지난 30일 · 넣은 것 " + st.inputs.total + "건"];
+        if (m != null) parts.push("넣고 " + (m < 90 ? Math.round(m) + "초" : Math.round(m / 60) + "분") + "이면 목록에");
+        parts.push("뽑힌 내 일 " + st.items.extracted_mine + "건" + (st.items.skip_ratio != null ? " (안 함 " + Math.round(st.items.skip_ratio * 100) + "%)" : ""));
+        if (st.items.delegated) parts.push("맡긴 일 " + st.items.delegated);
+        if (st.items.manual) parts.push("직접 적음 " + st.items.manual);
+        if (st.items.per_meeting != null) parts.push("회의당 내 일 " + st.items.per_meeting);
+        $("stats").textContent = parts.join(" · ");
+      }).catch(function () {});
     }).catch(fail("in-msg"));
   }
   function openInput(id) {

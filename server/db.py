@@ -28,6 +28,7 @@ CREATE TABLE IF NOT EXISTS inputs (
     error         TEXT NOT NULL DEFAULT '',
     summary       TEXT NOT NULL DEFAULT '',   -- 회의·통화 요약
     minutes       TEXT NOT NULL DEFAULT '',   -- 회의록 JSON {topics, questions}
+    done_at       TEXT,                       -- 처리가 끝난 시각 (수치용)
     created_at    TEXT NOT NULL DEFAULT (datetime('now'))
 );
 CREATE TABLE IF NOT EXISTS items (
@@ -118,6 +119,7 @@ MIGRATIONS = [
     ("items", "cal_ref", "TEXT"),   # 바깥 캘린더에 넣은 일정의 주소나 번호
     ("inputs", "minutes", "TEXT NOT NULL DEFAULT ''"),
     ("items", "details", "TEXT NOT NULL DEFAULT '[]'"),
+    ("inputs", "done_at", "TEXT"),
 ]
 
 
