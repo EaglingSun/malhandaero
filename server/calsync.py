@@ -397,12 +397,80 @@ def update_config(user_id: int, **fields) -> None:
 
 
 def save_link(user_id: int, provider: str, config: dict, mode: str = "timed") -> None:
+    """연결을 저장한다. 전에 다른 종류(구글↔네이버)로 연결돼 있었다면 할 일의 일정 번호는 쓸 수 없으니 끊는다. 같은 종류면 이어 쓴다."""
     with db.session() as con:
+        prev = con.execute("SELECT provider, config FROM calendar_links WHERE user_id = ?", (user_id,)).fetchone()
+        prev_provider = ""
+        if prev:
+            prev_provider = prev["provider"] or (json.loads(prev["config"] or "{}").get("prev_provider") or "")
+        if prev_provider and prev_provider != provider:
+            con.execute("UPDATE items SET cal_ref = NULL WHERE user_id = ? AND addon != 'calendar'", (user_id,))
+        if prev and prev_provider == provider:  # 읽는 캘린더 같은 설정은 이어 간다
+            old = json.loads(prev["config"] or "{}")
+            config = {**{k: v for k, v in old.items() if k.startswith("read_") or k in ("write_calendar_id",)}, **config}
         con.execute(
             "INSERT INTO calendar_links(user_id, provider, mode, config, status) VALUES (?,?,?,?, '')"
             " ON CONFLICT(user_id) DO UPDATE SET provider = excluded.provider, config = excluded.config, status = '', updated_at = datetime('now')",
             (user_id, provider, mode, json.dumps(config, ensure_ascii=False)),
         )
+
+
+def unlink(user_id: int) -> None:
+    """연결을 끊되 할 일의 일정 번호는 남겨 둔다. 같은 종류로 다시 연결하면 중복 없이 이어 쓴다."""
+    link = get_link(user_id)
+    if not link:
+        return
+    with db.session() as con:
+        con.execute("UPDATE calendar_links SET provider = '', config = ?, status = '', updated_at = datetime('now') WHERE user_id = ?",
+                    (json.dumps({"prev_provider": link["provider"]}, ensure_ascii=False), user_id))
+
+
+def _event_key(summary: str, start: dict | None) -> tuple:
+    st = start or {}
+    return ((summary or "").strip(), st.get("dateTime") or st.get("date") or "")
+
+
+def dedupe_google(user_id: int, link: dict, days_back: int = 30, days_ahead: int = 90) -> dict:
+    """올리는 캘린더에서 말한대로가 만든 중복 일정을 정리한다. 같은 제목·같은 시작이면 하나만 남기고 지운다.
+    남길 것은 할 일이 가리키는 것 우선. 번호가 없는 할 일은 남긴 일정에 다시 연결한다."""
+    cfg = link["config"]
+    g = Google(cfg["refresh_token"])
+    cal = cfg.get("write_calendar_id") or "primary"
+    now = datetime.now(tz())
+    q = urllib.parse.urlencode({"timeMin": (now - timedelta(days=days_back)).isoformat(), "timeMax": (now + timedelta(days=days_ahead)).isoformat(),
+                                "singleEvents": "true", "maxResults": "2500"})
+    code, out = _http("GET", f"{g.api}/calendars/{urllib.parse.quote(cal, safe='')}/events?{q}", g.h)
+    if code != 200:
+        raise CalendarError(f"구글 캘린더를 읽지 못했어요 (응답 {code}).")
+    with db.session() as con:
+        rows = con.execute("SELECT id, text, cal_ref FROM items WHERE user_id = ? AND addon != 'calendar'", (user_id,)).fetchall()
+    refs = {r["cal_ref"]: r["id"] for r in rows if r["cal_ref"]}
+    texts = {r["text"].strip() for r in rows}
+    groups: dict = {}
+    for e in json.loads(out).get("items", []):
+        if e.get("status") == "cancelled" or not e.get("summary"):
+            continue
+        ours = bool(((e.get("extendedProperties") or {}).get("private") or {}).get("malhandaero")) or e["id"] in refs \
+            or (e["summary"].strip() in texts and (OURS in (e.get("description") or "") or e.get("description")))
+        if not ours:
+            continue
+        groups.setdefault(_event_key(e["summary"], e.get("start")), []).append(e)
+    removed, relinked = 0, 0
+    for key, evs in groups.items():
+        if len(evs) < 2:
+            continue
+        keep = next((e for e in evs if e["id"] in refs), evs[0])
+        for e in evs:
+            if e is keep:
+                continue
+            g.delete(e["id"], cal)
+            removed += 1
+        if keep["id"] not in refs:  # 번호 없는 할 일에 붙여 준다
+            with db.session() as con:
+                cur = con.execute("UPDATE items SET cal_ref = ? WHERE user_id = ? AND cal_ref IS NULL AND text = ? AND addon != 'calendar'",
+                                  (keep["id"], user_id, key[0]))
+                relinked += cur.rowcount
+    return {"removed": removed, "relinked": relinked, "groups": sum(1 for v in groups.values() if len(v) > 1)}
 
 
 def _note(user_id: int, text: str) -> None:
@@ -433,6 +501,14 @@ def _remove(link: dict, ref: str) -> None:
         Naver(link["config"]["user"], link["config"]["password"]).delete(ref)
     else:
         Google(link["config"]["refresh_token"]).delete(ref, link["config"].get("write_calendar_id") or "primary")
+
+
+def remove_ref(link: dict, ref: str) -> None:
+    """연결 설정을 넘겨받아 그 캘린더에서 일정을 뺀다 (올리는 캘린더를 바꿀 때, 예전 설정으로 지우는 데 쓴다)."""
+    try:
+        _remove(link, ref)
+    except Exception:
+        pass
 
 
 def sync_item(user_id: int, item_id: int, removed_ref: str | None = None) -> None:

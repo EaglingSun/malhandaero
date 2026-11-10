@@ -66,10 +66,12 @@ class FakeCalendars(BaseHTTPRequestHandler):
             return self._send(200, json.dumps({"items": [{"id": "primary-id", "summary": "Sun", "primary": True}, {"id": "team@group.calendar.google.com", "summary": "SQA 공유 일정"}]}).encode(), "application/json")
         if self.path.startswith("/g/calendars/team%40group.calendar.google.com/events?") and self.headers.get("Authorization") == "Bearer at":
             return self._send(200, json.dumps({"items": [{"id": "t1", "summary": "팀 주간 회의", "start": {"dateTime": "2099-05-05T14:00:00+09:00"}}]}).encode(), "application/json")
-        if self.path.startswith("/g/calendars/team%40group.calendar.google.com/events?"):
-            pass
         if self.path.startswith("/g/calendars/primary/events?") and self.headers.get("Authorization") == "Bearer at":
-            items = [{"id": "g1", "summary": "고객 미팅", "start": {"dateTime": "2099-05-05T10:00:00+09:00"}, "end": {"dateTime": "2099-05-05T11:00:00+09:00"}},
+            q = parse_qs(urlparse(self.path).query)
+            day = q.get("timeMin", [""])[0][:10]
+            dyn = [{"id": k, **v} for k, v in FakeCalendars.events.items()
+                   if v.get("_calendar") in (None, "primary") and (not v.get("start") or (v["start"].get("dateTime") or v["start"].get("date") or "")[:10] >= day)]
+            items = dyn + [{"id": "g1", "summary": "고객 미팅", "start": {"dateTime": "2099-05-05T10:00:00+09:00"}, "end": {"dateTime": "2099-05-05T11:00:00+09:00"}},
                      {"id": "g2", "summary": "휴가", "start": {"date": "2099-05-05"}},
                      {"id": "ev9", "summary": "회의 자료 보내기", "description": "근거 문장", "extendedProperties": {"private": {"malhandaero": "1"}}, "start": {"dateTime": "2099-05-05T09:30:00+09:00"}},
                      {"id": "g3", "status": "cancelled", "summary": "취소됨", "start": {"dateTime": "2099-05-05T12:00:00+09:00"}}]
@@ -297,3 +299,34 @@ def test_google_events_listing(fake, monkeypatch):
     assert r["events"] == [] and r["hidden"] == 1
     client.post("/api/calendar/events/unhide", json={})
     assert [e["title"] for e in client.get("/api/calendar/events", params={"date": "2099-05-05"}).json()["events"]] == ["팀 주간 회의"]
+
+
+def test_relink_and_same_target_do_not_duplicate_and_dedupe_cleans(fake, monkeypatch):
+    for k, v in {"MALHAN_GOOGLE_CLIENT_ID": "cid", "MALHAN_GOOGLE_CLIENT_SECRET": "sec",
+                 "MALHAN_GOOGLE_TOKEN_URL": fake + "/token", "MALHAN_GOOGLE_API": fake + "/g"}.items():
+        monkeypatch.setenv(k, v)
+    from server import calsync, db as _db
+    join("중복")
+    uid = _db.connect().execute("SELECT id FROM users WHERE name='중복'").fetchone()["id"]
+    FakeCalendars.events.clear()
+    calsync.save_link(uid, "google", {"refresh_token": "rt-1", "calendar_name": "구글 캘린더"})
+    it = client.post("/api/items", json={"text": "치과 가기", "plan_date": "2099-07-01"}).json()
+    client.patch(f"/api/items/{it['id']}", json={"plan_time": "10:00"})
+    assert len(FakeCalendars.events) == 1
+    # 끊었다가 같은 종류로 다시 연결 → 번호가 남아 있어 같은 일정을 고친다 (복사본 없음)
+    client.delete("/api/calendar")
+    assert client.get("/api/calendar").json()["provider"] == ""
+    calsync.save_link(uid, "google", {"refresh_token": "rt-1", "calendar_name": "구글 캘린더"})
+    client.patch(f"/api/items/{it['id']}", json={"plan_time": "11:00"})
+    assert len(FakeCalendars.events) == 1
+    # 올릴 캘린더를 '같은 것'으로 고르면 아무 일도 안 한다
+    client.post("/api/calendar/target", json={"id": "primary", "name": "Sun"})
+    client.post("/api/calendar/target", json={"id": "primary-id", "name": "Sun"})
+    assert len(FakeCalendars.events) == 1
+    # 이미 생긴 중복은 정리한다: 같은 제목·시작 세 개 → 할 일이 가리키는 것만 남김
+    ref = client.get("/api/day", params={"date": "2099-07-01"}).json()["todo"][0]["cal_ref"]
+    body = FakeCalendars.events[ref]
+    FakeCalendars.events["dupA"] = dict(body); FakeCalendars.events["dupB"] = dict(body)
+    r = client.post("/api/calendar/dedupe").json()
+    assert r["removed"] == 2 and list(FakeCalendars.events) == [ref]
+    assert client.post("/api/calendar/dedupe").json()["removed"] == 0

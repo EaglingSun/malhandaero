@@ -628,6 +628,12 @@
     var src = $("cal-source"), name = src.options[src.selectedIndex] ? src.options[src.selectedIndex].textContent.replace(" (기본)", "") : "";
     api("/api/calendar/source", { method: "POST", json: { id: src.value, name: src.value ? name : "" } }).then(function (c) { renderCal(c); refresh(); }).catch(function (e) { say("cal-source-msg", e.message, true); });
   });
+  $("cal-dedupe").addEventListener("click", function () {
+    $("cal-dedupe").disabled = true; say("cal-dedupe-msg", "캘린더를 살펴보고 있어요…");
+    api("/api/calendar/dedupe", { method: "POST" }).then(function (r) {
+      say("cal-dedupe-msg", r.removed ? "중복 " + r.removed + "건을 지웠어요" + (r.relinked ? ", 할 일 " + r.relinked + "건을 남은 일정에 다시 연결했어요." : ".") : "중복된 일정이 없어요.");
+    }).catch(function (e) { say("cal-dedupe-msg", e.message, true); }).then(function () { $("cal-dedupe").disabled = false; });
+  });
   $("cal-unlink").addEventListener("click", function () {
     api("/api/calendar", { method: "DELETE" }).then(renderCal).catch(function (e) { $("cal-err").textContent = e.message; });
   });

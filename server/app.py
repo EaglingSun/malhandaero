@@ -1017,11 +1017,20 @@ def calendar_set_target(body: ReadSource, bg: BackgroundTasks, user=Depends(curr
     if not sid:
         raise HTTPException(400, "올릴 캘린더를 골라 주세요.")
     name = body.name.strip()[:60] or ("네이버 캘린더" if link["provider"] == "naver" else "구글 캘린더")
+    cfg = link["config"]
+    current = cfg.get("calendar_url") if link["provider"] == "naver" else (cfg.get("write_calendar_id") or "primary")
+    if sid == current or (link["provider"] == "google" and sid == "primary-id" and current == "primary"):
+        return _calendar_state(user["id"])  # 같은 캘린더면 아무것도 바꾸지 않는다 (다시 올리면 중복이 생긴다)
+    with db.session() as con:  # 예전 캘린더에 올라간 일정은 옮긴다: 예전 데서 지우고 새 데 올린다
+        moving = [(r["id"], r["cal_ref"]) for r in con.execute("SELECT id, cal_ref FROM items WHERE user_id = ? AND cal_ref IS NOT NULL AND addon != 'calendar'", (user["id"],))]
+    old_link = {**link, "config": dict(cfg)}
+    for _, ref in moving:
+        bg.add_task(calsync.remove_ref, old_link, ref)  # 예전 설정으로 예전 캘린더에서 뺀다
     if link["provider"] == "naver":
         calsync.update_config(user["id"], calendar_url=sid, calendar_name=name)
     else:
         calsync.update_config(user["id"], write_calendar_id=sid, calendar_name=name)
-    with db.session() as con:  # 예전 캘린더의 일정 번호는 새 캘린더에서 쓸 수 없으니 끊고, 앞으로 할 일을 새 캘린더에 올린다
+    with db.session() as con:
         con.execute("UPDATE items SET cal_ref = NULL WHERE user_id = ? AND addon != 'calendar'", (user["id"],))
         ids = [r["id"] for r in con.execute("SELECT id FROM items WHERE user_id = ? AND status = 'todo' AND plan_date >= ?", (user["id"], today().isoformat()))]
     for i in ids:
@@ -1076,11 +1085,23 @@ def calendar_mode(body: CalendarMode, bg: BackgroundTasks, user=Depends(current_
 
 @app.delete("/api/calendar")
 def calendar_unlink(user=Depends(current_user)):
-    """연결을 끊는다. 이미 캘린더에 들어간 일정은 그대로 둔다."""
-    with db.session() as con:
-        con.execute("DELETE FROM calendar_links WHERE user_id = ?", (user["id"],))
-        con.execute("UPDATE items SET cal_ref = NULL WHERE user_id = ?", (user["id"],))
+    """연결을 끊는다. 캘린더의 일정도, 할 일의 일정 번호도 그대로 둔다(같은 종류로 다시 연결하면 중복 없이 이어진다)."""
+    calsync.unlink(user["id"])
     return _calendar_state(user["id"])
+
+
+@app.post("/api/calendar/dedupe")
+def calendar_dedupe(user=Depends(current_user)):
+    """올리는 캘린더의 중복 일정 정리 (구글). 같은 제목·같은 시작은 하나만 남긴다."""
+    link = calsync.get_link(user["id"])
+    if not link:
+        raise HTTPException(400, "먼저 캘린더를 연결해 주세요.")
+    if link["provider"] != "google":
+        raise HTTPException(400, "지금은 구글 캘린더만 정리할 수 있어요.")
+    try:
+        return calsync.dedupe_google(user["id"], link)
+    except calsync.CalendarError as e:
+        raise HTTPException(400, str(e))
 
 
 # ---------- 하루 정리 ----------

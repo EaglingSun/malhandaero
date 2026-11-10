@@ -122,6 +122,7 @@ chmod +x malhandaero/*.sh malhandaero/*.command
 | 4 | 더블클릭 실행(.command), Tailscale 자동, QR 연결(내 기기 / 가족 초대) |
 | 5 | 목록 중심 화면(+ 버튼 뒤에 넣기), https 인증서 묶음, 연결 실패 사유 표시 |
 | 6 | 공유로 받는 파일 종류 확대 |
+| 24 | 일정 중복 원인 수정: ① 연결 끊기가 할 일의 일정 번호를 지워 재연결 시 전부 다시 올라가던 것 → 끊어도 번호 보관(종류가 바뀔 때만 끊음) ② 올릴 캘린더를 같은 것으로 골라도 다시 올리던 것 → 실제로 바뀔 때만, 예전 캘린더에서 지우고 새 데로 옮김 ③ 「중복 일정 정리」(`POST /api/calendar/dedupe`, 구글): 같은 제목·시작 중 할 일이 가리키는 것만 남김. 네이버는 UID가 항목 번호라 PUT이 덮어써 중복이 안 생김 |
 | 23 | 올릴 캘린더 선택(`POST /api/calendar/target`; 구글 write_calendar_id, 네이버 calendar_url. 바꾸면 예전 cal_ref를 끊고 앞으로 할 일을 새 캘린더에 올림). 캘린더 일정 「숨기기 / 다시 보기」(`calendar_hidden` 표, `/api/calendar/events/hide|unhide`) |
 | 22 | 내가 올린 일정이 「캘린더 일정」에 되돌아오던 문제(설명이 근거 문장이면 표식이 없었음): 할 일의 cal_ref와 대조해 거르고, 구글엔 extendedProperties.private.malhandaero 표식. 동기화된 할 일 카드에 「캘린더 ✓」 태그(가져온 것은 「캘린더에서」) |
 | 21 | 읽는 캘린더 선택: 「캘린더 연결」에 "일정을 가져올 캘린더" 목록(구글 calendarList, 네이버 캘린더 목록). 올리는 캘린더는 그대로. 구글은 `calendarlist.readonly` 권한이 추가돼 **기존 연결은 구글을 한 번 다시 연결해야 목록이 보임** (`/api/calendar/sources`, `/api/calendar/source`) |
