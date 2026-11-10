@@ -110,12 +110,12 @@ ul.list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction
 .foot { font-size: 13px; color: var(--muted); margin: 0; text-align: center; }
 .tabs {
   position: fixed; left: 0; right: 0; bottom: 0;
-  display: grid; grid-template-columns: repeat(3, 1fr);
+  display: grid; grid-template-columns: repeat(4, 1fr);
   background: var(--paper); border-top: 1.5px solid var(--line);
-  padding: 8px max(12px, env(safe-area-inset-left)) calc(8px + env(safe-area-inset-bottom));
-  gap: 8px;
+  padding: 8px max(10px, env(safe-area-inset-left)) calc(8px + env(safe-area-inset-bottom));
+  gap: 6px; z-index: 6;
 }
-.tabs button { border-color: transparent; font-size: 16px; padding: 10px 0; }
+.tabs button { border-color: transparent; font-size: 15px; padding: 10px 0; white-space: nowrap; min-width: 0; }
 .tabs button.on { background: var(--mint-soft); }
 @media (prefers-reduced-motion: no-preference) { .mic { transition: box-shadow .2s ease, background .2s ease; } }
 
@@ -156,8 +156,8 @@ button.quick { flex: none; padding: 6px 12px; font-size: 14px; }
 .week button { padding: 4px 0; border-radius: 12px; }
 .week .dn { font-size: 15px; }
 .fab {
-  position: fixed; right: max(16px, calc(50% - 264px)); bottom: calc(76px + env(safe-area-inset-bottom));
-  width: 60px; height: 60px; border-radius: 50%; padding: 0;
+  position: fixed; right: max(16px, calc(50% - 264px)); bottom: calc(84px + env(safe-area-inset-bottom));
+  width: 56px; height: 56px; border-radius: 50%; padding: 0;
   background: var(--mint); border: 0; color: #fff; font-size: 34px; line-height: 1;
   box-shadow: 0 10px 24px rgba(18,181,138,.4); z-index: 5;
 }
@@ -172,7 +172,7 @@ button.quick { flex: none; padding: 6px 12px; font-size: 14px; }
 .row.between { justify-content: space-between; }
 .speak { display: flex; flex-direction: column; gap: 10px; }
 .mic { width: 92px; height: 92px; font-size: 19px; align-self: center; }
-main { padding-bottom: 150px; }
+main { padding-bottom: calc(160px + env(safe-area-inset-bottom)); }
 
 /* 들은 이야기 요약: 접힌 한 줄 */
 .item.brief { background: #fffbe8; border-color: #ffeeaa; }
