@@ -109,7 +109,10 @@ def main() -> None:
     if llm.mode() in llm.OPENAI_LIKE:
         base, _, model, _ = llm.openai_config(llm.mode())
         print(f"  모델             {model}   ({base})")
-    print(f"  녹음 파일 변환    {'켜짐 (모델 ' + os.environ.get('MALHAN_WHISPER_MODEL', 'small') + ')' if stt.available() else '꺼짐 — 설치를 한 번 더 실행하면 켜져요 (글·사진·말하기는 됩니다)'}")
+    eng = stt.engine()
+    stt_text = {"whisper": "켜짐 (이 PC의 whisper, 모델 " + os.environ.get("MALHAN_WHISPER_MODEL", "small") + ")",
+                "gemini": "켜짐 (Gemini가 직접 들음, 설치 없음)"}.get(eng, "꺼짐 — 설치를 한 번 더 실행하거나 GEMINI_API_KEY를 넣으면 켜져요 (글·사진·말하기는 됩니다)")
+    print(f"  녹음 파일 변환    {stt_text}")
     if not os.environ.get("MALHAN_FAMILY_CODE"):
         print("  ! 가족 코드가 없어요. 설치를 다시 실행하거나 .env에 MALHAN_FAMILY_CODE를 넣어 주세요.")
     if llm.mode() == "none":
