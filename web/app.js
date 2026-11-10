@@ -649,6 +649,13 @@
   // 폰 브라우저로 보고 있으면 주소·QR 대신 "이 폰에 설치" 안내만 (주소는 이미 열려 있으니까)
   var onPhone = /Android|iPhone|iPad/i.test(navigator.userAgent);
   if (onPhone) { $("link-pc").hidden = true; $("link-phone").hidden = false; $("btn-link").textContent = "앱으로 설치하기"; $("h-link").textContent = "앱으로 설치하기"; }
+  // 폰 브라우저(설치 전, Chrome)면 맨 먼저 설치하라는 띠. 닫으면 다시 안 보인다
+  var installed = window.matchMedia("(display-mode: standalone)").matches || navigator.standalone;
+  var chromeUA = /Chrome\//.test(navigator.userAgent) && !/SamsungBrowser|EdgA|OPR|Whale|NAVER|KAKAOTALK|FB_IAB|Instagram/i.test(navigator.userAgent);
+  var barOff = false; try { barOff = localStorage.getItem("installbar-off") === "1"; } catch (e) {}
+  if (onPhone && chromeUA && !installed && !barOff) $("installbar").hidden = false;
+  $("installbar-go").addEventListener("click", function () { $("installbar").hidden = true; var b = $("link-box"); if (b.hidden) $("btn-link").click(); else b.scrollIntoView({ block: "start" }); });
+  $("installbar-x").addEventListener("click", function () { $("installbar").hidden = true; try { localStorage.setItem("installbar-off", "1"); } catch (e) {} });
   window.addEventListener("beforeinstallprompt", function (e) {      // Chrome이 설치를 허락하면 단추 하나로
     e.preventDefault(); state.installPrompt = e; $("link-install").hidden = false;
   });
