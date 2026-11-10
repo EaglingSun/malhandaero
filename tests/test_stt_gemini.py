@@ -36,7 +36,7 @@ def test_small_file_goes_inline(monkeypatch, tmp_path):
         return Resp({"candidates": [{"content": {"parts": [{"text": "화자1: 우유 사 갈게.\n화자2: 응."}]}}]})
     monkeypatch.setattr(urllib.request, "urlopen", fake)
     assert stt.transcribe(f) == "화자1: 우유 사 갈게.\n화자2: 응."
-    assert "gemini-2.5-flash:generateContent" in seen["url"] and "key=k" in seen["url"]
+    assert "gemini-3.8-flash:generateContent" in seen["url"] and "key=k" in seen["url"]
     part = seen["body"]["contents"][0]["parts"][0]["inline_data"]
     assert part["mime_type"] == "audio/mp4" and len(part["data"]) > 0
 

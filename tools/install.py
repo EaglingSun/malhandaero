@@ -58,10 +58,11 @@ def main() -> int:
         env.write_text(
             "# 말한대로 설정. 바꾼 뒤에는 서버를 껐다 켜 주세요.\n"
             f"MALHAN_FAMILY_CODE={code}\n\n"
-            "# AI 연결: 비워 두면 이 PC의 Claude Code 로그인을 씁니다 (API 결제 없음).\n"
-            "# Claude 구독이 없으면 둘 중 하나의 #을 지우고 키를 넣으세요.\n"
-            "# GEMINI_API_KEY=          # 구글 Gemini. aistudio.google.com 에서 무료 발급\n"
-            "# ANTHROPIC_API_KEY=       # Anthropic API. 쓴 만큼 과금\n",
+            "# AI 연결 — 줄 앞의 #은 '꺼 둔 줄'. 쓰려면 #을 지우세요. 더 많은 설정은 .env.example 참고.\n"
+            "# [1] Claude 구독이 있으면: 아무것도 안 적어도 이 PC의 Claude Code를 씁니다 (API 결제 없음).\n"
+            "# [2] 없으면: 아래 두 줄의 #을 지우고 키를 넣으세요 (aistudio.google.com/apikey, 무료). 녹음 파일도 Gemini가 들어요.\n"
+            "# MALHAN_AI=gemini\n"
+            "# GEMINI_API_KEY=\n",
             encoding="utf-8",
         )
         print(f"   만들었어요. 가족 코드: {code}")

@@ -31,7 +31,7 @@ def test_gemini_defaults_and_think_stripping(monkeypatch):
     assert llm.mode() == "gemini"
     assert llm.complete("녹음 내용: 우유 사야 해") == '[{"text": "우유 사기"}]'
     assert seen["url"].startswith("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions")
-    assert seen["auth"] == "Bearer g-key" and seen["body"]["model"] == "gemini-2.5-flash"
+    assert seen["auth"] == "Bearer g-key" and seen["body"]["model"] == "gemini-3.8-flash"
 
 
 def test_gemini_key_autodetect(monkeypatch):
@@ -75,3 +75,17 @@ def test_rate_limit_message(monkeypatch):
     monkeypatch.setattr(urllib.request, "urlopen", limited)
     with pytest.raises(llm.LlmUnavailable, match="한도"):
         llm.complete("x")
+
+
+def test_retries_with_model_google_suggests(monkeypatch):
+    monkeypatch.setenv("MALHAN_AI", "gemini"); monkeypatch.setenv("GEMINI_API_KEY", "k"); monkeypatch.setenv("MALHAN_GEMINI_MODEL", "gemini-old")
+    models = []
+    def fake(req, timeout=0):
+        models.append(json.loads(req.data)["model"])
+        if len(models) == 1:
+            msg = b'{"error":{"code":404,"message":"This model models/gemini-old is no longer available to new users. Please update your code to use models/gemini-new for the latest features"}}'
+            raise urllib.error.HTTPError(req.full_url, 404, "nf", {}, io.BytesIO(msg))
+        return _answer("ok")
+    monkeypatch.setattr(urllib.request, "urlopen", fake)
+    assert llm.complete("x") == "ok" and models == ["gemini-old", "gemini-new"]
+    assert llm.suggested_model("no hint here") == ""

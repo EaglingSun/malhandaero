@@ -122,6 +122,7 @@ chmod +x malhandaero/*.sh malhandaero/*.command
 | 4 | 더블클릭 실행(.command), Tailscale 자동, QR 연결(내 기기 / 가족 초대) |
 | 5 | 목록 중심 화면(+ 버튼 뒤에 넣기), https 인증서 묶음, 연결 실패 사유 표시 |
 | 6 | 공유로 받는 파일 종류 확대 |
+| 31 | Gemini 기본 모델 `gemini-3.8-flash`(2.5-flash는 신규 사용자 불가 — Windows 실기기 404로 확인). 404에 "use models/X"가 오면 X로 한 번 자동 재시도(`llm.suggested_model`, stt `_ModelGone`). `.env.example`을 [1] Claude Code / [2] Gemini / [3] 그 밖에 + STT + 기타로 재구성, install.py의 .env 틀도 같은 꼴 |
 | 30 | 녹음 파일을 Gemini가 직접 듣는 STT(`stt.engine()`: whisper 있으면 whisper, 없고 GEMINI_API_KEY 있으면 gemini, `MALHAN_STT`로 고정). ≤18MB inline_data, 넘으면 File API resumable 업로드 → ACTIVE 대기 → file_data. 화자 구분 시도('화자1:'). `MALHAN_GEMINI_STT_MODEL`. 혼자 쓰는 폰 전용 라이트판의 핵심 가정(오디오→Gemini) 검증용 |
 | 29 | Windows 대비: `말한대로 처음 설치.bat`(git clone→install→run), bat 전부 **ASCII만**(chcp 뒤 멀티바이트가 있으면 cmd가 줄을 깨뜨림 — Windows 실기기에서 확인) + `chcp 65001`+`PYTHONUTF8=1`+CRLF(.gitattributes), `.env` utf-8-sig(메모장 BOM), Tailscale `Program Files` 경로 탐지, install.py .env 틀에 GEMINI_API_KEY 안내·방화벽 안내. **실기기 검증 전** |
 | 28 | 구독 없는 사람용 AI 연결: `MALHAN_AI=gemini`(GEMINI_API_KEY, 기본 gemini-2.5-flash, 키만 있으면 자동 감지) · `ollama`(localhost:11434, 기본 qwen3:8b, `<think>` 제거) · `openai`(OpenAI 호환 아무 서버). `llm._run_openai` — 표준 라이브러리 urllib로 chat/completions, 사진 읽기는 image_url data URL. 오류 문구 읽기 좋게(키 틀림·한도·모델 없음·Ollama 꺼짐). INSTALL.md 「Claude 구독이 없다면」 표 |

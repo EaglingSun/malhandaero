@@ -17,6 +17,10 @@ class SttUnavailable(RuntimeError):
     pass
 
 
+class _ModelGone(Exception):
+    """구글이 '이 모델 대신 X를 쓰라'고 답했을 때, X를 담아 한 번 더 시도하게 한다."""
+
+
 def _whisper_available() -> bool:
     try:
         import faster_whisper  # noqa: F401
@@ -72,6 +76,11 @@ def _gemini_call(url: str, body: bytes | None, headers: dict, method: str = "POS
             raise SttUnavailable("Gemini 키가 틀리거나 권한이 없어요. .env의 GEMINI_API_KEY를 확인해 주세요.")
         if e.code == 429:
             raise SttUnavailable("Gemini 사용량 한도예요. 잠시 뒤 '다시 뽑기'를 눌러 주세요.")
+        if e.code == 404:
+            from server.llm import suggested_model
+
+            new = suggested_model(detail)
+            raise _ModelGone(new) if new else SttUnavailable("Gemini에 그 모델이 없어요. .env의 MALHAN_GEMINI_STT_MODEL을 확인해 주세요.")
         raise SttUnavailable(f"Gemini가 녹음을 읽지 못했어요 ({e.code}): {detail}")
     except urllib.error.URLError as e:
         raise SttUnavailable(f"Gemini에 연결하지 못했어요: {e.reason}")
@@ -105,22 +114,29 @@ def _gemini_upload(path: Path, mime: str, key: str) -> str:
     return uri
 
 
-def _transcribe_gemini(path: Path) -> str:
+def _transcribe_gemini(path: Path, model: str = "") -> str:
     import base64
     import json
 
     key = _gemini_key()
     if not key:
         raise SttUnavailable("Gemini 키가 없어요. .env에 GEMINI_API_KEY를 넣어 주세요.")
-    model = os.environ.get("MALHAN_GEMINI_STT_MODEL") or os.environ.get("MALHAN_GEMINI_MODEL") or "gemini-2.5-flash"
+    retry = not model
+    model = model or os.environ.get("MALHAN_GEMINI_STT_MODEL") or os.environ.get("MALHAN_GEMINI_MODEL") or "gemini-3.8-flash"
     mime = MIME.get(path.suffix.lower(), "audio/mp4")
     if path.stat().st_size <= GEMINI_INLINE_MAX:
         part = {"inline_data": {"mime_type": mime, "data": base64.b64encode(path.read_bytes()).decode()}}
     else:
         part = {"file_data": {"mime_type": mime, "file_uri": _gemini_upload(path, mime, key)}}
     body = {"contents": [{"parts": [part, {"text": TRANSCRIBE_PROMPT}]}], "generationConfig": {"temperature": 0.1}}
-    data, _ = _gemini_call(f"{GEMINI_BASE}/v1beta/models/{model}:generateContent?key={key}", json.dumps(body).encode(),
-                           {"Content-Type": "application/json"})
+    try:
+        data, _ = _gemini_call(f"{GEMINI_BASE}/v1beta/models/{model}:generateContent?key={key}", json.dumps(body).encode(),
+                               {"Content-Type": "application/json"})
+    except _ModelGone as g:
+        if not retry:
+            raise SttUnavailable(f"Gemini에 '{model}' 모델이 없어요. .env의 MALHAN_GEMINI_STT_MODEL을 확인해 주세요.")
+        print(f"[stt] Gemini 모델 '{model}'은 더 못 써요. 구글이 권한 '{g.args[0]}'로 다시 시도합니다.", flush=True)
+        return _transcribe_gemini(path, g.args[0])
     try:
         text = "".join(p.get("text", "") for p in data["candidates"][0]["content"]["parts"])
     except (KeyError, IndexError, TypeError):

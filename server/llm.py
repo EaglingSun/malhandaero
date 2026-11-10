@@ -15,7 +15,7 @@
   MALHAN_LONG_CHARS         : 이 글자 수를 넘는 지시문이면 '긴 글'로 본다 (기본 10000)
   MALHAN_CLAUDE_BIN         : claude 실행 파일 위치 (기본: PATH에서 찾음)
   MALHAN_FAKE_LLM=1         : MALHAN_AI=fake와 같다
-  MALHAN_GEMINI_MODEL       : gemini 방식의 모델 (기본 gemini-2.5-flash)
+  MALHAN_GEMINI_MODEL       : gemini 방식의 모델 (기본 gemini-3.8-flash). 구글이 "다른 모델을 쓰라"고 답하면 그 모델로 한 번 더 시도한다
   MALHAN_OLLAMA_MODEL       : ollama 방식의 모델 (기본 qwen3:8b), MALHAN_OLLAMA_URL (기본 http://localhost:11434)
 """
 from __future__ import annotations
@@ -66,7 +66,7 @@ def openai_config(m: str) -> tuple[str, str, str, str]:
     if m == "gemini":
         return (os.environ.get("MALHAN_OPENAI_BASE_URL") or "https://generativelanguage.googleapis.com/v1beta/openai",
                 os.environ.get("GEMINI_API_KEY") or os.environ.get("MALHAN_OPENAI_API_KEY", ""),
-                os.environ.get("MALHAN_GEMINI_MODEL") or os.environ.get("MALHAN_OPENAI_MODEL") or "gemini-2.5-flash", "Gemini")
+                os.environ.get("MALHAN_GEMINI_MODEL") or os.environ.get("MALHAN_OPENAI_MODEL") or "gemini-3.8-flash", "Gemini")
     if m == "ollama":
         return ((os.environ.get("MALHAN_OLLAMA_URL") or "http://localhost:11434").rstrip("/") + "/v1", "ollama",
                 os.environ.get("MALHAN_OLLAMA_MODEL") or os.environ.get("MALHAN_OPENAI_MODEL") or "qwen3:8b", "Ollama")
@@ -74,12 +74,22 @@ def openai_config(m: str) -> tuple[str, str, str, str]:
             os.environ.get("MALHAN_OPENAI_MODEL", ""), "AI 서버")
 
 
-def _run_openai(m: str, content, max_tokens: int) -> str:
+_SUGGESTED = re.compile(r"use\s+(?:models/)?([\w.\-]+)")
+
+
+def suggested_model(detail: str) -> str:
+    """'This model X is no longer available… use models/Y' 꼴의 답에서 Y를 꺼낸다."""
+    m = _SUGGESTED.search(detail or "")
+    return m.group(1) if m else ""
+
+
+def _run_openai(m: str, content, max_tokens: int, model_override: str = "") -> str:
     """OpenAI 호환 chat/completions 한 번. 표준 라이브러리만 쓴다(설치 없음)."""
     import urllib.error
     import urllib.request
 
     base, key, model, name = openai_config(m)
+    model = model_override or model
     if not base or not model:
         raise LlmUnavailable(f"{name} 주소나 모델이 비어 있어요. .env의 MALHAN_OPENAI_BASE_URL · MALHAN_OPENAI_MODEL을 채워 주세요.")
     if m == "gemini" and not key:
@@ -99,6 +109,12 @@ def _run_openai(m: str, content, max_tokens: int) -> str:
             raise LlmUnavailable(f"{name} 사용량 한도예요. 잠시 뒤 '다시 뽑기'를 눌러 주세요.")
         if e.code == 404 and m == "ollama":
             raise LlmUnavailable(f"Ollama에 '{model}' 모델이 없어요. 터미널에서 'ollama pull {model}'을 해 주세요.")
+        if e.code == 404 and not model_override and suggested_model(detail):
+            new = suggested_model(detail)
+            print(f"[llm] {name} 모델 '{model}'은 더 못 써요. 구글이 권한 '{new}'로 다시 시도합니다. .env의 MALHAN_GEMINI_MODEL을 바꿔 두세요.", flush=True)
+            return _run_openai(m, content, max_tokens, model_override=new)
+        if e.code == 404:
+            raise LlmUnavailable(f"{name}에 '{model}' 모델이 없어요. .env의 모델 이름을 확인해 주세요.")
         raise LlmUnavailable(f"{name}가 답을 주지 못했어요 ({e.code}): {detail}")
     except urllib.error.URLError as e:
         if m == "ollama":
