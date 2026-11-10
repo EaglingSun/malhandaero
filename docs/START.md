@@ -23,7 +23,7 @@ winget install --id Python.Python.3.12 -e
 Mac은 `xcode-select --install`(git) 뒤 python.org에서 Python.
 
 > **Claude 구독이 없어도 돼요.** 그대로 설치하면 할 일 관리 앱으로 다 써요 — 직접 적기, 오늘·나중·안 함, 캘린더 연결, 하루 마무리, 달력, 폰 앱. 녹음·글에서 AI가 대신 뽑는 것만 쉬고, 나중에 Claude Code를 로그인하면 그때부터 바로 돼요.
-> ChatGPT 구독이면 Codex CLI(`codex login`)로도 돼요. API 키(Anthropic·OpenAI·Gemini)는 INSTALL.md 참고.
+> 다양한 AI 연결(Codex·GPT·Gemini 등) 지원은 다음 버전에서 하겠습니다.
 
 ---
 
