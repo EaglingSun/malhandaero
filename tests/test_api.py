@@ -321,7 +321,10 @@ def test_skip_all_clears_new_items_of_one_input():
     a = client.post("/api/inputs", data={"kind": "memo", "text": "우유 사야 해. 빵 사야 해."}).json()["id"]
     b = client.post("/api/inputs", data={"kind": "memo", "text": "세탁소에서 옷 찾아 오는 거 잊지 말기."}).json()["id"]
     assert len(client.get("/api/day").json()["new"]) == 3
-    assert client.post("/api/items/skip-all", json={"input_id": a}).json()["skipped"] == 2
+    r = client.post("/api/items/skip-all", json={"input_id": a}).json()
+    assert r["skipped"] == 2 and len(r["ids"]) == 2
     left = client.get("/api/day").json()["new"]
     assert len(left) == 1 and left[0]["input_id"] == b
     assert client.post("/api/items/skip-all", json={}).json()["skipped"] == 1 and client.get("/api/day").json()["new"] == []
+    assert client.post("/api/items/restore", json={"ids": r["ids"]}).json()["restored"] == 2       # 되돌리기
+    assert sorted(i["input_id"] for i in client.get("/api/day").json()["new"]) == [a, a]

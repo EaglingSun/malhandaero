@@ -285,10 +285,16 @@
       .then(function (r) { renderDay(r[0]); renderWeek(r[1]); }).catch(fail("in-msg"));
   }
   $("btn-skip-all").addEventListener("click", function () {
-    var b = $("btn-skip-all");
-    if (!b.dataset.sure) { b.dataset.sure = "1"; b.textContent = "한 번 더 누르면 모두 안 함"; setTimeout(function () { delete b.dataset.sure; b.textContent = "모두 안 함"; }, 4000); return; }
-    delete b.dataset.sure; b.textContent = "모두 안 함";
-    api("/api/items/skip-all", { method: "POST", json: {} }).then(function (r) { say("in-msg", r.skipped + "건을 안 함으로 넘겼어요. 넣은 것에서 '다시 내 일로' 할 수 있어요."); refresh(); }).catch(fail("in-msg"));
+    /* 한 번에 실행하고 되돌리기 버튼을 준다 */
+    api("/api/items/skip-all", { method: "POST", json: {} }).then(function (r) {
+      var n = $("in-msg"); n.className = "msg"; n.textContent = r.skipped + "건을 안 함으로 넘겼어요. ";
+      if (r.ids && r.ids.length) {
+        n.appendChild(btn("되돌리기", "link", function () {
+          api("/api/items/restore", { method: "POST", json: { ids: r.ids } }).then(function (x) { say("in-msg", x.restored + "건을 되돌렸어요."); refresh(); }).catch(fail("in-msg"));
+        }));
+      }
+      refresh();
+    }).catch(fail("in-msg"));
   });
   $("btn-bulk").addEventListener("click", function () {
     api("/api/items/accept-all", { method: "POST", json: {} }).then(function (r) { say("in-msg", r.moved + "건을 넣었어요."); refresh(); }).catch(fail("in-msg"));

@@ -672,12 +672,29 @@ class SkipAll(BaseModel):
 def skip_all(body: SkipAll, user=Depends(current_user)):
     """새로 적어 둔 것을 한 번에 '안 함'으로. input_id를 주면 그 녹음에서 나온 것만."""
     with db.session() as con:
+        where, args = "user_id = ? AND status = 'new'", [user["id"]]
         if body.input_id is not None:
-            cur = con.execute("UPDATE items SET status = 'skipped', updated_at = datetime('now') WHERE user_id = ? AND status = 'new' AND input_id = ?",
-                              (user["id"], body.input_id))
-        else:
-            cur = con.execute("UPDATE items SET status = 'skipped', updated_at = datetime('now') WHERE user_id = ? AND status = 'new'", (user["id"],))
-    return {"skipped": cur.rowcount}
+            where += " AND input_id = ?"
+            args.append(body.input_id)
+        ids = [r["id"] for r in con.execute(f"SELECT id FROM items WHERE {where}", args)]
+        con.execute(f"UPDATE items SET status = 'skipped', updated_at = datetime('now') WHERE {where}", args)
+    return {"skipped": len(ids), "ids": ids}
+
+
+class Restore(BaseModel):
+    ids: list[int]
+
+
+@app.post("/api/items/restore")
+def restore_items(body: Restore, user=Depends(current_user)):
+    """'모두 안 함'을 되돌린다: 준 id 중 안 함 상태인 것만 다시 '새로 적어 둔 것'으로."""
+    if not body.ids:
+        return {"restored": 0}
+    marks = ",".join("?" * len(body.ids[:500]))
+    with db.session() as con:
+        cur = con.execute(f"UPDATE items SET status = 'new', updated_at = datetime('now') WHERE user_id = ? AND status = 'skipped' AND id IN ({marks})",
+                          (user["id"], *body.ids[:500]))
+    return {"restored": cur.rowcount}
 
 
 @app.patch("/api/items/{item_id}")
