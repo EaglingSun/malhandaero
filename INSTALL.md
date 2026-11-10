@@ -24,20 +24,20 @@ Claude Code가 없으면 `.env`에 `ANTHROPIC_API_KEY`를 넣어 API 키로 쓸 
 
 ## 설치 (한 번만)
 
-가장 쉬운 길: 저장소의 `말한대로 처음 설치.bat`(Windows) 또는 `말한대로 처음 설치.command`(Mac) 파일 하나만 내려받아 더블클릭합니다. Windows는 Git·Python이 없으면 winget으로 알아서 깔고, `C:\Users\이름\malhandaero`에 설치한 뒤 바탕 화면에 「말한대로 켜기」「말한대로 자동 시작」 바로가기를 만듭니다. Mac은 Git([Xcode 명령줄 도구](https://developer.apple.com/xcode/))과 [Python 3.10+](https://www.python.org/downloads/)가 먼저 있어야 합니다.
+가장 쉬운 길: 저장소의 `setup-windows.bat`(Windows) 또는 `setup-mac.command`(Mac) 파일 하나만 내려받아 더블클릭합니다. Windows는 Git·Python이 없으면 winget으로 알아서 깔고, `C:\Users\이름\malhandaero`에 설치한 뒤 바탕 화면에 「말한대로 켜기」「말한대로 자동 시작」 바로가기를 만듭니다. Mac은 Git([Xcode 명령줄 도구](https://developer.apple.com/xcode/))과 [Python 3.10+](https://www.python.org/downloads/)가 먼저 있어야 합니다.
 저장소를 받고, 설치하고, 켜는 것까지 한 번에 합니다. 이렇게 받아 두면 **켤 때마다 업데이트를 알아서 받습니다.** 다시 설치하고 싶을 때(음성 인식이 빠졌을 때 등)는 받은 폴더 안의 같은 파일을 한 번 더 더블클릭하면 됩니다.
 
 직접 할 때:
 
 1. 저장소를 받습니다. `git clone https://github.com/EaglingSun/malhandaero.git`
    (GitHub의 "Download ZIP"으로 받아 풀어도 됩니다. 처음 켤 때 그 폴더를 저장소에 연결해 그다음부터는 똑같이 업데이트됩니다.)
-2. 폴더 안의 `말한대로 처음 설치.bat` / `.command`를 실행합니다 (Mac은 처음에 막히면 우클릭 → 열기. Linux는 `sh tools/install.sh`).
+2. 폴더 안의 `setup-windows.bat` / `setup-mac.command`를 실행합니다 (Mac은 처음에 막히면 우클릭 → 열기. Linux는 `sh tools/install.sh`).
 3. "코드"를 물으면 정해서 입력합니다. 들어올 때 쓰는 비밀번호 역할입니다.
 
 ## 켜기
 
 - Windows: 바탕 화면의 「말한대로 켜기」 더블클릭 (처음 켤 때 방화벽 허용을 물으면 "허용"). 바로가기가 없으면 폴더의 `tools\run.bat`
-- macOS: `말한대로 켜기.command` 더블클릭
+- macOS: `start.command` 더블클릭
 - Linux: `sh tools/run.sh`
 
 창에 접속 주소, AI 연결 상태, 그리고 휴대폰으로 찍을 QR이 나옵니다. 이 창을 닫으면 서버가 꺼집니다.
@@ -183,7 +183,7 @@ PC에서 `http://localhost:8000`으로 열거나 집 밖 주소(https)에서 연
 
 집 PC를 서버로 두고 폰으로만 쓰려면 한 번 등록해 두세요. 로그인하면 바로 켜지고, 꺼지면 다시 켭니다.
 
-- Mac: `말한대로 자동 시작.command` 더블클릭 (해제: `말한대로 자동 시작 해제.command`). 창 없이 돌고 화면 출력은 `data/server.log`에 남습니다.
+- Mac: `autostart-on.command` 더블클릭 (해제: `autostart-off.command`). 창 없이 돌고 화면 출력은 `data/server.log`에 남습니다.
   덮개를 닫아도 켜 두려면 시스템 설정 → 배터리 → 전원 어댑터 → "디스플레이가 꺼져 있을 때 자동으로 잠자기 방지"를 켭니다.
 - Windows: 바탕 화면의 「말한대로 자동 시작」 더블클릭 (해제: 명령 프롬프트에서 `tools\autostart.bat remove`). 로그인하면 최소화된 창으로 켜집니다.
   설정 → 시스템 → 전원 → 절전 모드를 "안 함"으로 두어야 끊기지 않습니다.

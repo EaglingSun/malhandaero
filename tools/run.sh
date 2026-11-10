@@ -4,7 +4,7 @@
 cd "$(dirname "$0")/.." || exit 1
 PY=python3; command -v python3 >/dev/null 2>&1 || PY=python
 "$PY" tools/update.py "$@" || exit 1
-[ -x .venv/bin/python ] || { echo "먼저 「말한대로 처음 설치.command」를 실행해 주세요."; exit 1; }
+[ -x .venv/bin/python ] || { echo "먼저 「setup-mac.command」를 실행해 주세요."; exit 1; }
 # Mac은 켜 두는 동안 잠들지 않게 한다 (덮개를 닫으면 잠듭니다)
 if command -v caffeinate >/dev/null 2>&1; then
   exec caffeinate -i .venv/bin/python tools/run.py "$@"

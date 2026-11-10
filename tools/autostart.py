@@ -27,7 +27,7 @@ def _mac_plist() -> Path:
 def _mac_install() -> None:
     py = ROOT / ".venv" / "bin" / "python"
     if not py.exists():
-        sys.exit("먼저 설치(말한대로 처음 설치.command)를 해 주세요.")
+        sys.exit("먼저 설치(setup-mac.command)를 해 주세요.")
     # launchd는 PATH가 거의 비어 있어서 claude·tailscale을 못 찾는다. 지금 셸의 PATH를 그대로 넘긴다
     path = os.environ.get("PATH", "")
     for extra in ("/opt/homebrew/bin", "/usr/local/bin", str(Path.home() / ".local" / "bin"), str(Path.home() / ".npm-global" / "bin")):
@@ -83,7 +83,7 @@ def _mac_remove() -> None:
     if p.exists():
         subprocess.run(["launchctl", "unload", "-w", str(p)], capture_output=True)
         p.unlink()
-        print("해제했어요. 이제 '말한대로 켜기.command'로 직접 켜면 돼요.")
+        print("해제했어요. 이제 'start.command'로 직접 켜면 돼요.")
     else:
         print("등록돼 있지 않아요.")
 
@@ -100,7 +100,7 @@ def _win_startup() -> Path:
 
 def _win_install() -> None:
     if not (ROOT / ".venv" / "Scripts" / "python.exe").exists():
-        sys.exit("먼저 「말한대로 처음 설치.bat」을 실행해 주세요.")
+        sys.exit("먼저 「setup-windows.bat」을 실행해 주세요.")
     p = _win_startup()
     p.parent.mkdir(parents=True, exist_ok=True)
     # 시작 프로그램 폴더의 bat 하나: run.bat 을 최소화된 창으로 켠다 (ASCII만 — cmd가 UTF-8 bat를 깨뜨린다)

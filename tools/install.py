@@ -1,6 +1,6 @@
 """말한대로 설치: 가상 환경을 만들고, 필요한 것을 내려받고, 설정 파일(.env)을 만든다.
 
-실행: tools/install.bat (Windows) 또는 tools/install.sh (macOS/Linux). 「처음 설치」 파일이 부른다. 여러 번 실행해도 안전하다.
+실행: tools/install.bat (Windows) 또는 tools/install.sh (macOS/Linux). setup-windows.bat / setup-mac.command가 부른다. 여러 번 실행해도 안전하다.
 """
 from __future__ import annotations
 
@@ -109,7 +109,7 @@ def main() -> int:
             print("  아무것도 없이 화면만 보려면 .env에 MALHAN_AI=fake 를 넣으세요.")
     if os.name == "nt":
         print("· 처음 켤 때 Windows 방화벽 창이 뜨면 '액세스 허용'을 눌러야 폰에서 들어올 수 있어요.")
-    print("· 이제 " + ("바탕 화면의 「말한대로 켜기」" if os.name == "nt" else "「말한대로 켜기.command」") + " 를 실행하세요.")
+    print("· 이제 " + ("바탕 화면의 「말한대로 켜기」" if os.name == "nt" else "「start.command」") + " 를 실행하세요.")
     return 0
 
 

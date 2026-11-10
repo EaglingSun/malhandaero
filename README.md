@@ -9,8 +9,8 @@
 
 | | 받을 파일 | 하면 |
 |---|---|---|
-| **Windows** | [말한대로 처음 설치.bat](https://raw.githubusercontent.com/EaglingSun/malhandaero/main/%EB%A7%90%ED%95%9C%EB%8C%80%EB%A1%9C%20%EC%B2%98%EC%9D%8C%20%EC%84%A4%EC%B9%98.bat) (링크 우클릭 → 다른 이름으로 저장) | 더블클릭 → `C:\Users\이름\malhandaero`에 설치, 바탕 화면에 「말한대로 켜기」 바로가기 |
-| **Mac** | [말한대로 처음 설치.command](https://raw.githubusercontent.com/EaglingSun/malhandaero/main/%EB%A7%90%ED%95%9C%EB%8C%80%EB%A1%9C%20%EC%B2%98%EC%9D%8C%20%EC%84%A4%EC%B9%98.command) (링크 우클릭 → 다른 이름으로 저장) | 우클릭 → 열기 → 설치 뒤엔 `말한대로 켜기.command` |
+| **Windows** | [setup-windows.bat](https://raw.githubusercontent.com/EaglingSun/malhandaero/main/setup-windows.bat) (링크 우클릭 → 다른 이름으로 저장) | 더블클릭 → `C:\Users\이름\malhandaero`에 설치, 바탕 화면에 「말한대로 켜기」 바로가기 |
+| **Mac** | [setup-mac.command](https://raw.githubusercontent.com/EaglingSun/malhandaero/main/setup-mac.command) (링크 우클릭 → 다른 이름으로 저장) | 우클릭 → 열기 → 설치 뒤엔 `start.command` |
 
 준비물은 Python·Git·**Claude Code(Pro 이상 구독)** 세 가지. 처음부터 끝까지는 **[docs/START.md](docs/START.md)** 한 장을 따라 하면 돼요(설치 10분 → 폰에 앱으로 넣기 3분).
 이 목록의 나머지 파일은 설치가 알아서 쓰는 것들이라 따로 받을 필요 없어요.

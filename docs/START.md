@@ -15,7 +15,7 @@
 | Git | git-scm.com | Mac은 터미널에서 `git` 한 번 치면 설치 안내가 떠요 |
 | **Claude 구독(Pro 이상) + Claude Code** | claude.com/claude-code 안내대로 설치 → 터미널에서 `claude` 실행해 로그인 | API 결제 없음. 앱이 이 로그인을 그대로 써요 |
 
-Windows는 `말한대로 처음 설치.bat`이 Git·Python이 없으면 알아서 깔아요(winget). 직접 깔려면 명령 프롬프트에:
+Windows는 `setup-windows.bat`이 Git·Python이 없으면 알아서 깔아요(winget). 직접 깔려면 명령 프롬프트에:
 ```
 winget install --id Git.Git -e
 winget install --id Python.Python.3.12 -e
@@ -30,12 +30,12 @@ Mac은 `xcode-select --install`(git) 뒤 python.org에서 Python.
 ## 2. 설치 (한 번만, 5분)
 
 1. 저장소에서 파일 **하나만** 받아 더블클릭
-   - Windows: `말한대로 처음 설치.bat` → `C:\Users\이름\malhandaero`에 설치되고 바탕 화면에 「말한대로 켜기」「말한대로 자동 시작」 바로가기가 생겨요
-   - Mac: `말한대로 처음 설치.command` (처음엔 우클릭 → 열기)
+   - Windows: `setup-windows.bat` → `C:\Users\이름\malhandaero`에 설치되고 바탕 화면에 「말한대로 켜기」「말한대로 자동 시작」 바로가기가 생겨요
+   - Mac: `setup-mac.command` (처음엔 우클릭 → 열기)
 2. **코드**를 정합니다 — 기억하기 쉬운 숫자나 말. 같은 와이파이의 남이 못 들어오게 막는 열쇠예요. 폰은 한 번 들어가면 계속 유지되니 자주 칠 일은 없어요. 잊으면 `.env` 파일 첫 줄, 바꾸려면 앱의 「휴대폰에서 쓰기 → 코드 바꾸기」.
 3. 음성 인식 설치까지 2~5분 걸린 뒤 서버가 켜지고, 검은 창에 **폰에서 열 주소**(예: `http://10.10.111.97:8000`)가 떠요. Windows 방화벽 창이 뜨면 「액세스 허용」.
 
-다음부터는 바탕 화면의 「말한대로 켜기」(Mac: `말한대로 켜기.command`) 더블클릭. PC를 켤 때 알아서 켜지게 하려면 「말한대로 자동 시작」을 한 번 더블클릭.
+다음부터는 바탕 화면의 「말한대로 켜기」(Mac: `start.command`) 더블클릭. PC를 켤 때 알아서 켜지게 하려면 「말한대로 자동 시작」을 한 번 더블클릭.
 
 ---
 

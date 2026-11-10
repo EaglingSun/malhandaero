@@ -1345,9 +1345,9 @@ def help_prompt(topic: str, request: Request, user=Depends(current_user)):
         ROOT=str(ROOT),
         ADDRESSES=" / ".join(addrs) or "http://localhost:8000",
         REDIRECTS="\n".join(f"   - `{r}`" for r in redirects) or "   - `http://localhost:8000/api/calendar/google/callback`",
-        RESTART="「말한대로 켜기」 더블클릭" if win else "「말한대로 켜기.command」 더블클릭",
+        RESTART="「말한대로 켜기」 더블클릭" if win else "「start.command」 더블클릭",
         LAN=lan or "http://(PC 주소):8000",
-        RUNFILE="말한대로 켜기" if win else "말한대로 켜기.command",
+        RUNFILE="말한대로 켜기" if win else "start.command",
         RUNREMOTE="tools\\run.bat --remote (명령 프롬프트에서)" if win else "터미널에서 tools/run.sh --remote",
     )
     return {"topic": topic, "text": text}
