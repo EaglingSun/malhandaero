@@ -155,6 +155,25 @@ def test_naver_link_then_items_follow_into_calendar(fake, monkeypatch):
     client.patch(f"/api/items/{a['id']}", json={"status": "later"})                # 미루면 캘린더에서 뺀다
     assert path not in FakeCalendars.store
 
+    # 항목별로 정하면 설정보다 우선: 시각 없는 일도 「캘린더에 넣기」, 시각 있는 일도 「캘린더에서 빼기」
+    c = client.post("/api/items", json={"text": "도서관 들르기", "plan_date": "2099-03-03"}).json()
+    cpath = f"/caldav/sun/calendar/111/malhandaero-{c['id']}.ics"
+    assert cpath not in FakeCalendars.store
+    assert client.patch(f"/api/items/{c['id']}", json={"cal_pin": 1}).json()["cal_pin"] == 1
+    assert "DTSTART;VALUE=DATE:20990303" in FakeCalendars.store[cpath]
+    client.patch(f"/api/items/{c['id']}", json={"cal_pin": -1})
+    assert cpath not in FakeCalendars.store
+    d = client.post("/api/items", json={"text": "치과", "plan_date": "2099-03-04", "plan_time": "10:00"}).json()
+    client.patch(f"/api/items/{d['id']}", json={"plan_time": "10:00"})
+    dpath = f"/caldav/sun/calendar/111/malhandaero-{d['id']}.ics"
+    assert dpath in FakeCalendars.store
+    client.patch(f"/api/items/{d['id']}", json={"cal_pin": -1})
+    assert dpath not in FakeCalendars.store
+    assert client.patch(f"/api/items/{d['id']}", json={"cal_pin": 0}).json()["cal_pin"] == 0   # 설정대로 돌아가면 시각 있는 일이라 다시 들어간다
+    assert dpath in FakeCalendars.store
+    assert client.patch(f"/api/items/{d['id']}", json={"cal_pin": 7}).json()["cal_pin"] == 0   # 범위 밖 값은 무시
+    assert client.get("/api/me").json()["calendar"] is True
+
     # '날짜가 정해진 모든 일'로 바꾸면 시각 없는 앞날의 일도 들어간다
     b = client.post("/api/items", json={"text": "책 반납", "plan_date": "2099-03-02"}).json()
     assert client.post("/api/calendar/mode", json={"mode": "all"}).json()["mode"] == "all"

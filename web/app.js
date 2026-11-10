@@ -53,7 +53,7 @@
   if (params.get("link") === "expired") say("join-msg", "QR의 시간이 지났어요. PC에서 QR을 다시 받아 주세요.", true);
   function boot() {
     api("/api/me").then(function (me) {
-      state.me = me; state.today = me.today; state.date = state.date || me.today;
+      state.me = me; state.today = me.today; state.date = state.date || me.today; state.calLinked = !!me.calendar;
       $("v-join").hidden = true; $("v-main").hidden = false;
       $("who").textContent = me.name + " 님";
       $("ver").textContent = (me.label ? me.label + " · " : "") + (me.version ? "버전 " + me.version : "");
@@ -184,6 +184,12 @@
     var edit = editForm(it), cal = (kind === "todo" || kind === "later") ? calendarRow(it) : null;
     row.appendChild(btn("고치기", "", function () { edit.hidden = !edit.hidden; if (cal) cal.hidden = true; }));
     if (cal) row.appendChild(btn("캘린더", "", function () { cal.hidden = !cal.hidden; edit.hidden = true; }));
+    // 연결된 캘린더에 이 일만 넣거나 빼기 (설정이 '시각 있는 일만'이어도 넣을 수 있고, 반대로 뺄 수도 있다)
+    if (state.calLinked && (kind === "todo" || kind === "done") && it.addon !== "calendar") {
+      row.appendChild(btn(it.cal_ref ? "연결된 캘린더에서 빼기" : "연결된 캘린더에 넣기", "", function () {
+        setItem(it, { cal_pin: it.cal_ref ? -1 : 1 }).then(function () { setTimeout(function () { refresh(true); }, 1200); });   // 캘린더 반영은 뒤에서 되니 잠시 뒤 다시 읽는다
+      }));
+    }
     if (kind !== "new" && kind !== "due") row.appendChild(btn("지우기", "ghost", function () { delItem(it); }));
     more.appendChild(row); more.appendChild(edit); if (cal) more.appendChild(cal);
     li.appendChild(more);
@@ -320,6 +326,7 @@
   function renderCalEvents(r) {
     /* 연결된 캘린더의 그날 일정. '할 일로'를 누르면 같은 일정을 가리키는 할 일이 된다 */
     var sec = $("s-cal-ev"), ul = $("l-cal-ev"); ul.textContent = "";
+    if (r && state.calLinked !== !!r.linked) { state.calLinked = !!r.linked; refresh(true); }   // 연결 상태가 바뀌었으면 항목 줄도 다시 그린다
     if (!r || !r.linked || (!r.events.length && !r.error && !r.hidden)) { sec.hidden = true; return; }
     sec.hidden = false; $("c-cal-ev").textContent = String(r.events.length); say("cal-ev-msg", r.error || "", !!r.error);
     r.events.forEach(function (e) {

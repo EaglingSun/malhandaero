@@ -27,7 +27,7 @@
 ```
 users(id, name, token, created_at)
 inputs(id, user_id, kind, title, source_name, received_date, media_path, transcript, speakers, me_speaker, status, error, summary, minutes, done_at, created_at)
-items(id, user_id, input_id, text, quote, due_text, due_date, scope, status, plan_date, plan_time, owner, who, done_at, addon, record_id, cal_ref, details, created_at, updated_at)
+items(id, user_id, input_id, text, quote, due_text, due_date, scope, status, plan_date, plan_time, owner, who, done_at, addon, record_id, cal_ref, cal_pin, details, created_at, updated_at)
 day_logs(user_id, date, summary, note, mood, created_at)
 calendar_links(user_id, provider, mode, config, status, updated_at)
 calendar_hidden(user_id, ref, created_at)
@@ -84,6 +84,8 @@ records(id, user_id, addon, type, input_id, data, date, status, created_at)
 | D-16 | 구글 캘린더는 앱에 내장한 데스크톱형 클라이언트로 PC의 localhost에서 연결한다 (이전: 사용자가 구글 클라우드에서 웹 클라이언트를 만들어 `.env`에) | 받는 사람이 버튼 하나로 연결 | 41~42판 | 유효 |
 | D-17 | 로그인 코드는 설치 때 본인이 정한다 (이전: 기본값 1234) | 회사 와이파이에서 남이 들어오지 못하게 | 11/10 | 유효 |
 | D-18 | 커밋 전 검수는 서브에이전트 `reviewer`에 맡긴다(G-12) | 쓴 쪽은 자기 글의 어긋남을 못 본다 | 11/10 | 유효 |
+| D-19 | 캘린더에 넣을지는 기본 규칙(시각 있는 일만 / 모든 일) 위에 항목별 「캘린더에 넣기 / 빼기」(`items.cal_pin`)가 우선한다 | 시각 있는 일은 거의 다 넣지만, 시각 없는 일은 넣을 것과 안 넣을 것이 갈린다 | 11/11 | 유효 |
+| D-20 | 지난 날짜 화면에서 끝냄 체크/해제는 그 날짜 기준(`done_date`)으로 남는다 (이전: 해제하면 오늘 할 일로) | 어제 한 일을 어제 한 일로 고칠 수 있어야 한다 | 11/11 | 유효 |
 
 ## 6. 문서 지도
 

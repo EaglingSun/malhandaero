@@ -227,6 +227,7 @@ def me(user=Depends(current_user)):
         "update": dict(UPDATE_AVAILABLE) if UPDATE_AVAILABLE else None,
         "diary": _diary_on(user["id"]),
         "post_url": os.environ.get("MALHAN_POST_URL", "").strip(),
+        "calendar": bool(calsync.get_link(user["id"])),   # 항목 줄의 「연결된 캘린더에 넣기」 단추를 처음부터 보이게
     }
 
 
@@ -818,6 +819,7 @@ def month(ym: str | None = None, user=Depends(current_user)):
         # 한 줄을 안 켠 사람은 만점이 4점이라 분모도 4로 — 켜고 안 켜고가 지수에 불리하지 않게
         "score": round(100 * sum(d["score"] for d in elapsed) / ((5 if _diary_on(uid) else 4) * len(elapsed))) if elapsed else 0,
         "post_url": os.environ.get("MALHAN_POST_URL", "").strip(),
+        "calendar": bool(calsync.get_link(user["id"])),   # 항목 줄의 「연결된 캘린더에 넣기」 단추를 처음부터 보이게
     }
 
 
@@ -863,6 +865,7 @@ class ItemPatch(BaseModel):
     plan_time: str | None = None   # "HH:MM", 빈 문자열이면 시각 지움
     text: str | None = None
     scope: str | None = None
+    cal_pin: int | None = None     # 1: 이 일은 캘린더에 넣기, -1: 넣지 않기, 0: 설정대로
 
 
 class AcceptAll(BaseModel):
@@ -930,6 +933,8 @@ def patch_item(item_id: int, body: ItemPatch, bg: BackgroundTasks, user=Depends(
             f["text"] = body.text.strip()[:200]
         if body.scope in ("개인", "회사"):
             f["scope"] = body.scope
+        if body.cal_pin in (-1, 0, 1):
+            f["cal_pin"] = body.cal_pin
         if body.plan_time is not None:
             if body.plan_time and not extract._TIME.match(body.plan_time):
                 raise HTTPException(400, "시각은 HH:MM 꼴이어야 해요.")

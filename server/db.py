@@ -131,6 +131,7 @@ MIGRATIONS = [
     ("inputs", "done_at", "TEXT"),
     ("day_logs", "note", "TEXT NOT NULL DEFAULT ''"),
     ("day_logs", "mood", "TEXT NOT NULL DEFAULT ''"),
+    ("items", "cal_pin", "INTEGER NOT NULL DEFAULT 0"),   # 1: 이 일은 캘린더에 넣기, -1: 넣지 않기, 0: 설정대로
 ]
 
 

@@ -447,8 +447,16 @@ def _note(user_id: int, text: str) -> None:
 
 
 def wants(link: dict, row) -> bool:
-    """이 항목을 캘린더에 둘지: 하기로 했고 날짜가 있으며, 설정이 '시각 있는 일만'이면 시각까지 있어야 한다."""
-    return bool(row["status"] in ("todo", "done") and row["plan_date"] and (link["mode"] == "all" or row["plan_time"]))
+    """이 항목을 캘린더에 둘지: 하기로 했고 날짜가 있어야 하고, 그다음은
+    항목에 직접 정한 것(cal_pin 1=넣기, -1=빼기)이 우선, 없으면 설정('시각 있는 일만' 또는 '모든 일')대로."""
+    if not (row["status"] in ("todo", "done") and row["plan_date"]):
+        return False
+    pin = row["cal_pin"] if "cal_pin" in row.keys() else 0
+    if pin == 1:
+        return True
+    if pin == -1:
+        return False
+    return bool(link["mode"] == "all" or row["plan_time"])
 
 
 OURS = "말한대로에서 보냄"
