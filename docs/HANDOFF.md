@@ -15,7 +15,7 @@
 | 예전 묶음 | 프로젝트 문서 `claude/malhandaero-src-01.txt`~`07.txt`는 6판 소스 묶음. 저장소가 생겼으므로 더 쓰지 않는다 |
 | 실행 중인 곳 | 사용자의 집 Mac. Tailscale로 https 주소를 열어 휴대폰 2대(Android)가 접속 |
 | 개발 계획 문서 | claude.ai 아티팩트 「말한대로 개발 계획」 https://claude.ai/artifact/9hymSQQhmXfwhpuEw14dua (11/9 밤 기준. 그 뒤 추가분 미반영) |
-| 홍보 페이지 | 아티팩트 「말한대로 소개 페이지」 https://claude.ai/artifact/CR8DdiWzVDDpbBLp258iqD |
+| 홍보 페이지 | 아티팩트 「말한대로 소개 페이지」 https://claude.ai/artifact/CR8DdiWzVDDpbBLp258iqD (11/10 09:45 갱신: 회의록·묶음 할 일·맡긴 일·공유·캘린더 자동·자동 업데이트·공모 응모작 표기) |
 | 설계서, 설치 안내 | `docs/DESIGN.md`, `INSTALL.md`, `README.md`. 회의록 형식은 `docs/MINUTES_FORMAT.md`(지시문·내보내기·스킬의 기준) |
 
 ### 코드 받는 법
