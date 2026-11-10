@@ -41,6 +41,7 @@ class Context:
     me_speaker: str | None = None
     skipped: list[str] = field(default_factory=list)  # 전에 '안 함'으로 넘긴 일
     known: list[str] = field(default_factory=list)    # 이미 열려 있는 일
+    from_audio: bool = False                          # 음성 파일을 글로 바꾼 것: 화자 표기가 없다
 
 
 def build_prompt(text: str, ctx: Context) -> str:
@@ -50,6 +51,10 @@ def build_prompt(text: str, ctx: Context) -> str:
     elif ctx.me_speaker:
         who = (f"- 화자 표기 중 \"{ctx.me_speaker}\"가 본인이다. 이 화자가 하겠다고 한 일과 이 화자가 부탁받아 맡은 일은 owner \"me\", "
                "다른 화자가 맡은 일은 owner \"other\", 누가 맡았는지 정해지지 않은 일은 owner \"unclear\"다.")
+    elif ctx.from_audio:
+        who = ("- 음성을 글로 바꾼 것이라 누가 말했는지 표시가 없고, 이 녹음을 넣은 사람이 본인이다. "
+               "1인칭으로 하겠다고 다짐한 말('제가 ~할게요', '~해야겠다')만 owner \"me\"로 두고, "
+               "'~해 주세요', '~해 줘'처럼 상대에게 부탁·지시한 일과 이름이 불린 사람의 일은 \"other\", 그 밖은 \"unclear\"로 한다.")
     else:
         who = ("- 누가 본인인지 모른다. 말한 사람이 스스로 하겠다고 한 일은 owner \"me\"로 두되, "
                "이름이 불린 다른 사람이 맡은 일은 \"other\", 누가 맡았는지 분명하지 않은 일은 \"unclear\"로 한다.")

@@ -62,3 +62,8 @@ def test_meeting_prompt_asks_for_grouping_and_minutes():
     p = extract.build_prompt("화자 1: 네\n화자 2: 네", ctx)
     assert "5개를 넘기지 않는다" in p and "details" in p and '"minutes"' in p and '반드시 owner "other"' in p and "대화 중계는 쓰지 않고" in p
     assert '"minutes"' not in extract.build_prompt("우유 사기", extract.Context(today=date(2026, 11, 10), kind="memo"))
+
+
+def test_audio_prompt_explains_missing_speakers():
+    p = extract.build_prompt("제가 금요일까지 보낼게요. 자료는 보내 주세요.", extract.Context(today=date(2026, 11, 10), kind="call", from_audio=True))
+    assert "누가 말했는지 표시가 없고" in p and "1인칭" in p

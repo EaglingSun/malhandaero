@@ -459,6 +459,8 @@
       box.appendChild(el("h2", "", inp.title || KIND[inp.kind]));
       var m = el("div", "meta"); m.appendChild(el("span", "tag", KIND[inp.kind])); m.appendChild(el("span", "tag", nice(inp.received_date))); m.appendChild(el("span", "tag", STATUS[inp.status] || inp.status)); box.appendChild(m);
       if (inp.error) box.appendChild(el("p", "msg err", inp.error));
+      if (!inp.speakers.length && /\.(m4a|mp3|wav|webm|ogg|aac|amr|3gp|mp4|flac)$/i.test(inp.source_name || "") && inp.status === "extracted")
+        box.appendChild(el("p", "msg", "녹음 파일은 누가 말했는지 나뉘지 않아요. 회의는 녹음 앱에서 글로 바꾼 뒤 공유하면 내 일·맡긴 일이 더 정확해요."));
       if (inp.speakers.length) {
         var n = el("div", "notice"); n.appendChild(el("strong", "", "누가 나인가요?"));
         var row = el("div", "row");

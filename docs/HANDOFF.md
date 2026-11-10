@@ -93,7 +93,7 @@ chmod +x malhandaero/*.sh malhandaero/*.command
 6. 개인/회사 나눠 보기(요구 R12. 지금은 표시만)
 7. 개발 계획 문서 갱신(Claude Code 연결, 캘린더 자동, QR, 목록 중심 화면, 자동 업데이트 추가분). 저장소 올리기는 끝남
 8. 팀원 1~2명 시험 사용과 전/후 수치 측정(11/12~16) → 공모 게시글과 사용 안내(11/16~17)
-9. 공모 이후: 더하기(애드온) 틀 → 장보기 → 회의 챙김
+9. 공모 이후: 혼자 모드(폰 단독·API 키) → 더하기(애드온) 틀 → 맡긴 일 챙김 → 회의 음성 화자 분리(pyannote 등)
 
 ## 6. 결정이 남은 것
 
@@ -121,6 +121,7 @@ chmod +x malhandaero/*.sh malhandaero/*.command
 | 4 | 더블클릭 실행(.command), Tailscale 자동, QR 연결(내 기기 / 가족 초대) |
 | 5 | 목록 중심 화면(+ 버튼 뒤에 넣기), https 인증서 묶음, 연결 실패 사유 표시 |
 | 6 | 공유로 받는 파일 종류 확대 |
+| 18 | 음성 파일 입력은 화자 분리가 없음을 전제로: 지시문에 1인칭 다짐만 me, 부탁·지시는 other. 넣은 것 상세에 안내 한 줄. 회의는 녹음 앱 텍스트 공유 권장. 화자 분리(diarization)는 로드맵 |
 | 17 | 음성 인식(faster-whisper)을 설치 3/4단계에 포함(`requirements-stt.txt`, 모델 미리 받기, 실패해도 설치는 계속). 업데이트가 stt 묶음·install.py 변경 시에도 재설치. `MALHAN_STT=0`로 뺌 |
 | 16 | 처리 중 자동 새로고침에 펼친 카드가 닫히던 문제(펼침 상태 기억·복원, 넣은 것 상세 유지). 처리 중 문구를 앱 말투로("꼼꼼히 듣고 정리하는 중이에요 ☕ 긴 회의는 몇 분"). `docs/MINUTES_FORMAT.md`(회의록 표준 형식), `skills/meeting-minutes/SKILL.md`(Claude Code 스킬) |
 | 15 | Claude Code 모델 선택: 지시문 1만 자 초과(회의록)는 `--model opus`, 짧은 글은 Claude Code 기본. `MALHAN_CLAUDE_MODEL(_LONG)`, `MALHAN_LONG_CHARS`. 「처음부터 다시 뽑기」 |

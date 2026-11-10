@@ -281,6 +281,7 @@ def process_input(input_id: int) -> None:
         return
     try:
         text = row["transcript"]
+        from_audio = bool(row["media_path"]) and row["kind"] != "photo" and not text
         if row["media_path"] and not text:
             _set_input(input_id, status="transcribing")
             media = Path(row["media_path"])
@@ -303,6 +304,7 @@ def process_input(input_id: int) -> None:
         ctx = extract.Context(
             today=date.fromisoformat(row["received_date"]),
             kind=row["kind"], me_speaker=me_spk, skipped=skipped, known=known,
+            from_audio=from_audio or (not names and (row["source_name"] or "").lower().endswith(tuple(AUDIO_EXT))),
         )
         summary, cands, minutes = extract.extract(text, ctx)
         with db.session() as con:
