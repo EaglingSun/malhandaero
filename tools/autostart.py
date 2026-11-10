@@ -6,7 +6,7 @@
 
 Mac은 ~/Library/LaunchAgents/com.malhandaero.plist 로 등록한다. 로그인하면 바로 켜지고, 죽으면 launchd가 다시 켠다.
   창 없이 돌므로 화면 출력은 data/server.log 에 쌓인다. 덮개를 닫으면 잠드는 것은 시스템 설정(전원 어댑터 연결 시 잠자기 방지)으로.
-Windows는 시작 프로그램 폴더에 run.bat 바로가기를 둔다. 로그인하면 검은 창이 하나 뜨며 켜진다(창을 최소화해 두면 된다).
+Windows는 시작 프로그램 폴더에 tools/run.bat을 부르는 bat을 둔다. 로그인하면 검은 창이 하나 뜨며 켜진다(창을 최소화해 두면 된다).
 """
 from __future__ import annotations
 
@@ -27,7 +27,7 @@ def _mac_plist() -> Path:
 def _mac_install() -> None:
     py = ROOT / ".venv" / "bin" / "python"
     if not py.exists():
-        sys.exit("먼저 설치(말한대로 설치.command)를 해 주세요.")
+        sys.exit("먼저 설치(말한대로 처음 설치.command)를 해 주세요.")
     # launchd는 PATH가 거의 비어 있어서 claude·tailscale을 못 찾는다. 지금 셸의 PATH를 그대로 넘긴다
     path = os.environ.get("PATH", "")
     for extra in ("/opt/homebrew/bin", "/usr/local/bin", str(Path.home() / ".local" / "bin"), str(Path.home() / ".npm-global" / "bin")):
@@ -39,7 +39,7 @@ def _mac_install() -> None:
     log = ROOT / "data" / "server.log"
     log.parent.mkdir(exist_ok=True)
     # run.sh를 통해 켠다: 켤 때 업데이트 확인 → caffeinate(잠들지 않게) → 서버
-    args = ["/bin/sh", str(ROOT / "run.sh")]
+    args = ["/bin/sh", str(ROOT / "tools" / "run.sh")]
     xml_args = "\n".join(f"      <string>{a}</string>" for a in args)
     plist = f"""<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -100,11 +100,11 @@ def _win_startup() -> Path:
 
 def _win_install() -> None:
     if not (ROOT / ".venv" / "Scripts" / "python.exe").exists():
-        sys.exit("먼저 install.bat 을 실행해 주세요.")
+        sys.exit("먼저 「말한대로 처음 설치.bat」을 실행해 주세요.")
     p = _win_startup()
     p.parent.mkdir(parents=True, exist_ok=True)
     # 시작 프로그램 폴더의 bat 하나: run.bat 을 최소화된 창으로 켠다 (ASCII만 — cmd가 UTF-8 bat를 깨뜨린다)
-    p.write_text(f'@echo off\r\nstart "malhandaero" /min cmd /c ""{ROOT / "run.bat"}""\r\n', encoding="ascii", errors="replace")
+    p.write_text(f'@echo off\r\nstart "malhandaero" /min cmd /c ""{ROOT / "tools" / "run.bat"}""\r\n', encoding="ascii", errors="replace")
     print(f"등록했어요. 로그인하면 최소화된 창으로 켜져요.\n  파일: {p}\n  해제: python tools\\autostart.py remove")
     print("  PC가 잠들면 끊겨요: 설정 → 시스템 → 전원 → 화면 및 절전 → 절전 모드 '안 함'")
 

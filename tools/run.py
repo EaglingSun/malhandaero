@@ -69,7 +69,7 @@ def main() -> None:
     try:
         import uvicorn
     except ImportError:
-        print("먼저 설치를 해 주세요: " + ("install.bat" if os.name == "nt" else "./install.sh"))
+        print("먼저 설치를 해 주세요: " + ("말한대로 처음 설치.bat" if os.name == "nt" else "말한대로 처음 설치.command"))
         sys.exit(1)
     from server import llm, stt  # .env를 읽은 뒤의 상태
 

@@ -1,6 +1,6 @@
 """말한대로 설치: 가상 환경을 만들고, 필요한 것을 내려받고, 설정 파일(.env)을 만든다.
 
-실행: install.bat (Windows) 또는 ./install.sh (macOS/Linux). 여러 번 실행해도 안전하다.
+실행: tools/install.bat (Windows) 또는 tools/install.sh (macOS/Linux). 「처음 설치」 파일이 부른다. 여러 번 실행해도 안전하다.
 """
 from __future__ import annotations
 
@@ -24,7 +24,7 @@ def _win_shortcuts() -> None:
     ps = r"""
 $sh = New-Object -ComObject WScript.Shell
 $desk = [Environment]::GetFolderPath('Desktop')
-foreach ($pair in @(@('말한대로 켜기', 'run.bat'), @('말한대로 자동 시작', 'autostart.bat'))) {
+foreach ($pair in @(@('말한대로 켜기', 'tools\run.bat'), @('말한대로 자동 시작', 'tools\autostart.bat'))) {
   $lnk = $sh.CreateShortcut((Join-Path $desk ($pair[0] + '.lnk')))
   $lnk.TargetPath = Join-Path '%s' $pair[1]
   $lnk.WorkingDirectory = '%s'
@@ -36,7 +36,7 @@ foreach ($pair in @(@('말한대로 켜기', 'run.bat'), @('말한대로 자동 
         subprocess.run(["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", ps], check=True, capture_output=True, timeout=60)
         print("· 바탕 화면에 「말한대로 켜기」「말한대로 자동 시작」 바로가기를 만들었어요.")
     except Exception:
-        print("· 바탕 화면 바로가기는 만들지 못했어요. 폴더의 run.bat / autostart.bat을 쓰면 돼요.")
+        print("· 바탕 화면 바로가기는 만들지 못했어요. 폴더의 tools\run.bat / tools\autostart.bat을 쓰면 돼요.")
 
 
 def main() -> int:
@@ -109,7 +109,7 @@ def main() -> int:
             print("  아무것도 없이 화면만 보려면 .env에 MALHAN_AI=fake 를 넣으세요.")
     if os.name == "nt":
         print("· 처음 켤 때 Windows 방화벽 창이 뜨면 '액세스 허용'을 눌러야 폰에서 들어올 수 있어요.")
-    print("· 이제 " + ("run.bat" if os.name == "nt" else "./run.sh") + " 을 실행하세요.")
+    print("· 이제 " + ("바탕 화면의 「말한대로 켜기」" if os.name == "nt" else "「말한대로 켜기.command」") + " 를 실행하세요.")
     return 0
 
 

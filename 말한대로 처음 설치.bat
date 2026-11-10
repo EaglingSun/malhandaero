@@ -1,6 +1,6 @@
 @echo off
 rem First run: download only this file, double-click: installs git/python via winget if missing, clones the repo, installs, starts.
-rem Inside an already cloned folder: updates that folder and starts.
+rem Inside an already cloned folder: reinstalls (fills in missing parts) and starts.
 rem ASCII only: cmd garbles UTF-8 batch files after chcp.
 chcp 65001 >nul
 set PYTHONUTF8=1
@@ -45,5 +45,5 @@ goto here
 :sub
 cd malhandaero
 :here
-if not exist .venv\Scripts\python.exe call install.bat
-call run.bat %*
+call tools\install.bat
+call tools\run.bat %*

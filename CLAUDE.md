@@ -10,7 +10,7 @@ AI는 이 PC의 Claude Code(`claude -p`)를 부른다. 자료는 전부 `data/`(
 - `server/app.py` API와 날짜별 조회 규칙 · `server/extract.py` 추출 지시문·해석·회의록 · `server/llm.py` AI 연결(claude/codex/api/gpt/gemini/ollama/fake)
 - `server/stt.py` 음성→글 · `server/calsync.py` 네이버·구글 캘린더 · `server/db.py` SQLite 스키마와 `MIGRATIONS` · `server/updater.py` 자동 업데이트
 - `web/` 빌드 없는 화면(순수 HTML/JS/CSS, PWA). `app.js` 하나에 다 있다
-- `tools/run.py` 켜기 · `tools/install.py` 설치 · `tools/autostart.py` 로그인 시 자동 시작
+- `tools/run.py` 켜기 · `tools/install.py` 설치 · `tools/autostart.py` 로그인 시 자동 시작. 이들을 부르는 `run.bat`·`run.sh`·`install.*`·`autostart.bat`도 `tools/`에. 최상위에는 사용자가 더블클릭하는 「처음 설치」·「켜기」·「자동 시작」 파일만 둔다
 - `tests/` pytest. AI·캘린더·업데이트는 흉내 서버/임시 git으로 시험한다
 - `skills/meeting-minutes/` 회의록 형식 스킬, `docs/MINUTES_FORMAT.md` 그 기준
 
@@ -24,7 +24,7 @@ AI는 이 PC의 Claude Code(`claude -p`)를 부른다. 자료는 전부 `data/`(
 7. 커밋 메시지는 한국어 한 줄 + 끝에 `Co-Authored-By: Claude ...` 줄.
 
 ## 고친 것을 확인하는 법
-- 서버를 켠 채라면 `run.bat` / `말한대로 켜기.command`를 껐다 켠다(코드가 새로 읽힌다). 화면만 고쳤으면 폰에서 새로고침.
+- 서버를 켠 채라면 「말한대로 켜기」(`tools/run.bat`) / `말한대로 켜기.command`를 껐다 켠다(코드가 새로 읽힌다). 화면만 고쳤으면 폰에서 새로고침.
 - 화면 파일은 `?v=커밋` 버전이 붙어 캐시 문제가 없다. `manifest.webmanifest`를 바꾸면 폰 앱을 지우고 다시 설치해야 한다.
 
 ## 내가 고친 것을 남에게도 보내려면

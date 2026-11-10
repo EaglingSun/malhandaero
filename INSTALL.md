@@ -24,31 +24,28 @@ Claude Code가 없으면 `.env`에 `ANTHROPIC_API_KEY`를 넣어 API 키로 쓸 
 
 ## 설치 (한 번만)
 
-가장 쉬운 길: 저장소의 `말한대로 처음 설치.command`(Mac) 또는 `말한대로 처음 설치.bat`(Windows) 파일 하나만 내려받아 더블클릭합니다. Windows는 [Git for Windows](https://git-scm.com/download/win)와 [Python 3.10+](https://www.python.org/downloads/)(설치 때 "Add python.exe to PATH" 체크)가 먼저 있어야 합니다.
-저장소를 받고, 설치하고, 켜는 것까지 한 번에 합니다. 이렇게 받아 두면 **켤 때마다 업데이트를 알아서 받습니다.**
+가장 쉬운 길: 저장소의 `말한대로 처음 설치.bat`(Windows) 또는 `말한대로 처음 설치.command`(Mac) 파일 하나만 내려받아 더블클릭합니다. Windows는 Git·Python이 없으면 winget으로 알아서 깔고, `C:\Users\이름\malhandaero`에 설치한 뒤 바탕 화면에 「말한대로 켜기」「말한대로 자동 시작」 바로가기를 만듭니다. Mac은 Git([Xcode 명령줄 도구](https://developer.apple.com/xcode/))과 [Python 3.10+](https://www.python.org/downloads/)가 먼저 있어야 합니다.
+저장소를 받고, 설치하고, 켜는 것까지 한 번에 합니다. 이렇게 받아 두면 **켤 때마다 업데이트를 알아서 받습니다.** 다시 설치하고 싶을 때(음성 인식이 빠졌을 때 등)는 받은 폴더 안의 같은 파일을 한 번 더 더블클릭하면 됩니다.
 
 직접 할 때:
 
 1. 저장소를 받습니다. `git clone https://github.com/EaglingSun/malhandaero.git`
    (GitHub의 "Download ZIP"으로 받아 풀어도 됩니다. 처음 켤 때 그 폴더를 저장소에 연결해 그다음부터는 똑같이 업데이트됩니다.)
-2. 폴더 안의 설치 파일을 실행합니다.
-   - Windows: `install.bat` 더블클릭
-   - macOS: `말한대로 설치.command` 더블클릭 (처음에 막히면 파일을 우클릭 → 열기)
-   - Linux: 터미널에서 `./install.sh`
-3. "가족 코드"를 물으면 정해서 입력합니다. 들어올 때 쓰는 비밀번호 역할입니다. (Enter만 누르면 1234)
+2. 폴더 안의 `말한대로 처음 설치.bat` / `.command`를 실행합니다 (Mac은 처음에 막히면 우클릭 → 열기. Linux는 `sh tools/install.sh`).
+3. "코드"를 물으면 정해서 입력합니다. 들어올 때 쓰는 비밀번호 역할입니다.
 
 ## 켜기
 
-- Windows: `run.bat` 더블클릭 (처음 켤 때 방화벽 허용을 물으면 "허용")
+- Windows: 바탕 화면의 「말한대로 켜기」 더블클릭 (처음 켤 때 방화벽 허용을 물으면 "허용"). 바로가기가 없으면 폴더의 `tools\run.bat`
 - macOS: `말한대로 켜기.command` 더블클릭
-- Linux: `./run.sh`
+- Linux: `sh tools/run.sh`
 
 창에 접속 주소, AI 연결 상태, 그리고 휴대폰으로 찍을 QR이 나옵니다. 이 창을 닫으면 서버가 꺼집니다.
 
 켤 때마다 먼저 **업데이트가 있는지 확인해서 받고, 필요하면 설치까지 다시 한 뒤** 켭니다(`tools/update.py`).
 인터넷이 안 되거나 깃허브에 닿지 못하면 지금 판으로 그냥 켜지고, 자료(`data/`)와 설정(`.env`)은 건드리지 않습니다.
 켜 둔 채로도 업데이트됩니다. 화면 맨 아래 **업데이트**을 누르면 받아서 10초쯤 뒤 새 버전으로 다시 켜지고, 아무것도 안 눌러도 매일 새벽 4시쯤 한 번 스스로 확인합니다. 자료(`data/`)와 설정(`.env`)은 그대로입니다.
-업데이트하지 않으려면 `./run.sh --no-update`, 아예 끄려면 `.env`에 `MALHAN_AUTO_UPDATE=0`을 넣습니다.
+업데이트하지 않으려면 `tools/run.sh --no-update`(Windows `tools\run.bat --no-update`), 아예 끄려면 `.env`에 `MALHAN_AUTO_UPDATE=0`을 넣습니다.
 화면 설정(manifest)이 바뀐 판을 받으면 창에 "휴대폰에서 앱을 다시 추가하라"는 안내가 나옵니다.
 
 휴대폰은 주소를 치는 대신 QR로 연결할 수 있습니다. PC 화면 맨 아래 **휴대폰 연결**에서
@@ -123,7 +120,7 @@ Tailscale이라는 무료 프로그램을 씁니다. 내 기기끼리만 통하�
 그다음 말한대로의 「휴대폰 연결 → 초대」 QR을 찍으면 이름만 정하고 들어옵니다. (같은 와이파이에서만 쓸 사람은 Tailscale 없이 「같은 와이파이용 QR」로.)
 3. **HTTPS 켜기 (처음 한 번)**: https://login.tailscale.com/admin/dns 에서 MagicDNS와 HTTPS Certificates를 켭니다.
 4. **집 PC에서 말한대로를 평소처럼 켭니다.** Tailscale이 켜져 있으면 집 밖 주소를 알아서 엽니다.
-   (집 밖 주소를 열고 싶지 않을 때만 `./run.sh --local`)
+   (집 밖 주소를 열고 싶지 않을 때만 `tools/run.sh --local`)
 5. PC 화면의 **휴대폰 연결 → 내 휴대폰 연결** QR을 휴대폰으로 찍습니다. (또는 창에 나온 **집 밖 주소**를 Chrome에서 열고 이름과 가족 코드 입력)
 6. Chrome 메뉴에서 **홈 화면에 추가**를 누릅니다.
 7. 녹음 앱에서 녹음을 글로 바꾼 뒤 **공유**를 누르면 목록에 말한대로가 나옵니다.
@@ -188,7 +185,7 @@ PC에서 `http://localhost:8000`으로 열거나 집 밖 주소(https)에서 연
 
 - Mac: `말한대로 자동 시작.command` 더블클릭 (해제: `말한대로 자동 시작 해제.command`). 창 없이 돌고 화면 출력은 `data/server.log`에 남습니다.
   덮개를 닫아도 켜 두려면 시스템 설정 → 배터리 → 전원 어댑터 → "디스플레이가 꺼져 있을 때 자동으로 잠자기 방지"를 켭니다.
-- Windows: `autostart.bat` 더블클릭 (해제: `autostart.bat remove`). 로그인하면 최소화된 창으로 켜집니다.
+- Windows: 바탕 화면의 「말한대로 자동 시작」 더블클릭 (해제: 명령 프롬프트에서 `tools\autostart.bat remove`). 로그인하면 최소화된 창으로 켜집니다.
   설정 → 시스템 → 전원 → 절전 모드를 "안 함"으로 두어야 끊기지 않습니다.
 
 ## 안 될 때
@@ -199,7 +196,7 @@ PC에서 `http://localhost:8000`으로 열거나 집 밖 주소(https)에서 연
 | "Claude Code에 로그인되어 있지 않아요" | 위와 같음. 회사 계정이면 조직에서 구독 사용을 막아 두었을 수 있습니다 |
 | 넣은 것이 계속 "챙길 것 찾는 중" | 30초 이상이면 **넣은 것** 탭에서 상태와 사유를 봅니다 |
 | 폰에서 주소가 안 열림 | PC와 폰이 같은 와이파이인지, PC 방화벽에서 Python을 허용했는지 확인 |
-| `install.bat`이 바로 닫힘 | Python이 설치되지 않았거나 PATH에 없습니다. 명령 프롬프트에서 `python --version` 확인 |
+| 설치 창이 바로 닫힘 | Python이 설치되지 않았거나 PATH에 없습니다. 명령 프롬프트에서 `python --version` 확인 |
 | 캘린더에 안 들어감 | **캘린더 연결**을 열면 마지막 실패 사유가 빨간 글씨로 나옵니다. 시각을 안 정한 일은 기본 설정에서 넣지 않습니다 |
 | 뽑힌 내용이 엉뚱함 | `.env`에 `MALHAN_AI=fake`가 있으면 흉내 모드입니다. 그 줄을 지우고 다시 켭니다 |
 | 켤 때 "직접 고친 파일이 있어서 덮어쓰지 않고" | 폴더 안 파일을 손으로 고친 상태입니다. 터미널에서 `git stash`로 치우거나, 그대로 쓰려면 `--no-update`로 켭니다 |

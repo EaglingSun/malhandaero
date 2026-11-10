@@ -1,6 +1,6 @@
 #!/bin/sh
 # 처음 한 번: 이 파일만 받아 더블클릭하면 저장소를 받고 설치한 뒤 켠다.
-# 이미 받은 폴더 안에서 실행하면 그 폴더를 최신 판으로 맞추고 켠다.
+# 이미 받은 폴더 안에서 실행하면 다시 설치(음성 인식 등 빠진 것 채움)하고 켠다.
 REPO="https://github.com/EaglingSun/malhandaero.git"
 cd "$(dirname "$0")" || exit 1
 if [ -d .git ] && [ -f tools/run.py ]; then
@@ -14,8 +14,8 @@ else
   DIR="malhandaero"
 fi
 cd "$DIR" || exit 1
-chmod +x ./*.sh ./*.command 2>/dev/null
-[ -x .venv/bin/python ] || sh ./install.sh
-sh ./run.sh "$@"
+chmod +x ./*.command tools/*.sh 2>/dev/null
+sh tools/install.sh || { read -r _; exit 1; }
+sh tools/run.sh "$@"
 echo
 echo "이 창은 닫아도 됩니다."

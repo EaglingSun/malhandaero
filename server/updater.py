@@ -6,7 +6,7 @@
   3. requirements.txt가 바뀌었거나 .venv가 없으면 설치(tools/install.py)를 다시 한다.
   4. 화면(manifest)이 바뀌었으면 휴대폰에서 앱을 다시 설치하라고 알려 준다.
 
-끄는 법: .env에 MALHAN_AUTO_UPDATE=0  또는  ./run.sh --no-update
+끄는 법: .env에 MALHAN_AUTO_UPDATE=0  또는  tools/run.sh --no-update
 """
 from __future__ import annotations
 
