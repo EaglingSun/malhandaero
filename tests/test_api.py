@@ -422,3 +422,9 @@ def test_manifest_carries_server_label(monkeypatch):
     assert client.get("/api/me").json()["label"] == "회사"
     monkeypatch.delenv("MALHAN_LABEL")
     assert client.get("/manifest.webmanifest").json()["name"].startswith("말한대로")
+
+
+def test_index_versions_assets_and_assets_are_no_cache():
+    r = client.get("/")
+    assert "/style.css?v=" in r.text and "/app.js?v=" in r.text and r.headers["cache-control"] == "no-cache"
+    assert client.get("/style.css").headers["cache-control"] == "no-cache"

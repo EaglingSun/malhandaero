@@ -10,7 +10,7 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 from fastapi import BackgroundTasks, Cookie, Depends, FastAPI, File, Form, HTTPException, Query, Request, UploadFile
-from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
@@ -1221,7 +1221,18 @@ def close_day(date_: str | None = Query(None, alias="date"), user=Depends(curren
 # ---------- 화면 파일 ----------
 @app.get("/")
 def index():
-    return FileResponse(WEB / "index.html", headers={"Cache-Control": "no-cache"})
+    """화면 파일에 버전을 붙여 낸다: 업데이트 뒤 폰이 예전 style.css·app.js를 캐시에서 꺼내 쓰지 않게."""
+    v = _version() or "0"
+    html = (WEB / "index.html").read_text(encoding="utf-8").replace('href="/style.css"', f'href="/style.css?v={v}"').replace('src="/app.js"', f'src="/app.js?v={v}"')
+    return HTMLResponse(html, headers={"Cache-Control": "no-cache"})
+
+
+@app.middleware("http")
+async def _no_stale_assets(request: Request, call_next):
+    resp = await call_next(request)
+    if request.url.path.endswith((".css", ".js", ".webmanifest")):
+        resp.headers["Cache-Control"] = "no-cache"
+    return resp
 
 
 def app_label() -> str:
