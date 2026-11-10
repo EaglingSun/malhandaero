@@ -43,7 +43,7 @@ def seed(data_dir: Path) -> None:
         ("call", "통화 슈구리_261110.txt", "점심 메뉴 주문 통화", {}, D),
         ("meeting", "1109_계획 리뷰 회의.txt", "계획 리뷰 — 범위를 먼저 정하고 나머지는 후속", {}, y),
         ("call", "통화 남편_261109_210146_original.txt", "주차 문제 상의", {}, y),
-        ("memo", "음성 메모_261109_234522_original.txt", "내일 공유 자료 챙기기", {}, y),
+        ("memo", "음성 메모_261109_234522_original.txt", "내일 고객 미팅 자료 챙기기", {}, y),
     ]
     ids = []
     for kind, title, summary, m, day in inputs:
@@ -54,7 +54,7 @@ def seed(data_dir: Path) -> None:
         ids.append(cur.lastrowid)
     items = [
         # text, scope, status, plan_date, done_at, input_id, owner, who, due_text, cal_ref
-        ("교육생 공유 자료 전달하기", "회사", "todo", D, None, ids[4], "me", "", "", None),
+        ("고객 미팅 자료 보내기", "회사", "todo", D, None, ids[4], "me", "", "", None),
         ("공모전 출품하기", "개인", "todo", (TODAY - timedelta(days=1)).isoformat(), None, None, "me", "", "", None),   # 어제에서 넘어옴
         ("시나리오 목록 초안 공유하기", "회사", "todo", (TODAY + timedelta(days=3)).isoformat(), None, ids[0], "me", "", "금요일까지", None),
         ("일정표 갱신해 공지하기", "회사", "other", None, None, ids[0], "other", "무당이", "", None),
@@ -101,7 +101,7 @@ def fake_calendar():
         ("ev3", "자동화 현황 공유", "10:00"),
         ("cal:1", "고객 사전 회의", "11:00"),
         ("ev5", "팀 점심", "12:00"),
-        ("ev6", "교육 준비 회의", "14:00"),
+        ("ev6", "고객 미팅 준비", "14:00"),
         ("ev7", "시연 리허설", "16:00"),
     ]
     calsync.day_events = lambda link, day: [{"ref": r, "title": t, "time": tm, "description": "", "uid": r} for r, t, tm in EVENTS["now"]] if day == TODAY else []
