@@ -193,21 +193,21 @@
         <p class="msg">연결을 끊어도 캘린더의 일정은 그대로 있고, 같은 캘린더로 다시 연결하면 중복 없이 이어져요.</p>
       </div>
       <div id="cal-choose" hidden>
-        <form id="naver-form" class="card">
-          <strong>네이버 캘린더</strong>
-          <label for="naver-id">네이버 아이디</label>
-          <input id="naver-id" autocomplete="username" required>
-          <label for="naver-pw">애플리케이션 비밀번호</label>
-          <input id="naver-pw" type="password" autocomplete="off" required>
-          <p class="msg">로그인 비밀번호가 아니에요. 네이버 → 내정보 → 보안설정 → 2단계 인증 → 애플리케이션 비밀번호에서 만든 값을 넣어 주세요.</p>
-          <button class="primary small" type="submit">네이버 연결</button>
-        </form>
         <div class="card">
           <strong>구글 캘린더</strong>
           <p class="msg" id="google-hint"></p>
           <button type="button" class="link helper" id="google-helper" data-topic="google-calendar" hidden>설정 도우미 글 복사</button>
           <a class="filebtn" id="google-go" href="/api/calendar/google/start" hidden>구글 계정으로 연결</a>
         </div>
+        <form id="naver-form" class="card">
+          <strong>네이버 캘린더</strong>
+          <label for="naver-id">네이버 아이디</label>
+          <input id="naver-id" autocomplete="username" required>
+          <label for="naver-pw">애플리케이션 비밀번호</label>
+          <input id="naver-pw" type="password" autocomplete="off" required>
+          <p class="msg">로그인 비밀번호가 아니에요. 네이버 → 내정보 → 보안설정 → 2단계 인증 → 애플리케이션 비밀번호에서 만든 값.</p>
+          <button class="primary small" type="submit">네이버 연결</button>
+        </form>
       </div>
     </section>
 
