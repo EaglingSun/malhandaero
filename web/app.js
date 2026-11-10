@@ -628,7 +628,7 @@
       box.innerHTML = r.svg;                       /* 서버가 만든 QR 그림 */
       var svg = box.querySelector("svg"); if (svg) { svg.setAttribute("role", "img"); svg.setAttribute("aria-label", "연결용 QR"); }
       say("link-msg", (kind === "family" ? "초대받은 사람이 찍으면 이름만 정하고 들어와요. " : "내 휴대폰으로 찍으면 같은 목록으로 바로 들어와요. ") + "QR은 " + r.minutes + "분 안에 찍어야 해요. 한 번 들어오면 계속 쓸 수 있어요.");
-      $("link-url").textContent = r.secure ? r.url + "\n(상대 폰에도 Tailscale이 있고 내 네트워크에 초대돼 있어야 열려요)" : r.url + "\n같은 와이파이에서만 열려요. 홈 화면 설치·말하기는 「휴대폰 연결」의 예외 등록 안내대로.";
+      $("link-url").textContent = r.secure ? r.url + "\n(상대 폰에도 Tailscale이 있고 내 네트워크에 들어와 있어야 열려요 — 가족은 내 계정으로 로그인, 남은 login.tailscale.com/admin/users 에서 초대. 자세한 건 INSTALL.md)" : r.url + "\n같은 와이파이에서만 열려요. 홈 화면 설치·말하기는 「휴대폰 연결」의 예외 등록 안내대로.";
       $("link-lan").hidden = !(r.has_lan && kind === "family");
     }).catch(fail("link-msg"));
   }

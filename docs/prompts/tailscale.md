@@ -18,6 +18,11 @@
 6. 폰(Tailscale 켠 상태)의 Chrome에서 그 https 주소를 열고 → 이름·가족 코드로 들어가기 → Chrome 메뉴 「홈 화면에 추가」 → 「설치」
 7. 확인: 폰 와이파이를 끄고 LTE로 같은 주소가 열리면 끝. 녹음 앱 「공유」 목록에 「말한대로」가 보이면 끝.
 
+## (필요할 때) 가족·팀원 폰도 들이기
+- 같이 사는 가족: 그 폰에 Tailscale 앱을 깔고 **내 계정으로** 로그인하면 끝.
+- 계정이 다른 사람: https://login.tailscale.com/admin/users 에서 "Invite external users" 링크를 만들어 보내고, 그 사람이 본인 계정으로 수락한 뒤 폰에 Tailscale을 깔아 그 계정으로 로그인. 확인은 그 사람 폰의 기기 목록에 내 PC가 보이는지.
+- 그다음 앱의 「휴대폰 연결 → 초대」 QR을 찍게 하면 됩니다.
+
 ## 알아 둘 것
 - 회사망이 Tailscale을 막으면 5단계에서 주소가 안 열립니다. 그땐 포기하고, 폰 Chrome의 `chrome://flags/#unsafely-treat-insecure-origin-as-secure`에 `{LAN}`을 예외로 등록하는 방법(같은 와이파이에서만 됨)을 안내해 주세요.
 - 이 주소는 같은 Tailscale 계정의 기기에서만 열립니다. 바깥 사람에게는 열리지 않습니다.

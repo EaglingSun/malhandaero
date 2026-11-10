@@ -96,7 +96,17 @@ Tailscale이라는 무료 프로그램을 씁니다. 내 기기끼리만 통하�
 
 1. **집 PC에 Tailscale 설치**: https://tailscale.com/download 에서 받아 설치하고 로그인합니다(구글 계정 등). Windows는 `winget install --id Tailscale.Tailscale -e`, Mac은 App Store.
 2. **휴대폰에 Tailscale 앱 설치**: 같은 계정으로 로그인하고 연결을 켭니다.
-   가족 휴대폰은 같은 계정으로 로그인하거나, Tailscale 관리 화면에서 가족을 초대합니다.
+
+### 가족·팀원 폰을 내 Tailscale 네트워크에 들이기 (사람마다 한 번)
+
+집 밖에서도 쓰게 하려면 그 사람 폰이 내 네트워크에 들어와야 합니다. 둘 중 하나:
+
+- **같이 사는 가족 — 같은 계정으로**: 가족 폰에 Tailscale 앱을 깔고 **내 계정**(내가 PC에서 로그인한 그 계정)으로 로그인합니다. 가장 간단합니다.
+- **따로 계정을 쓰는 사람 — 초대**: https://login.tailscale.com/admin/users → **Invite external users**(또는 Invite users) → 초대 링크 복사 → 카카오톡 등으로 보냅니다.
+  받은 사람은 링크를 열어 본인 계정(구글 등)으로 수락 → 폰에 Tailscale 앱 설치 → **그 계정**으로 로그인 → 연결 켜기.
+  확인: 그 사람 폰의 Tailscale 기기 목록에 내 PC 이름이 보이면 됩니다.
+
+그다음 말한대로의 「휴대폰 연결 → 초대」 QR을 찍으면 이름만 정하고 들어옵니다. (같은 와이파이에서만 쓸 사람은 Tailscale 없이 「같은 와이파이용 QR」로.)
 3. **HTTPS 켜기 (처음 한 번)**: https://login.tailscale.com/admin/dns 에서 MagicDNS와 HTTPS Certificates를 켭니다.
 4. **집 PC에서 말한대로를 평소처럼 켭니다.** Tailscale이 켜져 있으면 집 밖 주소를 알아서 엽니다.
    (집 밖 주소를 열고 싶지 않을 때만 `./run.sh --local`)
