@@ -702,7 +702,9 @@
         var o = document.createElement("option"); o.value = c.id; o.textContent = c.name + (c.primary ? " (기본)" : ""); src.appendChild(o);
         var t = document.createElement("option"); t.value = c.id; t.textContent = c.name + (c.primary ? " (기본)" : ""); tgt.appendChild(t);
       });
-      src.value = keep; tgt.value = keepT; say("cal-source-msg", r.sources.length + "개 캘린더를 찾았어요. 골라 주세요.");
+      src.value = keep; tgt.value = keepT;
+      if (!tgt.value) { var prim = r.sources.filter(function (c) { return c.primary; })[0]; if (prim) tgt.value = prim.id; }   // 아직 안 골랐으면 기본 캘린더가 보이게
+      say("cal-source-msg", r.sources.length + "개 캘린더를 찾았어요. 골라 주세요.");
     }).catch(function (e) { state.calSourcesLoaded = false; say("cal-source-msg", e.message, true); });
   }
   $("cal-source-load").addEventListener("click", loadSources);
