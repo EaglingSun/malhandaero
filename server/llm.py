@@ -3,6 +3,8 @@
 연결 방식 (MALHAN_AI로 고정하거나, 비워 두면 위에서부터 되는 것을 고른다)
   api    : ANTHROPIC_API_KEY가 있으면 Anthropic API (쓴 만큼 과금)
   claude : 이 PC에 설치·로그인된 Claude Code를 `claude -p`로 부른다 (본인 구독 사용, API 결제 없음)
+  codex  : 이 PC에 설치·로그인된 OpenAI Codex CLI를 `codex exec`로 부른다 (ChatGPT 구독 사용)
+  gpt    : OpenAI API (OPENAI_API_KEY, 쓴 만큼 과금). 기본 모델 gpt-5.4-mini
   gemini : 구글 Gemini API (무료 티어 있음). GEMINI_API_KEY 필요
   ollama : 이 PC의 Ollama (완전 무료·오프라인, 작은 모델은 회의록 품질이 떨어짐)
   openai : 그 밖의 OpenAI 호환 서버 (MALHAN_OPENAI_BASE_URL · MALHAN_OPENAI_API_KEY · MALHAN_OPENAI_MODEL)
@@ -15,6 +17,8 @@
   MALHAN_LONG_CHARS         : 이 글자 수를 넘는 지시문이면 '긴 글'로 본다 (기본 10000)
   MALHAN_CLAUDE_BIN         : claude 실행 파일 위치 (기본: PATH에서 찾음)
   MALHAN_FAKE_LLM=1         : MALHAN_AI=fake와 같다
+  MALHAN_CODEX_BIN / MALHAN_CODEX_MODEL : codex 실행 파일 위치 / 모델 (비우면 Codex 기본)
+  MALHAN_GPT_MODEL          : gpt 방식의 모델 (기본 gpt-5.4-mini)
   MALHAN_GEMINI_MODEL       : gemini 방식의 모델 (기본 gemini-3.8-flash). 구글이 "다른 모델을 쓰라"고 답하면 그 모델로 한 번 더 시도한다
   MALHAN_OLLAMA_MODEL       : ollama 방식의 모델 (기본 qwen3:8b), MALHAN_OLLAMA_URL (기본 http://localhost:11434)
 """
@@ -40,12 +44,18 @@ def _claude_bin() -> str | None:
     return os.environ.get("MALHAN_CLAUDE_BIN") or shutil.which("claude")
 
 
-OPENAI_LIKE = ("openai", "gemini", "ollama")
+OPENAI_LIKE = ("openai", "gpt", "gemini", "ollama")
+CLI_MODES = ("claude", "codex")
+
+
+def _codex_bin() -> str | None:
+    return os.environ.get("MALHAN_CODEX_BIN") or shutil.which("codex")
 
 
 def mode() -> str:
+    """자동 감지 순서: Anthropic 키 → Claude Code → Codex → OpenAI 키 → Gemini 키. MALHAN_AI로 고정 가능."""
     forced = os.environ.get("MALHAN_AI", "").strip().lower()
-    if forced in ("api", "claude", "fake") + OPENAI_LIKE:
+    if forced in ("api", "fake") + CLI_MODES + OPENAI_LIKE:
         return {"api": "anthropic"}.get(forced, forced)
     if os.environ.get("MALHAN_FAKE_LLM") == "1":
         return "fake"
@@ -53,17 +63,55 @@ def mode() -> str:
         return "anthropic"
     if _claude_bin():
         return "claude"
+    if _codex_bin():
+        return "codex"
+    if os.environ.get("OPENAI_API_KEY"):
+        return "gpt"
     if os.environ.get("GEMINI_API_KEY"):
         return "gemini"
     return "none"
 
 
-NO_AI = ("AI가 연결되지 않았어요. 이 PC에 Claude Code를 설치해 로그인하거나, .env에 ANTHROPIC_API_KEY 또는 GEMINI_API_KEY를 넣어 주세요. "
-         "Ollama를 쓰려면 MALHAN_AI=ollama.")
+NO_AI = ("AI가 연결되지 않았어요. 직접 적기와 캘린더는 그대로 쓸 수 있어요. 녹음·글에서 뽑으려면 이 PC에 Claude Code나 Codex를 로그인하거나, "
+         ".env에 ANTHROPIC_API_KEY · OPENAI_API_KEY · GEMINI_API_KEY 중 하나를 넣어 주세요.")
+
+
+def _run_codex(prompt: str, image: Path | None = None) -> str:
+    """이 PC의 Codex CLI를 한 번 불러 답을 받는다(codex exec, 읽기 전용 샌드박스). 본인 ChatGPT 로그인을 쓴다."""
+    exe = _codex_bin()
+    if not exe:
+        raise LlmUnavailable(NO_AI)
+    env = {k: v for k, v in os.environ.items() if k not in ("OPENAI_API_KEY", "CODEX_API_KEY")}
+    with tempfile.TemporaryDirectory(prefix="malhan-cx-") as tmp:
+        out = Path(tmp) / "answer.txt"
+        cmd = [exe, "exec", "-s", "read-only", "--skip-git-repo-check", "-o", str(out)]
+        model = os.environ.get("MALHAN_CODEX_MODEL", "").strip()
+        if model:
+            cmd += ["-m", model]
+        if image:
+            cmd += ["-i", str(image)]
+        cmd.append("-")  # 지시문은 표준 입력으로
+        try:
+            r = subprocess.run(cmd, input=prompt, capture_output=True, text=True, encoding="utf-8", env=env, cwd=tmp, timeout=CLI_TIMEOUT)
+        except subprocess.TimeoutExpired:
+            raise LlmUnavailable("Codex가 제때 답하지 않았어요. 잠시 뒤 '다시 뽑기'를 눌러 주세요.")
+        except OSError:
+            raise LlmUnavailable("Codex를 실행하지 못했어요. 설치와 PATH를 확인해 주세요.")
+        text = out.read_text(encoding="utf-8").strip() if out.exists() else (r.stdout or "").strip()
+    if r.returncode == 0 and text:
+        return text
+    detail = (r.stderr or r.stdout or "")[-200:]
+    if any(w in detail.lower() for w in ("login", "logged", "auth", "unauthorized")):
+        raise LlmUnavailable("Codex에 로그인되어 있지 않아요. 이 PC의 터미널에서 'codex login'을 해 주세요.")
+    raise LlmUnavailable("Codex가 답을 주지 못했어요: " + detail.strip()[:160])
 
 
 def openai_config(m: str) -> tuple[str, str, str, str]:
-    """OpenAI 호환 방식의 (base_url, api_key, model, 이름). gemini/ollama는 기본값을 채워 둔다."""
+    """OpenAI 호환 방식의 (base_url, api_key, model, 이름). gpt/gemini/ollama는 기본값을 채워 둔다."""
+    if m == "gpt":
+        return (os.environ.get("MALHAN_OPENAI_BASE_URL") or "https://api.openai.com/v1",
+                os.environ.get("OPENAI_API_KEY") or os.environ.get("MALHAN_OPENAI_API_KEY", ""),
+                os.environ.get("MALHAN_GPT_MODEL") or os.environ.get("MALHAN_OPENAI_MODEL") or "gpt-5.4-mini", "OpenAI")
     if m == "gemini":
         return (os.environ.get("MALHAN_OPENAI_BASE_URL") or "https://generativelanguage.googleapis.com/v1beta/openai",
                 os.environ.get("GEMINI_API_KEY") or os.environ.get("MALHAN_OPENAI_API_KEY", ""),
@@ -135,8 +183,12 @@ def _run_openai(m: str, content, max_tokens: int, model_override: str = "", plai
         raise LlmUnavailable(f"{name} 주소나 모델이 비어 있어요. .env의 MALHAN_OPENAI_BASE_URL · MALHAN_OPENAI_MODEL을 채워 주세요.")
     if m == "gemini" and not key:
         raise LlmUnavailable("Gemini 키가 없어요. .env에 GEMINI_API_KEY를 넣어 주세요 (aistudio.google.com에서 무료 발급).")
-    payload = {"model": model, "max_tokens": max_tokens, "temperature": 0.2, "messages": [{"role": "user", "content": content}]}
-    if m == "gemini" and not plain:
+    if m == "gpt" and not key:
+        raise LlmUnavailable("OpenAI 키가 없어요. .env에 OPENAI_API_KEY를 넣어 주세요.")
+    payload = {"model": model, "max_tokens": max_tokens, "messages": [{"role": "user", "content": content}]}
+    if m != "gpt":
+        payload["temperature"] = 0.2  # gpt-5 계열은 temperature를 거부한다
+    if m in ("gemini", "gpt") and not plain:
         payload["reasoning_effort"] = os.environ.get("MALHAN_GEMINI_EFFORT", "low")
     body = json.dumps(payload).encode()
     req = urllib.request.Request(base + "/chat/completions", data=body, method="POST",
@@ -246,6 +298,8 @@ def complete(prompt: str, max_tokens: int = 2000) -> str:
         return _fake(prompt)
     if m == "claude":
         return _run_claude(prompt)
+    if m == "codex":
+        return _run_codex(prompt)
     if m in OPENAI_LIKE:
         return _run_openai(m, prompt, max_tokens)
     if m == "none":
@@ -321,6 +375,11 @@ def read_image(path) -> str:
             (Path(tmp) / "photo.jpg").write_bytes(data)
             return _run_claude("이 폴더의 photo.jpg 파일을 Read 도구로 열어 본 뒤 답하라.\n\n" + READ_IMAGE_PROMPT,
                                workdir=Path(tmp), allow_read=True).strip()
+    if m == "codex":
+        with tempfile.TemporaryDirectory(prefix="malhan-img-") as tmp:
+            img = Path(tmp) / "photo.jpg"
+            img.write_bytes(data)
+            return _run_codex(READ_IMAGE_PROMPT, image=img).strip()
     if m in OPENAI_LIKE:
         import base64
 

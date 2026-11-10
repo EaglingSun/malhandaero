@@ -65,7 +65,9 @@
         history.replaceState(null, "", "/"); $("cal-box").hidden = false; loadCal();
         if (cal !== "ok") $("cal-err").textContent = "구글 연결을 마치지 못했어요. 다시 눌러 주세요.";
       }
-      if (me.ai === "none") say("in-msg", "AI가 연결되지 않아 아직 챙길 것을 뽑지 못해요. PC에 Claude Code를 설치해 로그인하거나 .env에 키를 넣어 주세요.", true);
+      $("capture").hidden = me.ai === "none";
+      $("no-ai").hidden = me.ai !== "none";
+      if (me.ai === "none") say("in-msg", "AI 없이 쓰는 중이에요. 직접 적기와 캘린더는 되고, 녹음·글에서 뽑기는 AI를 연결하면 돼요.");
       if (me.ai === "fake") say("in-msg", "지금은 흉내 모드예요. 화면 확인용이라 뽑기가 정확하지 않아요.");
       refresh();
     }).catch(function (e) {

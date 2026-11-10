@@ -73,7 +73,7 @@ def main() -> None:
         sys.exit(1)
     from server import llm, stt  # .env를 읽은 뒤의 상태
 
-    names = {"claude": "이 PC의 Claude Code (API 결제 없음)", "anthropic": "API 키", "fake": "흉내 모드 (화면 확인용, 부정확)", "none": "연결 안 됨", "gemini": "구글 Gemini (무료 티어)", "ollama": "이 PC의 Ollama (오프라인)", "openai": "OpenAI 호환 서버"}
+    names = {"claude": "이 PC의 Claude Code (API 결제 없음)", "anthropic": "API 키", "fake": "흉내 모드 (화면 확인용, 부정확)", "none": "연결 안 됨", "codex": "이 PC의 Codex (ChatGPT 구독)", "gpt": "OpenAI API", "gemini": "구글 Gemini (무료 티어)", "ollama": "이 PC의 Ollama (오프라인)", "openai": "OpenAI 호환 서버"}
     print("\n말한대로를 켭니다.")
     print(f"  이 PC에서        http://localhost:{PORT}")
     ip = lan_ip()
@@ -116,7 +116,7 @@ def main() -> None:
     if not os.environ.get("MALHAN_FAMILY_CODE"):
         print("  ! 가족 코드가 없어요. 설치를 다시 실행하거나 .env에 MALHAN_FAMILY_CODE를 넣어 주세요.")
     if llm.mode() == "none":
-        print("  ! AI가 연결되지 않았어요. Claude Code에 로그인하거나 .env에 ANTHROPIC_API_KEY / GEMINI_API_KEY를 넣어 주세요.")
+        print("  ! AI 없이 켜졌어요. 직접 적기·캘린더는 되고, 녹음·글에서 뽑기는 AI를 연결해야 해요 (Claude Code/Codex 로그인 또는 .env 키).")
     if best:
         try:
             import segno

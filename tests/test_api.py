@@ -396,3 +396,19 @@ def test_month_view_scores_days_and_streak(monkeypatch):
     assert appmod.day_score(0, 0, False, False) == 0 and appmod.day_score(1, 1, True, True) == 4
     assert client.get("/api/month?ym=2020-13").status_code == 400
     assert client.get("/api/month?ym=2020-02").json()["days"][-1]["date"] == "2020-02-29"
+
+
+def test_without_ai_manual_items_and_wrap_up_still_work(monkeypatch):
+    from server import llm
+    for k in ("MALHAN_AI", "MALHAN_FAKE_LLM", "ANTHROPIC_API_KEY", "OPENAI_API_KEY", "GEMINI_API_KEY"):
+        monkeypatch.delenv(k, raising=False)
+    monkeypatch.setattr(llm, "_claude_bin", lambda: None); monkeypatch.setattr(llm, "_codex_bin", lambda: None)
+    join("무AI")
+    assert client.get("/api/me").json()["ai"] == "none"
+    it = client.post("/api/items", json={"text": "우유 사기"}).json()
+    client.patch(f"/api/items/{it['id']}", json={"status": "done"})
+    r = client.post("/api/day/close").json()
+    assert r["summary"] == "한 일 1건, 남은 일 0건이에요."          # AI 없이도 규칙 기반 마무리 글
+    inp = client.post("/api/inputs", data={"kind": "memo", "text": "내일 전화할게"}).json()
+    row = next(x for x in client.get("/api/inputs").json() if x["id"] == inp["id"])
+    assert row["status"] == "failed" and "직접 적기와 캘린더는" in row["error"]   # 글은 보관, 사유 안내

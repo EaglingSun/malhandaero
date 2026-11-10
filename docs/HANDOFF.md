@@ -126,6 +126,7 @@ chmod +x malhandaero/*.sh malhandaero/*.command
 | 4 | 더블클릭 실행(.command), Tailscale 자동, QR 연결(내 기기 / 가족 초대) |
 | 5 | 목록 중심 화면(+ 버튼 뒤에 넣기), https 인증서 묶음, 연결 실패 사유 표시 |
 | 6 | 공유로 받는 파일 종류 확대 |
+| 33 | AI 연결 확대: `codex`(이 PC의 Codex CLI `codex exec -s read-only -o 파일 -`, ChatGPT 구독, 사진은 `-i`), `gpt`(OpenAI API, 기본 gpt-5.4-mini, temperature 안 보냄). 자동 감지: Anthropic 키 → Claude Code → Codex → OPENAI_API_KEY → GEMINI_API_KEY. **AI 없음 모드**: 넣기 창에서 말하기·글·파일을 감추고 안내, 직접 적기·캘린더·하루 마무리(규칙 요약)는 그대로, 공유로 들어온 글은 `failed`+사유로 보관(연결 뒤 「다시 뽑기」) |
 | 32 | 공개 준비: 문서·테스트·프롬프트 예시의 실명을 가명(무당이·슈구리, 팀 공유 일정)으로, privacy.html 문의를 Issues로. `docs/START.md` 배포 안내 한 장(준비물 → A 집 안 → B Tailscale → 쓰는 법 → 막히면). Gemini 503/429 재시도·예비 모델, reasoning_effort low, HTTP 제한 10분, 서버 창 `[llm]`/`[stt]` 시간 기록 |
 | 31 | Gemini 기본 모델 `gemini-3.8-flash`(2.5-flash는 신규 사용자 불가 — Windows 실기기 404로 확인). 404에 "use models/X"가 오면 X로 한 번 자동 재시도(`llm.suggested_model`, stt `_ModelGone`). `.env.example`을 [1] Claude Code / [2] Gemini / [3] 그 밖에 + STT + 기타로 재구성, install.py의 .env 틀도 같은 꼴 |
 | 30 | 녹음 파일을 Gemini가 직접 듣는 STT(`stt.engine()`: whisper 있으면 whisper, 없고 GEMINI_API_KEY 있으면 gemini, `MALHAN_STT`로 고정). ≤18MB inline_data, 넘으면 File API resumable 업로드 → ACTIVE 대기 → file_data. 화자 구분 시도('화자1:'). `MALHAN_GEMINI_STT_MODEL`. 혼자 쓰는 폰 전용 라이트판의 핵심 가정(오디오→Gemini) 검증용 |

@@ -13,7 +13,8 @@
 | Git | git-scm.com | Mac은 터미널에서 `git` 한 번 치면 설치 안내가 떠요 |
 | **Claude 구독(Pro 이상) + Claude Code** | claude.com/claude-code 안내대로 설치 → 터미널에서 `claude` 실행해 로그인 | API 결제 없음. 앱이 이 로그인을 그대로 써요 |
 
-> 구독이 없는 분을 위한 구글 Gemini 연결도 있지만(INSTALL.md), 무료 티어가 자주 혼잡해 아직 권하지 않아요.
+> ChatGPT 구독이면 Codex CLI(`codex login`)로도 돼요. API 키(Anthropic·OpenAI·Gemini)는 INSTALL.md 참고.
+> AI 연결이 없어도 켜져요 — 직접 적기·캘린더·하루 마무리는 그대로 쓰고, 녹음·글에서 뽑기만 쉬어요.
 
 ---
 
