@@ -44,7 +44,7 @@ def test_parse_result_object_with_summary_owner_and_time():
 def test_parse_minutes_and_details_then_markdown():
     raw = ('{"summary":"- 일정 확정","items":[{"text":"LCT 테스트 계획 확정하기","owner":"me","details":["요구사항 받기","기한 정하기", 3]},'
            '{"text":"리스트 받아 오기","owner":"other","who":"승렬"}],'
-           '"minutes":{"attendees":["김선숙","박승렬"],"topics":[{"topic":"RT 일정","points":["다음 주 월요일 시작"],"decisions":["CT 30% 비중"]},{"topic":"","points":[],"decisions":[]},"잡음"],'
+           '"minutes":{"attendees":["지은","민수"],"topics":[{"topic":"RT 일정","points":["다음 주 월요일 시작"],"decisions":["CT 30% 비중"]},{"topic":"","points":[],"decisions":[]},"잡음"],'
            '"questions":["GTest 범위는 어디까지?"],"next":["11/16 RT 시작"]}}')
     summary, c, m = extract.parse_result(raw)
     assert c[0].details == ["요구사항 받기", "기한 정하기", "3"] and c[1].details == []
@@ -52,7 +52,7 @@ def test_parse_minutes_and_details_then_markdown():
     md = extract.minutes_markdown("주간 회의", "2026-11-10", summary, m,
                                   [{"text": c[0].text, "status": "new", "details": c[0].details, "who": "", "due_text": "내일"},
                                    {"text": c[1].text, "status": "other", "details": [], "who": "승렬", "due_text": ""}])
-    assert md.startswith("# 주간 회의\n\n일시: 2026-11-10\n참석: 김선숙, 박승렬\n\n안건: 1. RT 일정\n")
+    assert md.startswith("# 주간 회의\n\n일시: 2026-11-10\n참석: 지은, 민수\n\n안건: 1. RT 일정\n")
     assert "## 1. RT 일정\n- 다음 주 월요일 시작\n- **결정** CT 30% 비중" in md and "## 결정 사항\n- CT 30% 비중" in md
     assert "## 할 일\n- [ ] LCT 테스트 계획 확정하기 (나 · 내일)\n    - 요구사항 받기\n" in md and "\n- [ ] 리스트 받아 오기 (승렬)\n" in md and "## 다음 일정\n- 11/16 RT 시작" in md
 

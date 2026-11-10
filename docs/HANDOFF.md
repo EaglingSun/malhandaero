@@ -106,7 +106,7 @@ chmod +x malhandaero/*.sh malhandaero/*.command
 ## 7. 사용 환경 메모
 
 - 서버: 집 Mac. `말한대로 켜기.command`로 실행. Tailscale 켜져 있으면 https 주소 자동. 덮개를 닫으면 끊김
-- 사용자 본인은 구글 캘린더(올리기: Sun 기본 캘린더, 읽기: 'SQA 공유 일정' 공유 캘린더), 남편은 네이버 캘린더로 연결하려 함
+- 사용자 본인은 구글 캘린더(올리기: Sun 기본 캘린더, 읽기: '팀 공유 일정' 공유 캘린더), 남편은 네이버 캘린더로 연결하려 함
 - 구글 OAuth 클라이언트는 사용자가 만들어 `.env`에 넣어 둠. 리디렉션 주소에 Tailscale 주소가 들어 있으므로 기기 이름을 바꾸면 구글 쪽도 고쳐야 함
 - 판을 바꿀 때(7판부터): 그냥 켜면 된다. 켜기가 새 판을 받고 requirements가 바뀌었으면 설치도 다시 한다
 - 집 Mac: 지금 도는 것은 `~/Downloads/malhandaero-main`(7판, 저장소 연결됨, data/·.env 옮김). `~/Downloads/malhandaero 6` 이하 예전 폴더들은 더 안 쓴다(지워도 됨)
@@ -122,6 +122,7 @@ chmod +x malhandaero/*.sh malhandaero/*.command
 | 4 | 더블클릭 실행(.command), Tailscale 자동, QR 연결(내 기기 / 가족 초대) |
 | 5 | 목록 중심 화면(+ 버튼 뒤에 넣기), https 인증서 묶음, 연결 실패 사유 표시 |
 | 6 | 공유로 받는 파일 종류 확대 |
+| 32 | 공개 준비: 문서·테스트·프롬프트 예시의 실명을 가명(지은·민수, 팀 공유 일정)으로, privacy.html 문의를 Issues로. `docs/START.md` 배포 안내 한 장(준비물 → A 집 안 → B Tailscale → 쓰는 법 → 막히면). Gemini 503/429 재시도·예비 모델, reasoning_effort low, HTTP 제한 10분, 서버 창 `[llm]`/`[stt]` 시간 기록 |
 | 31 | Gemini 기본 모델 `gemini-3.8-flash`(2.5-flash는 신규 사용자 불가 — Windows 실기기 404로 확인). 404에 "use models/X"가 오면 X로 한 번 자동 재시도(`llm.suggested_model`, stt `_ModelGone`). `.env.example`을 [1] Claude Code / [2] Gemini / [3] 그 밖에 + STT + 기타로 재구성, install.py의 .env 틀도 같은 꼴 |
 | 30 | 녹음 파일을 Gemini가 직접 듣는 STT(`stt.engine()`: whisper 있으면 whisper, 없고 GEMINI_API_KEY 있으면 gemini, `MALHAN_STT`로 고정). ≤18MB inline_data, 넘으면 File API resumable 업로드 → ACTIVE 대기 → file_data. 화자 구분 시도('화자1:'). `MALHAN_GEMINI_STT_MODEL`. 혼자 쓰는 폰 전용 라이트판의 핵심 가정(오디오→Gemini) 검증용 |
 | 29 | Windows 대비: `말한대로 처음 설치.bat`(git clone→install→run), bat 전부 **ASCII만**(chcp 뒤 멀티바이트가 있으면 cmd가 줄을 깨뜨림 — Windows 실기기에서 확인) + `chcp 65001`+`PYTHONUTF8=1`+CRLF(.gitattributes), `.env` utf-8-sig(메모장 BOM), Tailscale `Program Files` 경로 탐지, install.py .env 틀에 GEMINI_API_KEY 안내·방화벽 안내. **실기기 검증 전** |
