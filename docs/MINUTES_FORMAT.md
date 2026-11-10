@@ -1,7 +1,7 @@
 # 회의록 형식 (말한대로 표준)
 
 말한대로가 회의·통화 녹음에서 만드는 회의록과 할 일의 형식. 앱의 추출 지시문(`server/extract.py`), 내보내기(`minutes_markdown`),
-그리고 Claude Code 스킬 `skills/meeting-minutes`가 모두 이 문서를 기준으로 한다. **형식을 바꿀 때는 이 문서를 먼저 고치고 셋을 맞춘다.**
+그리고 Claude Code 스킬 `.claude/skills/meeting-minutes`가 모두 이 문서를 기준으로 한다. **형식을 바꿀 때는 이 문서를 먼저 고치고 셋을 맞춘다.**
 
 ## 1. 원칙
 

@@ -52,4 +52,4 @@ python -m pytest -q
 | `server/updater.py` | 자동 업데이트(git fast-forward → 필요 시 재설치) |
 | `web/` | 화면 (빌드 없음, PWA) |
 | `tools/` | 켜기·설치·자동 시작·`build_start_html.py` |
-| `skills/meeting-minutes` | 회의록 형식의 Claude Code 스킬 |
+| `.claude/skills/meeting-minutes` | 회의록 형식의 Claude Code 스킬 |

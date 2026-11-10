@@ -12,7 +12,7 @@ AI는 이 PC의 Claude Code(`claude -p`)를 부른다. 자료는 전부 `data/`(
 - `web/` 빌드 없는 화면(순수 HTML/JS/CSS, PWA). `app.js` 하나에 다 있다
 - `tools/run.py` 켜기 · `tools/install.py` 설치 · `tools/autostart.py` 로그인 시 자동 시작. 이들을 부르는 `run.bat`·`run.sh`·`install.*`·`autostart.bat`도 `tools/`에. 최상위에는 사용자가 더블클릭하는 setup-*/start/autostart-* 파일만 둔다
 - `tests/` pytest. AI·캘린더·업데이트는 흉내 서버/임시 git으로 시험한다
-- `skills/meeting-minutes/` 회의록 형식 스킬, `docs/MINUTES_FORMAT.md` 그 기준
+- `.claude/skills/meeting-minutes/` 회의록 형식 스킬, `docs/MINUTES_FORMAT.md` 그 기준
 
 ## 작업할 때 지킬 것
 1. **시험 먼저 돌린다**: `.venv/bin/python -m pytest -q` (Windows `.venv\Scripts\python -m pytest -q`). 고친 뒤에도 전부 통과해야 한다. 새 기능엔 시험을 붙인다.
@@ -20,7 +20,7 @@ AI는 이 PC의 Claude Code(`claude -p`)를 부른다. 자료는 전부 `data/`(
 3. **화면 문구는 쉬운 한국어**. '업데이트'·'버전'처럼 누구나 아는 외래어는 그대로. 못 한 일은 "못 했어요 + 사유"로 화면에 남긴다.
 4. **사람이 하는 일은 말하기·고르기·체크뿐**. 캘린더 같은 바깥 연결이 실패해도 할 일 저장은 막지 않는다.
 5. **`.bat` 파일은 ASCII만** (한글이 있으면 cmd가 줄을 깨뜨린다). `.env`와 `data/`는 절대 커밋하지 않는다.
-6. AI 지시문(`extract.py`)을 바꾸면 `docs/MINUTES_FORMAT.md`와 `skills/meeting-minutes/SKILL.md`도 맞춘다.
+6. AI 지시문(`extract.py`)을 바꾸면 `docs/MINUTES_FORMAT.md`와 `.claude/skills/meeting-minutes/SKILL.md`도 맞춘다.
 7. 커밋 메시지는 한국어 한 줄 + 끝에 `Co-Authored-By: Claude ...` 줄.
 
 ## 고친 것을 확인하는 법
