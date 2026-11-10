@@ -1,6 +1,7 @@
 # 말한대로 핸드오프 (2026-11-10 저녁, 42판 기준)
 
 다음 작업자(사람이든 Claude든)가 이 문서만 읽고 이어갈 수 있게 적는다.
+42판 뒤의 변경은 `git log`에, 세션별 인계는 `docs/handoffs/`의 최신 파일에, 세션 일지는 `docs/dev-sessions/`에 있다.
 
 ## 1. 한 줄 요약
 
@@ -20,38 +21,20 @@
 
 ### 코드 받는 법
 
-`git clone https://github.com/EaglingSun/malhandaero.git` 한 줄이면 된다. 풀고 나서 `python -m pytest -q`가 82개 통과하면 온전한 것이다.
-
-아래는 저장소가 없던 때 쓰던 소스 묶음 푸는 법이다(참고용).
-프로젝트 문서 `claude/malhandaero-src-01.txt` ~ `-07.txt` 일곱 개를 한 폴더에 내려받은 뒤 그 폴더에서 실행한다.
-
-```
-python3 - <<'EOF'
-import base64, glob, pathlib
-src = "".join("\n" + pathlib.Path(f).read_text(encoding="utf-8").split("\n", 1)[1] for f in sorted(glob.glob("malhandaero-src-*.txt")))
-for part in src.split("\n=====8<===== ")[1:]:
-    head, _, body = part.partition("\n")
-    path, b64 = (head[:-9], True) if head.endswith(" (base64)") else (head, False)
-    p = pathlib.Path("malhandaero") / path
-    p.parent.mkdir(parents=True, exist_ok=True)
-    p.write_bytes(base64.b64decode(body) if b64 else body.encode("utf-8"))
-EOF
-chmod +x malhandaero/*.sh malhandaero/*.command
-```
-
-각 묶음의 첫 줄은 설명이고, 그 아래로 `=====8<===== 경로` 줄마다 파일 하나가 이어진다.
-`(base64)`가 붙은 구획은 그림 파일과 `.bat`(CRLF 줄바꿈 유지)이다. 풀고 나서 `python -m pytest -q`가 35개 통과하면 온전한 것이다.
+`git clone https://github.com/EaglingSun/malhandaero.git` 한 줄이면 된다. 풀고 나서 `pip install -r requirements-dev.txt` 뒤 `python -m pytest -q`가 실패 없이 끝나면 온전한 것이다
+(2026-11-10 밤 Windows 기준 83개 통과 · 5개 건너뜀 — 건너뛰는 5개는 sh 흉내 실행 파일을 쓰는 시험이라 Mac·Linux에서만 돈다).
+저장소가 없던 때의 소스 묶음(6판) 푸는 법은 더 쓰지 않아 뺐다. 필요하면 이 파일의 git 이력에 있다.
 
 ## 3. 구조 (자세한 것은 docs/DESIGN.md)
 
 - `server/app.py` 주소(API)와 날짜별 조회 규칙 · `extract.py` 추출 지시문과 해석 · `transcript.py` 화자 표기 해석
-- `server/llm.py` AI 연결: `claude`(이 PC의 Claude Code를 `claude -p`로 호출, 기본) | `api`(Anthropic 키) | `gemini`·`ollama`·`openai`(OpenAI 호환, urllib) | `fake`(흉내). 자동 감지 순서: Anthropic 키 → Claude Code → Gemini 키
+- `server/llm.py` AI 연결: `claude`(이 PC의 Claude Code를 `claude -p`로 호출, 기본) | `api`(Anthropic 키) | `gemini`·`ollama`·`openai`(OpenAI 호환, urllib) | `codex`(이 PC의 Codex CLI) · `gpt`(OpenAI 키) | `fake`(흉내). 자동 감지 순서: Anthropic 키 → Claude Code → Codex → OpenAI 키 → Gemini 키(`llm.mode()`)
 - `server/calsync.py` 캘린더 자동 넣기: 네이버(CalDAV + 애플리케이션 비밀번호), 구글(OAuth)
 - `server/stt.py` 음성 인식: faster-whisper(선택 설치) 또는 Gemini가 직접 들음(`stt.engine()`) · `server/db.py` SQLite와 칸 추가(MIGRATIONS)
 - `web/` 빌드 없는 화면(PWA, 공유 받기) · `tools/install.py`, `tools/run.py` 설치와 실행
 - `server/updater.py`(+ 얇은 `tools/update.py`) 자동 업데이트: `.git`이 없는 폴더면 먼저 저장소에 연결(adopt: init → fetch → checkout -f; data/·.env는 그대로) → `git fetch` → fast-forward만 → requirements 바뀌면 재설치 → manifest 바뀌면 폰 앱 재설치 안내. 실패해도 켜기는 막지 않는다. 세 곳에서 부른다: ① 켜기 전(`run.sh`/`run.bat`/`켜기.command`) ② 화면 맨 아래 「업데이트」(`POST /api/update`) ③ 매일 04시 자동. ②③은 받은 뒤 서버를 `RESTART_CODE(3)`로 끝내고 `tools/run.py`의 감시 루프가 새 코드로 다시 켠다. 자료·설정은 그대로
 - `말한대로 처음 설치.command`(Mac) / `말한대로 처음 설치.bat`(Windows) 파일 하나로 clone → 설치 → 켜기. **bat는 ASCII만**
-- 시험: `python -m pytest -q` → 82개 통과. AI·네이버·구글은 흉내 서버로, 업데이트는 임시 git 저장소로 시험한다
+- 시험: `python -m pytest -q` → 실패 0개(수치는 위 「코드 받는 법」). AI·네이버·구글은 흉내 서버로, 업데이트는 임시 git 저장소로 시험한다
 
 지키는 규칙
 
