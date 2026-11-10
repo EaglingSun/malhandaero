@@ -643,7 +643,7 @@
   });
   // 홈 화면 앱으로 열렸으면(설치된 상태) '휴대폰에서 쓰기' 안내는 필요 없다
   if (window.matchMedia("(display-mode: standalone)").matches || navigator.standalone) { $("btn-link").hidden = true; $("link-box").hidden = true; }
-  $("phone-copy").addEventListener("click", function () { navigator.clipboard && navigator.clipboard.writeText($("phone-url").textContent).then(function () { $("phone-copy").textContent = "복사됨"; }); });
+  $("phone-copy").addEventListener("click", function () { navigator.clipboard && navigator.clipboard.writeText($("phone-url").textContent).then(function () { $("phone-copy").textContent = "복사했어요"; }); });
   $("link-me").addEventListener("click", function () { showLink("me"); });
   $("link-family").addEventListener("click", function () { showLink("family"); });
 
