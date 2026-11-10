@@ -11,9 +11,9 @@
 |---|---|---|
 | Python 3.10+ | python.org/downloads | Windows는 설치 때 **"Add python.exe to PATH"** 체크 |
 | Git | git-scm.com | Mac은 터미널에서 `git` 한 번 치면 설치 안내가 떠요 |
-| AI 연결 — 둘 중 하나 | | |
-| └ Claude 구독(Pro 이상) | 이 PC에 Claude Code 설치 후 `claude`로 로그인 | API 결제 없음. 회의록은 가장 꼼꼼 |
-| └ 구글 Gemini 키 (무료) | aistudio.google.com/apikey | 카드 없음. 녹음 파일도 Gemini가 직접 들어요 |
+| **Claude 구독(Pro 이상) + Claude Code** | claude.com/claude-code 안내대로 설치 → 터미널에서 `claude` 실행해 로그인 | API 결제 없음. 앱이 이 로그인을 그대로 써요 |
+
+> 구독이 없는 분을 위한 구글 Gemini 연결도 있지만(INSTALL.md), 무료 티어가 자주 혼잡해 아직 권하지 않아요.
 
 ---
 
@@ -26,12 +26,6 @@
 3. 검은 창에 **QR 코드**가 뜹니다. 폰 카메라로 찍어 열고, 이름과 가족 코드로 들어갑니다.
    - Windows 방화벽 창이 뜨면 「액세스 허용」
 4. 폰 브라우저 메뉴 → **「홈 화면에 추가」**. 이제 녹음 앱의 공유 목록에 「말한대로」가 생깁니다.
-
-Claude 구독이 없다면 2번 뒤에 `malhandaero` 폴더의 `.env`를 메모장으로 열어 두 줄의 `#`을 지우고 키를 넣은 뒤, 창을 닫고 `run.bat`(Mac: `말한대로 켜기.command`)을 다시 켭니다.
-```
-MALHAN_AI=gemini
-GEMINI_API_KEY=발급받은 키
-```
 
 다음부터는 `run.bat` / `말한대로 켜기.command` 더블클릭이 전부예요. 켤 때마다 새 버전을 알아서 받습니다.
 
@@ -64,8 +58,8 @@ GEMINI_API_KEY=발급받은 키
 | 증상 | 해결 |
 |---|---|
 | 폰에서 주소가 안 열려요 | PC와 폰이 같은 와이파이인지, Windows 방화벽 허용했는지 |
-| "AI가 연결되지 않았어요" | Claude Code 로그인(`claude`) 또는 `.env`의 Gemini 두 줄 확인 (줄 앞 `#` 지웠는지) |
-| "Gemini가 지금 너무 바빠요(503)" | 구글 쪽 혼잡. 몇 분 뒤 「넣은 것 → 다시 뽑기」 |
+| "AI가 연결되지 않았어요" | 터미널에서 `claude`를 실행해 로그인돼 있는지 확인. 회사 계정이면 조직에서 구독 사용을 막아 뒀을 수 있어요 |
+| "Claude Code가 답을 주지 못했어요" | 사용량 한도일 수 있어요. 「넣은 것 → 다시 뽑기」. Pro는 5시간마다 풀려요 |
 | 공유 목록에 말한대로가 없어요 | 홈 화면 아이콘을 지우고 다시 「홈 화면에 추가」 |
 | 그 밖에 | `INSTALL.md`의 「막힐 때」, 또는 저장소 Issues |
 

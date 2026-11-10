@@ -80,14 +80,14 @@ chmod +x malhandaero/*.sh malhandaero/*.command
 | 5판의 목록 중심 화면, QR 연결, 더블클릭 실행 | 헤드리스 브라우저와 자동 시험으로만 확인. 실제 기기 의견 아직 없음 |
 | 음성 파일 변환 | Mac: whisper 미설치 상태(설치 때 실패) → Gemini 키 넣으면 됨(30판). Windows: whisper 켜짐. **Gemini로 m4a 변환은 11/10 오후 구글 503(수요 폭주)로 미확인** — 503 풀린 뒤 「다시 뽑기」 한 번이 남음 |
 | Windows 설치·실행 | **11/10 실기기 통과**: 처음 설치.bat → clone → install(whisper 포함) → run → QR → 폰 접속 → Claude Code로 추출 ✓. bat에 한글 있으면 cmd가 줄을 깨뜨림(ASCII로 수정). Gemini 추출은 모델명(2.5→3.8)·503 겪음 |
-| Gemini 연결(28~31판) | 키·모델·주소는 실기기에서 통함(404/503 응답을 받음). 성공 응답은 아직 못 봄 |
+| Gemini 연결(28~31판) | 키·모델·주소는 통하나 **11/10 오후 내내 503**으로 성공 응답을 못 봄. **결정: 1차 배포는 Claude Code 연동판으로.** Gemini는 코드에 남기되 문서에서 '실험적'으로 내림 |
 | 켠 채 새 판 받기(9판) | 샌드박스 e2e(원격에 커밋 → `/api/update` → 새 코드로 재시작)는 통과. 폰에서 「업데이트」 버튼으로 9→10판 적용 확인(11/10 08:40) |
 
 ## 5. 다음 할 일 (순서대로)
 
 1. 사용자의 11/10 실사용 의견 받기 → 고치기. 새 기능보다 우선 (08:40 배치·요약 목록 의견 반영 끝)
 1-2. 13판 회의록·묶음 추출을 실제 회의록(입력 12, 37k자)으로 다시 뽑아 품질 보기 → 묶음 수·회의록 충실도 의견 반영
-1-1. ~~faster-whisper 설치~~ 17판. Mac: `.env`에 GEMINI_API_KEY 한 줄 → 「업데이트」 → m4a 「다시 뽑기」. Windows: 503 풀리면 Gemini 경로로 m4a·txt 「다시 뽑기」
+1-1. ~~faster-whisper 설치~~ 17판. Mac은 whisper 미설치 → `말한대로 설치.command` 한 번 더(또는 녹음 변환은 선택 사항으로 두고 텍스트 공유만 안내). Gemini STT 실기기 확인은 보류
 1-3. ~~Windows 설치 검증~~ 11/10 통과. ~~배포 안내 한 장~~ docs/START.md. ~~가명 치환~~ 32판
 1-4. 저장소 공개 결정: 공모 전용 계정/조직으로 이전 후 public (익명 유지) — 사내 코드 공개 규정 확인 후. 공개 시 README·privacy.html의 저장소 주소 바꾸기
 2. ~~녹음 앱 공유~~ 11/10 확인 끝: 공유 → 넣기 → 뽑기까지 됨
@@ -108,7 +108,7 @@ chmod +x malhandaero/*.sh malhandaero/*.command
 
 ## 7. 사용 환경 메모
 
-- 시험 PC: Windows 노트북(`말한대로 처음 설치.bat`로 설치, Claude Code 있음, Gemini 키 `.env`에 넣음 — 시험 뒤 `MALHAN_AI=gemini`·`MALHAN_STT=gemini` 줄 지우면 Claude Code로 복귀). 사용자 '테스트'(코드 1234)는 시험용
+- 시험 PC: Windows 노트북(`말한대로 처음 설치.bat`로 설치, Claude Code 있음). `.env`의 `MALHAN_AI=gemini`·`MALHAN_STT=gemini` 줄은 지워 Claude Code로 되돌릴 것. 사용자 '테스트'(코드 1234)는 시험용
 - 서버: 집 Mac. `말한대로 켜기.command`로 실행. Tailscale 켜져 있으면 https 주소 자동. 덮개를 닫으면 끊김
 - 사용자 본인은 구글 캘린더(올리기: Sun 기본 캘린더, 읽기: '팀 공유 일정' 공유 캘린더), 남편은 네이버 캘린더로 연결하려 함
 - 구글 OAuth 클라이언트는 사용자가 만들어 `.env`에 넣어 둠. 리디렉션 주소에 Tailscale 주소가 들어 있으므로 기기 이름을 바꾸면 구글 쪽도 고쳐야 함

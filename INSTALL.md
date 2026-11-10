@@ -12,11 +12,11 @@ API 결제 없이, PC에 로그인되어 있는 Claude Code를 그대로 씁니�
 
 Claude Code가 없으면 `.env`에 `ANTHROPIC_API_KEY`를 넣어 API 키로 쓸 수 있습니다.
 
-### Claude 구독이 없다면
+### Claude 구독이 없다면 (실험적)
 
 | 방법 | 비용 | 설정 | 품질 |
 |---|---|---|---|
-| **구글 Gemini** | 무료 티어로 충분 (aistudio.google.com 에서 키 발급, 카드 없음) | `.env`에 `GEMINI_API_KEY=…` 한 줄 | 메모·회의록 모두 양호. **녹음 파일도 Gemini가 직접 들어서** whisper 설치가 없어도 됨 |
+| **구글 Gemini** | 무료 (aistudio.google.com 에서 키 발급, 카드 없음). **무료 티어는 피크 시간에 503(혼잡)이 잦아 11/10 시험에선 성공 못 함** — 앱이 재시도·다른 모델 우회까지 하지만 보장은 못 해요 | `.env`에 `GEMINI_API_KEY=…` 한 줄 | 메모·회의록 모두 양호. **녹음 파일도 Gemini가 직접 들어서** whisper 설치가 없어도 됨 |
 | **Ollama** (이 PC에서 모델 실행) | 0원·오프라인 | ollama.com 설치 → `ollama pull qwen3:8b` → `.env`에 `MALHAN_AI=ollama` | 짧은 메모는 괜찮음. 1시간 넘는 회의록은 빠뜨리거나 형식이 깨질 수 있음 (16GB 메모리 이상 권장) |
 | Anthropic API 키 | 쓴 만큼 (메모 1건 1원 미만, 1시간 반 회의록 100~200원) | `ANTHROPIC_API_KEY=…` | Claude Code와 같음 |
 
