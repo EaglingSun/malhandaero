@@ -74,7 +74,7 @@ def main() -> int:
         code = ""
         while not code:
             try:
-                code = input("   폰과 가족이 들어올 때 쓸 코드를 정해 주세요 (숫자나 짧은 말, 기억하기 쉬운 것): ").strip()
+                code = input("   로그인할 때 사용할 코드를 정해 주세요 (예: 1234): ").strip()
             except EOFError:
                 code = "1234"
                 break
@@ -88,7 +88,7 @@ def main() -> int:
             "# GEMINI_API_KEY=\n",
             encoding="utf-8",
         )
-        print(f"   만들었어요. 가족 코드: {code}   (잊으면 .env 파일 첫 줄에 있어요)")
+        print(f"   만들었어요. 로그인 코드: {code}   (잊으면 .env 파일 첫 줄에 있어요)")
 
     if os.name == "nt":
         _win_shortcuts()
