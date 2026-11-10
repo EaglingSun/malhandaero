@@ -1,4 +1,4 @@
-# 말한대로 핸드오프 (2026-11-10 오후, 32판 기준)
+# 말한대로 핸드오프 (2026-11-10 저녁, 42판 기준)
 
 다음 작업자(사람이든 Claude든)가 이 문서만 읽고 이어갈 수 있게 적는다.
 
@@ -11,7 +11,7 @@
 
 | 무엇 | 어디 |
 |---|---|
-| 코드 최신판 | **GitHub `EaglingSun/malhandaero` (비공개), `main` 가지. 32판.** 이것이 기준이다 |
+| 코드 최신판 | **GitHub `EaglingSun/malhandaero` (비공개), `main` 가지. 42판.** 이것이 기준이다 |
 | 예전 묶음 | 프로젝트 문서 `claude/malhandaero-src-01.txt`~`07.txt`는 6판 소스 묶음. 저장소가 생겼으므로 더 쓰지 않는다 |
 | 실행 중인 곳 | 사용자의 집 Mac(Tailscale https, 폰 2대) + 11/10부터 Windows 노트북(시험용, Gemini) |
 | 개발 계획 문서 | claude.ai 아티팩트 「말한대로 개발 계획」 https://claude.ai/artifact/9hymSQQhmXfwhpuEw14dua (11/9 밤 기준. 그 뒤 추가분 미반영) |
@@ -20,7 +20,7 @@
 
 ### 코드 받는 법
 
-`git clone https://github.com/EaglingSun/malhandaero.git` 한 줄이면 된다. 풀고 나서 `python -m pytest -q`가 68개 통과하면 온전한 것이다.
+`git clone https://github.com/EaglingSun/malhandaero.git` 한 줄이면 된다. 풀고 나서 `python -m pytest -q`가 82개 통과하면 온전한 것이다.
 
 아래는 저장소가 없던 때 쓰던 소스 묶음 푸는 법이다(참고용).
 프로젝트 문서 `claude/malhandaero-src-01.txt` ~ `-07.txt` 일곱 개를 한 폴더에 내려받은 뒤 그 폴더에서 실행한다.
@@ -51,7 +51,7 @@ chmod +x malhandaero/*.sh malhandaero/*.command
 - `web/` 빌드 없는 화면(PWA, 공유 받기) · `tools/install.py`, `tools/run.py` 설치와 실행
 - `server/updater.py`(+ 얇은 `tools/update.py`) 자동 업데이트: `.git`이 없는 폴더면 먼저 저장소에 연결(adopt: init → fetch → checkout -f; data/·.env는 그대로) → `git fetch` → fast-forward만 → requirements 바뀌면 재설치 → manifest 바뀌면 폰 앱 재설치 안내. 실패해도 켜기는 막지 않는다. 세 곳에서 부른다: ① 켜기 전(`run.sh`/`run.bat`/`켜기.command`) ② 화면 맨 아래 「업데이트」(`POST /api/update`) ③ 매일 04시 자동. ②③은 받은 뒤 서버를 `RESTART_CODE(3)`로 끝내고 `tools/run.py`의 감시 루프가 새 코드로 다시 켠다. 자료·설정은 그대로
 - `말한대로 처음 설치.command`(Mac) / `말한대로 처음 설치.bat`(Windows) 파일 하나로 clone → 설치 → 켜기. **bat는 ASCII만**
-- 시험: `python -m pytest -q` → 68개 통과. AI·네이버·구글은 흉내 서버로, 업데이트는 임시 git 저장소로 시험한다
+- 시험: `python -m pytest -q` → 82개 통과. AI·네이버·구글은 흉내 서버로, 업데이트는 임시 git 저장소로 시험한다
 
 지키는 규칙
 
@@ -85,6 +85,7 @@ chmod +x malhandaero/*.sh malhandaero/*.command
 
 ## 5. 다음 할 일 (순서대로)
 
+0. **11/11 할 일**: 공모 게시글 초안(3단계 체험: GIF → 스킬 → 설치, 수치 자리) · GIF 1개 · 저장소 공개 결정(전용 계정 이전) · Mac: 업데이트 + `.env` 구글 두 줄 삭제(내장으로 통일) + whisper 재설치 + 자동 시작.command
 1. 사용자의 11/10 실사용 의견 받기 → 고치기. 새 기능보다 우선 (08:40 배치·요약 목록 의견 반영 끝)
 1-2. 13판 회의록·묶음 추출을 실제 회의록(입력 12, 37k자)으로 다시 뽑아 품질 보기 → 묶음 수·회의록 충실도 의견 반영
 1-1. ~~faster-whisper 설치~~ 17판. Mac은 whisper 미설치 → `말한대로 설치.command` 한 번 더(또는 녹음 변환은 선택 사항으로 두고 텍스트 공유만 안내). Gemini STT 실기기 확인은 보류
