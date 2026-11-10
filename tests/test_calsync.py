@@ -208,7 +208,9 @@ def test_google_oauth_round_trip_and_event_sync(fake, monkeypatch):
 
 
 def test_google_start_explains_when_not_set_up(monkeypatch):
+    from server import calsync
     monkeypatch.delenv("MALHAN_GOOGLE_CLIENT_ID", raising=False)
+    monkeypatch.setattr(calsync, "BUILTIN_GOOGLE_CLIENT_ID", "")   # 내장 클라이언트도 없는 상황
     join("준비전")
     assert client.get("/api/calendar").json()["google_ready"] is False
     assert client.get("/api/calendar/google/start", follow_redirects=False).status_code == 503
