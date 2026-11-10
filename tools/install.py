@@ -34,7 +34,7 @@ foreach ($pair in @(@('말한대로 켜기', 'tools\run.bat'), @('말한대로 �
 """ % ((str(ROOT).replace("'", "''"),) * 3)
     try:
         subprocess.run(["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", ps], check=True, capture_output=True, timeout=60)
-        print("· 바탕 화면에 「말한대로 켜기」「말한대로 자동 시작」 바로가기를 만들었어요.")
+        print("   바탕 화면에 「말한대로 켜기」「말한대로 자동 시작」 바로가기")
     except Exception:
         print("· 바탕 화면 바로가기는 만들지 못했어요. 폴더의 tools\run.bat / tools\autostart.bat을 쓰면 돼요.")
 
@@ -59,7 +59,7 @@ def main() -> int:
     else:
         try:
             subprocess.check_call([str(PY), "-m", "pip", "install", "--quiet", "--disable-pip-version-check", "-r", str(ROOT / "requirements-stt.txt")])
-            print("   음성 인식 모델을 미리 받아 둡니다 (약 500MB, 처음 한 번)…")
+            print("   모델 받는 중 (약 500MB)…")
             r = subprocess.run([str(PY), "-c", "from faster_whisper import WhisperModel; WhisperModel('small', device='cpu', compute_type='int8')"],
                                capture_output=True, text=True, timeout=1800)
             print("   준비됨" if r.returncode == 0 else "   모델은 처음 녹음을 넣을 때 받습니다 (지금은 못 받았어요).")
@@ -96,20 +96,17 @@ def main() -> int:
         print("\n! 이 폴더가 OneDrive 안에 있어요. 동기화 때문에 느려지거나 자료 파일이 잠길 수 있으니, "
               "가능하면 OneDrive 밖(예: C:\\Users\\이름\\malhandaero)으로 옮기고 install을 한 번 더 실행해 주세요.")
 
-    print("\n설치가 끝났어요.")
+    print("\n설치가 끝났어요. 이어서 켜집니다.")
     if shutil.which("claude"):
-        print("· Claude Code를 찾았어요. 로그인되어 있으면 바로 쓸 수 있습니다.")
-        print("  (로그인 확인: 터미널에서 claude auth status)")
+        print("· AI: 이 PC의 Claude Code")
+    elif os.environ.get("GEMINI_API_KEY") or "GEMINI_API_KEY=" in env.read_text(encoding="utf-8-sig").replace("# GEMINI_API_KEY=", ""):
+        print("· AI: Gemini")
     else:
-        if os.environ.get("GEMINI_API_KEY") or "GEMINI_API_KEY=" in env.read_text(encoding="utf-8-sig").replace("# GEMINI_API_KEY=", ""):
-            print("· Gemini 키로 연결합니다.")
-        else:
-            print("· 이 PC에서 Claude Code를 찾지 못했어요. 셋 중 하나를 해 주세요.")
-            print("  1) Claude Code를 설치하고 로그인한다  2) .env에 GEMINI_API_KEY를 넣는다 (무료)  3) .env에 ANTHROPIC_API_KEY를 넣는다")
-            print("  아무것도 없이 화면만 보려면 .env에 MALHAN_AI=fake 를 넣으세요.")
+        print("· AI 없음 — 직접 적기·캘린더는 돼요. Claude Code를 로그인하면 바로 연결돼요.")
     if os.name == "nt":
-        print("· 처음 켤 때 Windows 방화벽 창이 뜨면 '액세스 허용'을 눌러야 폰에서 들어올 수 있어요.")
-    print("· 이어서 바로 켜져요. 다음부터는 " + ("바탕 화면의 「말한대로 켜기」" if os.name == "nt" else "「start.command」") + " 더블클릭이 전부예요.")
+        print("· 방화벽 창이 뜨면 '액세스 허용'. 다음부터는 바탕 화면의 「말한대로 켜기」")
+    else:
+        print("· 다음부터는 start.command")
     return 0
 
 
