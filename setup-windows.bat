@@ -18,7 +18,7 @@ if errorlevel 1 (
   echo git not found. Installing with winget...
   winget install --id Git.Git -e --source winget --accept-package-agreements --accept-source-agreements
   echo.
-  echo git installed. Close this window and run this file again (PATH needs a fresh window).
+  echo git installed. Close this window and run this file again so PATH is refreshed.
   pause
   exit /b 1
 )
