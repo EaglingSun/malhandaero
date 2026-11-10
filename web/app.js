@@ -643,6 +643,13 @@
   });
   // 홈 화면 앱으로 열렸으면(설치된 상태) '휴대폰에서 쓰기' 안내는 필요 없다
   if (window.matchMedia("(display-mode: standalone)").matches || navigator.standalone) { $("btn-link").hidden = true; $("link-box").hidden = true; }
+  // 폰 브라우저로 보고 있으면 주소·QR 대신 "이 폰에 설치" 안내만 (주소는 이미 열려 있으니까)
+  var onPhone = /Android|iPhone|iPad/i.test(navigator.userAgent);
+  if (onPhone) { $("link-pc").hidden = true; $("link-phone").hidden = false; $("btn-link").textContent = "이 폰에 앱으로 넣기"; }
+  window.addEventListener("beforeinstallprompt", function (e) {      // Chrome이 설치를 허락하면 단추 하나로
+    e.preventDefault(); state.installPrompt = e; $("link-install").hidden = false;
+  });
+  $("link-install").addEventListener("click", function () { if (state.installPrompt) { state.installPrompt.prompt(); state.installPrompt = null; $("link-install").hidden = true; } });
   $("phone-copy").addEventListener("click", function () { navigator.clipboard && navigator.clipboard.writeText($("phone-url").textContent).then(function () { $("phone-copy").textContent = "복사했어요"; }); });
   $("link-me").addEventListener("click", function () { showLink("me"); });
   $("link-family").addEventListener("click", function () { showLink("family"); });
@@ -714,6 +721,7 @@
     $("phone-url").textContent = u;
     var insecure = u.indexOf("http://") === 0;
     $("http-help").hidden = !insecure;
+    $("link-phone-flag").hidden = !insecure;
     if (insecure) { $("http-origin").textContent = u; $("http-help").open = !window.isSecureContext || location.hostname === "localhost"; }
   }
   $("http-copy").addEventListener("click", function () { var u = $("http-origin").textContent; navigator.clipboard && navigator.clipboard.writeText(u).then(function () { $("http-copy").textContent = "복사됨"; }); });
