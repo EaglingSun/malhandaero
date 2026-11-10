@@ -478,3 +478,21 @@ def test_invite_link_can_use_lan_address(monkeypatch):
     assert r["url"].startswith("https://pc.example.ts.net/l/") and r["secure"] and r["has_lan"]
     r2 = client.post("/api/link", json={"kind": "family", "via": "lan"}).json()
     assert r2["url"].startswith("http://10.0.0.5:8000/l/") and not r2["secure"] and not r2["has_lan"]
+
+
+def test_done_on_past_day_stays_on_that_day_and_scope_can_change():
+    """지난 날짜 화면에서 체크/해제하면 그날 기준으로 남고, 개인·회사 구분을 고칠 수 있다."""
+    join("지난날")
+    yesterday = (appmod.today() - timedelta(days=1)).isoformat()
+    it = client.post("/api/items", json={"text": "보고서 보내기", "plan_date": yesterday}).json()
+    done = client.patch(f"/api/items/{it['id']}", json={"status": "done", "done_date": yesterday}).json()
+    assert done["done_at"] == yesterday and done["plan_date"] == yesterday
+    undone = client.patch(f"/api/items/{it['id']}", json={"status": "todo", "plan_date": yesterday}).json()
+    assert undone["status"] == "todo" and undone["plan_date"] == yesterday and undone["done_at"] is None
+    # 지난날 할 일은 오늘 화면에 "넘어옴"으로 보인다
+    today_view = client.get("/api/day").json()
+    assert any(x["id"] == it["id"] for x in today_view["todo"])
+    # 미래 날짜로는 끝낼 수 없다 → 오늘로
+    far = client.patch(f"/api/items/{it['id']}", json={"status": "done", "done_date": "2099-01-01"}).json()
+    assert far["done_at"] == appmod.today().isoformat()
+    assert client.patch(f"/api/items/{it['id']}", json={"scope": "회사"}).json()["scope"] == "회사"

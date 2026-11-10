@@ -113,12 +113,13 @@
     var t = el("input"); t.value = it.text; t.maxLength = 200; t.required = true;
     var d = el("input"); d.type = "date"; d.value = it.plan_date || "";
     var tm = el("input"); tm.type = "time"; tm.value = it.plan_time || "";
-    f.appendChild(field("할 일", t)); f.appendChild(field("날짜", d)); f.appendChild(field("시각 (안 정해도 돼요)", tm));
+    var sc = el("select"); ["개인", "회사"].forEach(function (v) { var o = el("option", "", v); o.value = v; if (it.scope === v) o.selected = true; sc.appendChild(o); });
+    f.appendChild(field("할 일", t)); f.appendChild(field("날짜", d)); f.appendChild(field("시각 (안 정해도 돼요)", tm)); f.appendChild(field("구분", sc));
     var save = el("button", "primary small", "저장"); save.type = "submit"; f.appendChild(save);
     f.addEventListener("submit", function (ev) {
       ev.preventDefault();
-      var body = { text: t.value, plan_time: tm.value };
-      if (d.value) { body.status = "todo"; body.plan_date = d.value; }
+      var body = { text: t.value, plan_time: tm.value, scope: sc.value };
+      if (d.value && !(it.status === "done" && d.value === it.plan_date)) { body.status = "todo"; body.plan_date = d.value; }   // 끝낸 일은 날짜를 바꿨을 때만 다시 할 일로
       setItem(it, body);
     });
     return f;
@@ -144,7 +145,8 @@
     var head = el("div", "head");
     if (kind === "todo" || kind === "done") {
       var c = btn(it.status === "done" ? "✓" : "", "check" + (it.status === "done" ? " on" : ""), function () {
-        setItem(it, it.status === "done" ? { status: "todo", plan_date: state.today } : { status: "done" });
+        // 지난 날짜 화면에서 누르면 그날 기준으로: 체크 해제 → 그날 할 일로(오늘 화면엔 "넘어옴"으로 보인다), 체크 → 그날 끝낸 일로
+        setItem(it, it.status === "done" ? { status: "todo", plan_date: state.date || state.today } : { status: "done", done_date: state.date || state.today });
       });
       c.setAttribute("aria-label", it.status === "done" ? "끝냄 취소" : "끝냄으로 표시");
       head.appendChild(c);

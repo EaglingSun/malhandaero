@@ -859,6 +859,7 @@ def add_item(body: ItemNew, bg: BackgroundTasks, user=Depends(current_user)):
 class ItemPatch(BaseModel):
     status: str | None = None
     plan_date: str | None = None
+    done_date: str | None = None   # status=done일 때 끝낸 날짜(지난 날짜 화면에서 체크하면 그날). 없으면 오늘
     plan_time: str | None = None   # "HH:MM", 빈 문자열이면 시각 지움
     text: str | None = None
     scope: str | None = None
@@ -943,8 +944,9 @@ def patch_item(item_id: int, body: ItemPatch, bg: BackgroundTasks, user=Depends(
                 f["plan_date"] = parse_date(body.plan_date).isoformat()
                 f["done_at"] = None
             elif body.status == "done":
-                f["done_at"] = today().isoformat()
-                f["plan_date"] = row["plan_date"] or today().isoformat()
+                done_day = min(parse_date(body.done_date), today()) if body.done_date else today()   # 미래로는 못 끝낸다
+                f["done_at"] = done_day.isoformat()
+                f["plan_date"] = row["plan_date"] or done_day.isoformat()
             else:
                 f["plan_date"] = None
                 f["done_at"] = None
