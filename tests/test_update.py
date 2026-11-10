@@ -60,7 +60,12 @@ def test_up_to_date_offline_dirty_and_off_never_block_start(repos, capsys, monke
     assert update.main([]) == 0 and "지금이 최신" in capsys.readouterr().out
     (mine / "requirements.txt").write_text("내가 고침\n")                              # 직접 고친 파일은 덮어쓰지 않는다
     assert update.main([]) == 0 and "덮어쓰지 않고" in capsys.readouterr().out
+    assert update.RESULT["local"] is True                                              # 「업데이트」 버튼은 이 코드로 다시 켠다
     sh(mine, "checkout", "-q", "--", "requirements.txt")
+    (mine / "mine.txt").write_text("x"); sh(mine, "add", "mine.txt"); sh(mine, "commit", "-q", "-m", "내 커밋")
+    (work / "w.txt").write_text("y"); sh(work, "add", "w.txt"); sh(work, "commit", "-q", "-m", "남의 커밋"); sh(work, "push", "-q", "origin", "HEAD")
+    assert update.main([]) == 0 and "직접 커밋한 코드" in capsys.readouterr().out and update.RESULT["local"] is True   # 갈라졌을 때
+    sh(mine, "reset", "-q", "--hard", "origin/main") if False else None
     sh(mine, "remote", "set-url", "origin", str(mine / "없는곳"))                      # 인터넷이 끊긴 상황
     assert update.main([]) == 0 and "닿지 못해" in capsys.readouterr().out
     assert update.main(["--no-update"]) == 0 and "꺼져 있어요" in capsys.readouterr().out

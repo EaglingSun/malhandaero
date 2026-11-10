@@ -27,7 +27,7 @@ RESULT: dict = {"updated": False, "before": "", "after": "", "log": [], "changed
 
 
 def _reset() -> None:
-    RESULT.update(updated=False, before="", after="", log=[], changed=[], messages=[])
+    RESULT.update(updated=False, local=False, before="", after="", log=[], changed=[], messages=[])
 
 
 def _env_file_says_off() -> bool:
@@ -90,7 +90,8 @@ def main(argv: list[str]) -> int:
 
     try:
         if git("status", "--porcelain", "--untracked-files=no"):
-            say("직접 고친 파일이 있어서 덮어쓰지 않고 지금 버전으로 켭니다. (git stash 로 치우면 다시 업데이트돼요)")
+            RESULT["local"] = True
+            say("직접 고친 파일이 있어서 덮어쓰지 않고 지금 코드로 켭니다. (git stash 로 치우면 다시 업데이트돼요)")
             return 0
         before = git("rev-parse", "HEAD")
         branch = git("rev-parse", "--abbrev-ref", "HEAD")
@@ -117,7 +118,11 @@ def main(argv: list[str]) -> int:
             if len(log) > 8:
                 say(f"  · … 외 {len(log) - 8}건")
     except (RuntimeError, subprocess.TimeoutExpired) as e:
-        say(f"업데이트하지 못했어요: {e}. 지금 버전으로 켭니다.")
+        if "ff-only" in str(e) or "fast-forward" in str(e).lower() or "diverg" in str(e).lower():
+            RESULT["local"] = True
+            say("이 PC에서 직접 커밋한 코드가 있어 받아 오지 못했어요. 지금 코드로 켭니다. (git pull --rebase origin main 으로 합치면 다시 받아요)")
+        else:
+            say(f"업데이트하지 못했어요: {e}. 지금 버전으로 켭니다.")
         return 0
 
     if not VENV_PY.exists() or any(c in changed for c in ("requirements.txt", "requirements-stt.txt", "tools/install.py")):

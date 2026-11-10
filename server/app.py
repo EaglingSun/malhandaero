@@ -261,8 +261,11 @@ def _update_now() -> dict:
     try:
         updater.main([])
         out = dict(updater.RESULT)
-        out["restarting"] = out["updated"]
-        if out["updated"]:
+        # 받은 게 없어도 이 PC에서 직접 고친 코드가 있으면 그 코드로 다시 켠다 (Claude Code로 고친 뒤 폰에서 「업데이트」만 누르면 되게)
+        if out.get("local") and not out["updated"]:
+            out["messages"].append("직접 고친 코드로 다시 켤게요.")
+        out["restarting"] = out["updated"] or bool(out.get("local"))
+        if out["restarting"]:
             n = pending_count()
             out["waiting"] = n
             if n:
