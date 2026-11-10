@@ -75,7 +75,7 @@ chmod +x malhandaero/*.sh malhandaero/*.command
 
 | 항목 | 상태 |
 |---|---|
-| 캘린더 일정 가져오기(20판) | 흉내 서버로만 확인. 실제 네이버 REPORT 응답 꼴·구글 목록은 미확인 |
+| 캘린더 일정 가져오기(20판) | 구글은 실기기 확인(팀 공유 일정 보임). 네이버 REPORT 응답 꼴은 미확인 |
 | 네이버 캘린더 연결(남편 쪽) | 5판 이전에 "인터넷 연결 확인" 오류. 인증서 묶음(certifi) 지정으로 수정했으나 **실제 네이버 서버에서 미확인**. 실패하면 문구의 대괄호 안 사유를 받을 것 |
 | 5판의 목록 중심 화면, QR 연결, 더블클릭 실행 | 헤드리스 브라우저와 자동 시험으로만 확인. 실제 기기 의견 아직 없음 |
 | 음성 파일 변환 | Mac: whisper 미설치 상태(설치 때 실패) → Gemini 키 넣으면 됨(30판). Windows: whisper 켜짐. **Gemini로 m4a 변환은 11/10 오후 구글 503(수요 폭주)로 미확인** — 503 풀린 뒤 「다시 뽑기」 한 번이 남음 |
@@ -126,7 +126,7 @@ chmod +x malhandaero/*.sh malhandaero/*.command
 | 4 | 더블클릭 실행(.command), Tailscale 자동, QR 연결(내 기기 / 가족 초대) |
 | 5 | 목록 중심 화면(+ 버튼 뒤에 넣기), https 인증서 묶음, 연결 실패 사유 표시 |
 | 6 | 공유로 받는 파일 종류 확대 |
-| 41 | 구글 캘린더 원클릭: 데스크톱형 OAuth 클라이언트를 앱에 내장(`calsync.BUILTIN_GOOGLE_CLIENT_ID/SECRET`, 값은 42판에 내장(사용자 프로젝트의 '데스크톱 앱' 클라이언트). **실기기 연결 확인 전**). 내장 클라이언트일 땐 리디렉션이 localhost만 되므로 `/api/calendar/google/start`가 localhost가 아니면 `/?cal=local`로 돌려보내고 화면이 'PC에서 localhost로 한 번' 안내. `.env`에 본인 클라이언트가 있으면 그쪽 우선(어느 주소에서나). INSTALL.md·START.md 갱신 |
+| 41 | 구글 캘린더 원클릭: 데스크톱형 OAuth 클라이언트를 앱에 내장(`calsync.BUILTIN_GOOGLE_CLIENT_ID/SECRET`, 값은 42판에 내장(사용자 프로젝트의 '데스크톱 앱' 클라이언트, 동의 화면은 프로덕션 게시·미검증). **11/10 Windows 실기기에서 localhost 연결 성공.** 주의: `.env`에 예전 웹 클라이언트 ID가 남아 있으면 그게 우선돼 `deleted_client`가 남 → 두 줄 지우기. 동의 화면 게시용 공개 페이지는 `eaglingsun.github.io/malhandaero/`(별도 저장소 `EaglingSun/eaglingsun.github.io`: index·privacy·terms)). 내장 클라이언트일 땐 리디렉션이 localhost만 되므로 `/api/calendar/google/start`가 localhost가 아니면 `/?cal=local`로 돌려보내고 화면이 'PC에서 localhost로 한 번' 안내. `.env`에 본인 클라이언트가 있으면 그쪽 우선(어느 주소에서나). INSTALL.md·START.md 갱신 |
 | 40 | 출품 버전 UI 단순화: 「휴대폰 연결」→「휴대폰에서 쓰기」(폰 주소 + 복사 + QR 하나). 초대 QR·같은 와이파이용 QR·코드 바꾸기·Tailscale 도우미는 「가족이나 팀과 같이 쓰고 싶다면」 접힘 안에. 공유 기능은 남기되 안내에선 '가이드 참고'로만. START.md도 '혼자 쓰기가 기본'으로. 그 밖에: 코드 바꾸기 API(`/api/settings/code`), 초대 QR via=lan, INSTALL.md Tailscale 초대 절, 가족 코드는 본인이 정함 |
 | 39 | 켜질 때 창을 단순하게(폰 주소 하나·PC 주소·상태 한 줄·QR). **설정 도우미 글**: `docs/prompts/google-calendar.md`·`tailscale.md`를 `/api/help/{topic}`이 이 PC 값(주소·폴더·OS·리디렉션 URI)으로 채워 돌려줌 → 앱의 구글 칸·휴대폰 연결 칸의 「설정 도우미 글 복사」 → Claude/ChatGPT에 붙여넣어 한 단계씩 안내받음. 그 밖에 36~38판: 넣기 창 2×2, 캐시 버전, 매시간 새 버전 띠, Chrome으로 열기 띠, http 예외 등록 안내 |
 | 38 | 업데이트 자동화: 한 시간마다 `git fetch`로 새 버전 확인(`_check_remote` → `UPDATE_AVAILABLE`, `/api/me`의 `update`) → 화면 아래 「새 버전이 있어요 · 지금 적용」 띠. `MALHAN_AUTO_UPDATE=now`면 처리 중 녹음 없을 때 즉시 자동 적용. 「업데이트」 버튼은 받을 게 없어도 직접 고친 코드가 있으면 재시작(`RESULT.local`). START.md에서 '같이 개발' 문단 제거, '새 버전은 알아서 와요'로 |
