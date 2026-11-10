@@ -130,14 +130,36 @@ def serve() -> None:
 
     from server import updater
 
+    import socket
+    import time
+
+    def port_free() -> bool:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.settimeout(0.3)
+            return s.connect_ex(("127.0.0.1", PORT)) != 0
+
+    if not port_free():
+        print(f"\n! 말한대로가 이미 켜져 있어요 (포트 {PORT}). 다른 창을 닫고 다시 켜 주세요.")
+        sys.exit(1)
     args = [sys.executable, "-m", "uvicorn", "server.app:app", "--host", "0.0.0.0", "--port", str(PORT), "--log-level", "warning"]
     while True:
+        started = time.time()
         try:
             code = subprocess.call(args, cwd=ROOT)
         except KeyboardInterrupt:
             return
         if code != updater.RESTART_CODE:
+            if time.time() - started < 5 and not port_free():
+                print(f"\n! 포트 {PORT}를 다른 말한대로 창이 쓰고 있어요. 이 창은 닫을게요.")
             sys.exit(code)
+        # 다시 켜기 전에 포트가 비기를 기다린다 (옛 프로세스가 아직 닫히는 중일 수 있다)
+        for _ in range(60):
+            if port_free():
+                break
+            time.sleep(0.5)
+        else:
+            print(f"\n! 포트 {PORT}가 비지 않아요. 다른 말한대로 창을 닫고 run을 다시 켜 주세요.")
+            sys.exit(1)
         try:
             ver = updater.git("rev-parse", "--short", "HEAD")
         except Exception:
