@@ -257,3 +257,18 @@ ol.steps { margin: 4px 0; padding-left: 20px; display: flex; flex-direction: col
 .addr button.small { padding: 6px 12px; font-size: 13px; white-space: nowrap; }
 
 #cal-unlink { margin-top: 18px; }
+
+/* PC 브라우저(넓은 화면): 폰 화면을 그대로 늘리지 않고 가운데 한 열 + 떠 있는 탭 막대 */
+@media (min-width: 900px) {
+  body { background: linear-gradient(180deg, #eef8f4, #f6f9fc); }
+  main { max-width: 640px; padding: 24px 24px 140px; }
+  .tabs {
+    left: 50%; right: auto; bottom: 20px; transform: translateX(-50%); width: 640px; box-sizing: border-box;
+    border: 1.5px solid var(--line); border-radius: 20px; padding: 8px 10px; gap: 8px;
+    box-shadow: 0 14px 34px rgba(34,50,68,.14);
+  }
+  .fab { right: calc(50% - 320px - 80px); bottom: 28px; }
+  .upbar, .chromebar { left: 50%; right: auto; transform: translateX(-50%); width: 616px; bottom: 104px; }
+  .sheet-body { max-width: 640px; border-radius: 22px; bottom: 24px; }
+  .card { padding: 20px; }
+}
