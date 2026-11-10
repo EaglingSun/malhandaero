@@ -69,6 +69,13 @@ CREATE TABLE IF NOT EXISTS calendar_links (
     status      TEXT NOT NULL DEFAULT '',        -- 마지막 실패 사유. 비어 있으면 정상
     updated_at  TEXT NOT NULL DEFAULT (datetime('now'))
 );
+-- 캘린더 일정 목록에서 숨긴 일정 (사람마다)
+CREATE TABLE IF NOT EXISTS calendar_hidden (
+    user_id     INTEGER NOT NULL REFERENCES users(id),
+    ref         TEXT NOT NULL,
+    created_at  TEXT NOT NULL DEFAULT (datetime('now')),
+    PRIMARY KEY (user_id, ref)
+);
 -- 더하기(애드온) 자리. 설계서 11장 참고. 아직 쓰는 코드는 없다.
 CREATE TABLE IF NOT EXISTS addon_settings (
     user_id     INTEGER NOT NULL REFERENCES users(id),

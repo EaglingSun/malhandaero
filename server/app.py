@@ -850,7 +850,8 @@ def _calendar_state(user_id: int) -> dict:
         cfg = link["config"]
         out.update(provider=link["provider"], mode=link["mode"], status=link["status"],
                    label=cfg.get("calendar_name") or cfg.get("user") or "",
-                   read_source={"id": cfg.get("read_calendar_id") or cfg.get("read_calendar_url") or "", "name": cfg.get("read_calendar_name") or ""})
+                   read_source={"id": cfg.get("read_calendar_id") or cfg.get("read_calendar_url") or "", "name": cfg.get("read_calendar_name") or ""},
+                   write_target={"id": cfg.get("write_calendar_id") or cfg.get("calendar_url") or "", "name": cfg.get("calendar_name") or ""})
     return out
 
 
@@ -931,14 +932,43 @@ def calendar_events(date_: str | None = Query(None, alias="date"), user=Depends(
         return {"linked": True, "events": [], "error": f"캘린더를 읽지 못했어요: {type(e).__name__}"}
     with db.session() as con:
         have = {r["cal_ref"]: (r["id"], r["addon"]) for r in con.execute("SELECT id, cal_ref, addon FROM items WHERE user_id = ? AND cal_ref IS NOT NULL", (user["id"],))}
-    out = []
+        hidden = {r["ref"] for r in con.execute("SELECT ref FROM calendar_hidden WHERE user_id = ?", (user["id"],))}
+    out, n_hidden = [], 0
     for e in evs:
         hit = have.get(e["ref"])
         if hit and hit[1] != "calendar":
             continue  # 말한대로가 올린 일정은 할 일 쪽에 '캘린더 ✓'로 보인다
+        if e["ref"] in hidden:
+            n_hidden += 1
+            continue
         e["item_id"] = hit[0] if hit else None
         out.append(e)
-    return {"linked": True, "events": out}
+    return {"linked": True, "events": out, "hidden": n_hidden}
+
+
+class EventRef(BaseModel):
+    ref: str = ""
+
+
+@app.post("/api/calendar/events/hide")
+def calendar_hide(body: EventRef, user=Depends(current_user)):
+    """캘린더 일정 하나를 목록에서 숨긴다 (캘린더 쪽은 그대로)."""
+    if not body.ref:
+        raise HTTPException(400, "어느 일정인지 모르겠어요.")
+    with db.session() as con:
+        con.execute("INSERT OR IGNORE INTO calendar_hidden(user_id, ref) VALUES (?, ?)", (user["id"], body.ref))
+    return {"ok": True}
+
+
+@app.post("/api/calendar/events/unhide")
+def calendar_unhide(body: EventRef, user=Depends(current_user)):
+    """숨긴 일정을 다시 보이게. ref를 비우면 모두."""
+    with db.session() as con:
+        if body.ref:
+            con.execute("DELETE FROM calendar_hidden WHERE user_id = ? AND ref = ?", (user["id"], body.ref))
+        else:
+            con.execute("DELETE FROM calendar_hidden WHERE user_id = ?", (user["id"],))
+    return {"ok": True}
 
 
 @app.get("/api/calendar/sources")
@@ -974,6 +1004,28 @@ def calendar_set_source(body: ReadSource, user=Depends(current_user)):
         calsync.update_config(user["id"], read_calendar_url=sid or None, read_calendar_name=body.name.strip()[:60] if sid else "")
     else:
         calsync.update_config(user["id"], read_calendar_id=sid or None, read_calendar_name=body.name.strip()[:60] if sid else "")
+    return _calendar_state(user["id"])
+
+
+@app.post("/api/calendar/target")
+def calendar_set_target(body: ReadSource, bg: BackgroundTasks, user=Depends(current_user)):
+    """할 일을 올릴 캘린더를 정한다. 이미 올라간 일정은 예전 캘린더에 그대로 남고, 앞으로 올리는 것부터 새 캘린더로 간다."""
+    link = calsync.get_link(user["id"])
+    if not link:
+        raise HTTPException(400, "먼저 캘린더를 연결해 주세요.")
+    sid = body.id.strip()
+    if not sid:
+        raise HTTPException(400, "올릴 캘린더를 골라 주세요.")
+    name = body.name.strip()[:60] or ("네이버 캘린더" if link["provider"] == "naver" else "구글 캘린더")
+    if link["provider"] == "naver":
+        calsync.update_config(user["id"], calendar_url=sid, calendar_name=name)
+    else:
+        calsync.update_config(user["id"], write_calendar_id=sid, calendar_name=name)
+    with db.session() as con:  # 예전 캘린더의 일정 번호는 새 캘린더에서 쓸 수 없으니 끊고, 앞으로 할 일을 새 캘린더에 올린다
+        con.execute("UPDATE items SET cal_ref = NULL WHERE user_id = ? AND addon != 'calendar'", (user["id"],))
+        ids = [r["id"] for r in con.execute("SELECT id FROM items WHERE user_id = ? AND status = 'todo' AND plan_date >= ?", (user["id"], today().isoformat()))]
+    for i in ids:
+        bg.add_task(calsync.sync_item, user["id"], i)
     return _calendar_state(user["id"])
 
 

@@ -66,6 +66,8 @@ class FakeCalendars(BaseHTTPRequestHandler):
             return self._send(200, json.dumps({"items": [{"id": "primary-id", "summary": "Sun", "primary": True}, {"id": "team@group.calendar.google.com", "summary": "SQA 공유 일정"}]}).encode(), "application/json")
         if self.path.startswith("/g/calendars/team%40group.calendar.google.com/events?") and self.headers.get("Authorization") == "Bearer at":
             return self._send(200, json.dumps({"items": [{"id": "t1", "summary": "팀 주간 회의", "start": {"dateTime": "2099-05-05T14:00:00+09:00"}}]}).encode(), "application/json")
+        if self.path.startswith("/g/calendars/team%40group.calendar.google.com/events?"):
+            pass
         if self.path.startswith("/g/calendars/primary/events?") and self.headers.get("Authorization") == "Bearer at":
             items = [{"id": "g1", "summary": "고객 미팅", "start": {"dateTime": "2099-05-05T10:00:00+09:00"}, "end": {"dateTime": "2099-05-05T11:00:00+09:00"}},
                      {"id": "g2", "summary": "휴가", "start": {"date": "2099-05-05"}},
@@ -99,9 +101,9 @@ class FakeCalendars(BaseHTTPRequestHandler):
             if q.get("grant_type") == ["refresh_token"] and q.get("refresh_token") == ["rt-1"]:
                 return self._send(200, json.dumps({"access_token": "at"}).encode(), "application/json")
             return self._send(400, json.dumps({"error": "invalid_grant"}).encode(), "application/json")
-        if self.path == "/g/calendars/primary/events" and self.headers.get("Authorization") == "Bearer at":
+        if self.path.startswith("/g/calendars/") and self.path.endswith("/events") and self.headers.get("Authorization") == "Bearer at":
             eid = f"ev{len(FakeCalendars.events) + 1}"
-            FakeCalendars.events[eid] = json.loads(body)
+            FakeCalendars.events[eid] = {**json.loads(body), "_calendar": self.path.split("/")[3]}
             return self._send(200, json.dumps({"id": eid}).encode(), "application/json")
         self._send(404)
 
@@ -283,3 +285,15 @@ def test_google_events_listing(fake, monkeypatch):
     client.patch(f"/api/items/{it['id']}", json={"plan_time": "09:00"})
     assert "ev1" in FakeCalendars.events                                                   # 쓰기는 여전히 primary로
     assert client.post("/api/calendar/source", json={"id": ""}).json()["read_source"]["id"] == ""
+    # 올릴 캘린더를 공유 캘린더로 바꾸면, 앞으로 할 일은 거기로 올라간다
+    FakeCalendars.events.clear()
+    st = client.post("/api/calendar/target", json={"id": "team@group.calendar.google.com", "name": "SQA 공유 일정"}).json()
+    assert st["write_target"] == {"id": "team@group.calendar.google.com", "name": "SQA 공유 일정"}
+    assert any(v["_calendar"] == "team%40group.calendar.google.com" for v in FakeCalendars.events.values())
+    # 일정 숨기기 / 다시 보기
+    client.post("/api/calendar/source", json={"id": "team@group.calendar.google.com", "name": "SQA 공유 일정"})
+    client.post("/api/calendar/events/hide", json={"ref": "t1"})
+    r = client.get("/api/calendar/events", params={"date": "2099-05-05"}).json()
+    assert r["events"] == [] and r["hidden"] == 1
+    client.post("/api/calendar/events/unhide", json={})
+    assert [e["title"] for e in client.get("/api/calendar/events", params={"date": "2099-05-05"}).json()["events"]] == ["팀 주간 회의"]

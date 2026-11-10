@@ -303,7 +303,7 @@
   function renderCalEvents(r) {
     /* 연결된 캘린더의 그날 일정. '할 일로'를 누르면 같은 일정을 가리키는 할 일이 된다 */
     var sec = $("s-cal-ev"), ul = $("l-cal-ev"); ul.textContent = "";
-    if (!r || !r.linked || (!r.events.length && !r.error)) { sec.hidden = true; return; }
+    if (!r || !r.linked || (!r.events.length && !r.error && !r.hidden)) { sec.hidden = true; return; }
     sec.hidden = false; $("c-cal-ev").textContent = String(r.events.length); say("cal-ev-msg", r.error || "", !!r.error);
     r.events.forEach(function (e) {
       var li = el("li", "item ev"), head = el("div", "head"), what = el("div", "what");
@@ -314,8 +314,13 @@
       else head.appendChild(btn("할 일로", "quick", function () {
         api("/api/calendar/events/import", { method: "POST", json: { ref: e.ref, title: e.title, time: e.time, date: state.date } }).then(refresh).catch(fail("in-msg"));
       }));
+      head.appendChild(btn("숨기기", "ghost", function () { api("/api/calendar/events/hide", { method: "POST", json: { ref: e.ref } }).then(refresh).catch(fail("in-msg")); }));
       li.appendChild(head); ul.appendChild(li);
     });
+    if (r.hidden) {
+      var n = $("cal-ev-msg"); n.className = "msg"; n.textContent = "숨긴 일정 " + r.hidden + "건 ";
+      n.appendChild(btn("다시 보기", "link", function () { api("/api/calendar/events/unhide", { method: "POST", json: {} }).then(refresh).catch(fail("in-msg")); }));
+    }
   }
   function refresh(fromPoll) {
     if (state.tab === "later") return api("/api/items?status=later").then(function (a) { fill("l-later", "c-later", a, "later", "나중으로 미룬 일이 여기에 있어요."); }).catch(fail("in-msg"));
@@ -581,12 +586,10 @@
       : "연결하면 날짜를 정한 일이 캘린더에 자동으로 들어가요. 하나만 골라 연결해 주세요.";
     $("cal-err").textContent = c.status || "";
     $("cal-mode").value = c.mode || "timed";
-    var src = $("cal-source"), rs = c.read_source || {};
-    if (rs.id && !Array.prototype.some.call(src.options, function (o) { return o.value === rs.id; })) {
-      var o = document.createElement("option"); o.value = rs.id; o.textContent = rs.name || rs.id; src.appendChild(o);
-    }
-    src.value = rs.id || "";
-    say("cal-source-msg", rs.id ? "지금은 \"" + (rs.name || rs.id) + "\"에서 일정을 가져와요." : "지금은 올리는 캘린더에서 일정을 가져와요. 공유 캘린더에서 가져오려면 목록을 불러와 고르세요.");
+    function ensure(sel, id, name) { if (id && !Array.prototype.some.call(sel.options, function (o) { return o.value === id; })) { var o = document.createElement("option"); o.value = id; o.textContent = name || id; sel.appendChild(o); } }
+    var src = $("cal-source"), tgt = $("cal-target"), rs = c.read_source || {}, wt = c.write_target || {};
+    ensure(tgt, wt.id, wt.name); tgt.value = wt.id || ""; ensure(src, rs.id, rs.name); src.value = rs.id || "";
+    say("cal-source-msg", "올리기: " + (wt.name || "기본 캘린더") + " · 가져오기: " + (rs.id ? (rs.name || rs.id) : "올리는 캘린더와 같게") + (linked ? "  — 다른 캘린더를 쓰려면 목록을 불러와 고르세요." : ""));
     $("google-go").hidden = !c.google_ready;
     $("google-hint").textContent = c.google_ready
       ? "구글 로그인 화면으로 이동해요. 캘린더 일정을 넣고 고치는 권한만 요청해요."
@@ -608,14 +611,21 @@
   $("cal-source-load").addEventListener("click", function () {
     say("cal-source-msg", "캘린더 목록을 읽고 있어요…");
     api("/api/calendar/sources").then(function (r) {
-      var src = $("cal-source"), keep = src.value; src.textContent = "";
+      var src = $("cal-source"), tgt = $("cal-target"), keep = src.value, keepT = tgt.value; src.textContent = ""; tgt.textContent = "";
       var o0 = document.createElement("option"); o0.value = ""; o0.textContent = "올리는 캘린더와 같게"; src.appendChild(o0);
-      r.sources.forEach(function (c) { var o = document.createElement("option"); o.value = c.id; o.textContent = c.name + (c.primary ? " (올리는 캘린더)" : ""); src.appendChild(o); });
-      src.value = keep; say("cal-source-msg", r.sources.length + "개 캘린더를 찾았어요. 골라 주세요.");
+      r.sources.forEach(function (c) {
+        var o = document.createElement("option"); o.value = c.id; o.textContent = c.name + (c.primary ? " (기본)" : ""); src.appendChild(o);
+        var t = document.createElement("option"); t.value = c.id; t.textContent = c.name + (c.primary ? " (기본)" : ""); tgt.appendChild(t);
+      });
+      src.value = keep; tgt.value = keepT; say("cal-source-msg", r.sources.length + "개 캘린더를 찾았어요. 골라 주세요.");
     }).catch(function (e) { say("cal-source-msg", e.message, true); });
   });
+  $("cal-target").addEventListener("change", function () {
+    var t = $("cal-target"), name = t.options[t.selectedIndex] ? t.options[t.selectedIndex].textContent.replace(" (기본)", "") : "";
+    api("/api/calendar/target", { method: "POST", json: { id: t.value, name: name } }).then(function (c) { renderCal(c); refresh(); }).catch(function (e) { say("cal-source-msg", e.message, true); });
+  });
   $("cal-source").addEventListener("change", function () {
-    var src = $("cal-source"), name = src.options[src.selectedIndex] ? src.options[src.selectedIndex].textContent.replace(" (올리는 캘린더)", "") : "";
+    var src = $("cal-source"), name = src.options[src.selectedIndex] ? src.options[src.selectedIndex].textContent.replace(" (기본)", "") : "";
     api("/api/calendar/source", { method: "POST", json: { id: src.value, name: src.value ? name : "" } }).then(function (c) { renderCal(c); refresh(); }).catch(function (e) { say("cal-source-msg", e.message, true); });
   });
   $("cal-unlink").addEventListener("click", function () {

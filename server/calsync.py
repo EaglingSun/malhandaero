@@ -355,21 +355,22 @@ class Google:
             res.append({"ref": e["id"], "title": e["summary"][:200], "time": time_, "description": (e.get("description") or "")[:300], "uid": e.get("iCalUID", "")})
         return res
 
-    def upsert(self, row, ref: str | None) -> str:
+    def upsert(self, row, ref: str | None, calendar_id: str = "primary") -> str:
+        cal = urllib.parse.quote(calendar_id, safe="")
         data = json.dumps(self.body(row)).encode()
         if ref:
-            code, out = _http("PATCH", f"{self.api}/calendars/primary/events/{urllib.parse.quote(ref)}", self.h, data)
+            code, out = _http("PATCH", f"{self.api}/calendars/{cal}/events/{urllib.parse.quote(ref)}", self.h, data)
             if code == 200:
                 return ref
             if code not in (404, 410):
                 raise CalendarError(f"구글 캘린더의 일정을 고치지 못했어요 (응답 {code}).")
-        code, out = _http("POST", f"{self.api}/calendars/primary/events", self.h, data)
+        code, out = _http("POST", f"{self.api}/calendars/{cal}/events", self.h, data)
         if code not in (200, 201):
             raise CalendarError(f"구글 캘린더에 넣지 못했어요 (응답 {code}).")
         return json.loads(out)["id"]
 
-    def delete(self, ref: str) -> None:
-        code, _ = _http("DELETE", f"{self.api}/calendars/primary/events/{urllib.parse.quote(ref)}", self.h)
+    def delete(self, ref: str, calendar_id: str = "primary") -> None:
+        code, _ = _http("DELETE", f"{self.api}/calendars/{urllib.parse.quote(calendar_id, safe='')}/events/{urllib.parse.quote(ref)}", self.h)
         if code not in (200, 204, 404, 410):
             raise CalendarError(f"구글 캘린더에서 지우지 못했어요 (응답 {code}).")
 
@@ -431,7 +432,7 @@ def _remove(link: dict, ref: str) -> None:
     if link["provider"] == "naver":
         Naver(link["config"]["user"], link["config"]["password"]).delete(ref)
     else:
-        Google(link["config"]["refresh_token"]).delete(ref)
+        Google(link["config"]["refresh_token"]).delete(ref, link["config"].get("write_calendar_id") or "primary")
 
 
 def sync_item(user_id: int, item_id: int, removed_ref: str | None = None) -> None:
@@ -455,7 +456,7 @@ def sync_item(user_id: int, item_id: int, removed_ref: str | None = None) -> Non
                 cfg = link["config"]
                 ref = Naver(cfg["user"], cfg["password"]).put(cfg["calendar_url"], f"malhandaero-{item_id}", build_ics(row, f"malhandaero-{item_id}@malhandaero"))
             else:
-                ref = Google(link["config"]["refresh_token"]).upsert(row, ref)
+                ref = Google(link["config"]["refresh_token"]).upsert(row, ref, link["config"].get("write_calendar_id") or "primary")
         elif ref:
             _remove(link, ref)
             ref = None
