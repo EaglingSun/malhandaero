@@ -69,7 +69,7 @@ class FakeCalendars(BaseHTTPRequestHandler):
         if self.path.startswith("/g/calendars/primary/events?") and self.headers.get("Authorization") == "Bearer at":
             items = [{"id": "g1", "summary": "고객 미팅", "start": {"dateTime": "2099-05-05T10:00:00+09:00"}, "end": {"dateTime": "2099-05-05T11:00:00+09:00"}},
                      {"id": "g2", "summary": "휴가", "start": {"date": "2099-05-05"}},
-                     {"id": "ev9", "summary": "회의 자료 보내기", "description": "말한대로에서 보냄", "start": {"dateTime": "2099-05-05T09:30:00+09:00"}},
+                     {"id": "ev9", "summary": "회의 자료 보내기", "description": "근거 문장", "extendedProperties": {"private": {"malhandaero": "1"}}, "start": {"dateTime": "2099-05-05T09:30:00+09:00"}},
                      {"id": "g3", "status": "cancelled", "summary": "취소됨", "start": {"dateTime": "2099-05-05T12:00:00+09:00"}}]
             return self._send(200, json.dumps({"items": items}).encode(), "application/json")
         self._send(404)
@@ -267,6 +267,11 @@ def test_google_events_listing(fake, monkeypatch):
                       "google", {"refresh_token": "rt-1", "calendar_name": "구글 캘린더"})
     r = client.get("/api/calendar/events", params={"date": "2099-05-05"}).json()
     assert [(e["title"], e["time"]) for e in r["events"]] == [("고객 미팅", "10:00"), ("휴가", None)]   # 취소·말한대로 일정은 뺀다
+    # 내가 올린 일정이 근거 문장을 설명으로 달고 돌아와도(표식 없이) cal_ref로 알아보고 뺀다
+    from server import db as _db
+    with _db.session() as con:
+        con.execute("INSERT INTO items(user_id, text, status, plan_date, cal_ref) VALUES ((SELECT id FROM users WHERE name='구글일정'), '고객 미팅 준비', 'todo', '2099-05-05', 'g1')")
+    assert [e["title"] for e in client.get("/api/calendar/events", params={"date": "2099-05-05"}).json()["events"]] == ["휴가"]
     # 읽어 올 캘린더를 공유 캘린더로 바꾼다. 올리는 캘린더(primary)는 그대로
     srcs = client.get("/api/calendar/sources").json()["sources"]
     assert [c["name"] for c in srcs] == ["Sun", "SQA 공유 일정"] and srcs[0]["primary"] is True

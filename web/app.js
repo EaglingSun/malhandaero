@@ -92,6 +92,7 @@
     if (it.owner === "unclear") m.appendChild(el("span", "tag carry", "누구 일인지 확인" + (it.who ? " · " + it.who : "")));
     if (it.status === "other" && it.who) m.appendChild(el("span", "tag", it.who));
     if (it.plan_time) m.appendChild(el("span", "tag when", niceTime(it.plan_time)));
+    if (it.cal_ref) m.appendChild(el("span", "tag cal", it.addon === "calendar" ? "캘린더에서" : "캘린더 ✓"));
     if (kind === "later" && it.due_date) m.appendChild(el("span", "tag when", shortDate(it.due_date) + " 기한"));
     else if (it.due_text) m.appendChild(el("span", "tag", it.due_text));
     if (it.carried_days > 0) m.appendChild(el("span", "tag carry", it.carried_days === 1 ? "어제에서 넘어옴" : it.carried_days + "일 넘어옴"));

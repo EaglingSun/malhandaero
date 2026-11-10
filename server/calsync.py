@@ -305,7 +305,8 @@ class Google:
     @staticmethod
     def body(row) -> dict:
         d, start, end = event_times(row)
-        b: dict = {"summary": row["text"], "description": row["quote"] or "말한대로에서 보냄"}
+        b: dict = {"summary": row["text"], "description": row["quote"] or "말한대로에서 보냄",
+                   "extendedProperties": {"private": {"malhandaero": "1"}}}  # 내가 올린 일정 표식 (일정 목록에서 거른다)
         if start:
             b["start"] = {"dateTime": start.isoformat()}
             b["end"] = {"dateTime": end.isoformat()}
@@ -342,6 +343,8 @@ class Google:
         for e in json.loads(out).get("items", []):
             if e.get("status") == "cancelled" or not e.get("summary"):
                 continue
+            if ((e.get("extendedProperties") or {}).get("private") or {}).get("malhandaero"):
+                continue  # 말한대로가 올린 일정
             st = e.get("start", {})
             time_ = None
             if st.get("dateTime"):

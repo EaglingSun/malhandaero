@@ -930,10 +930,15 @@ def calendar_events(date_: str | None = Query(None, alias="date"), user=Depends(
     except Exception as e:
         return {"linked": True, "events": [], "error": f"캘린더를 읽지 못했어요: {type(e).__name__}"}
     with db.session() as con:
-        have = {r["cal_ref"]: r["id"] for r in con.execute("SELECT id, cal_ref FROM items WHERE user_id = ? AND cal_ref IS NOT NULL", (user["id"],))}
+        have = {r["cal_ref"]: (r["id"], r["addon"]) for r in con.execute("SELECT id, cal_ref, addon FROM items WHERE user_id = ? AND cal_ref IS NOT NULL", (user["id"],))}
+    out = []
     for e in evs:
-        e["item_id"] = have.get(e["ref"])
-    return {"linked": True, "events": evs}
+        hit = have.get(e["ref"])
+        if hit and hit[1] != "calendar":
+            continue  # 말한대로가 올린 일정은 할 일 쪽에 '캘린더 ✓'로 보인다
+        e["item_id"] = hit[0] if hit else None
+        out.append(e)
+    return {"linked": True, "events": out}
 
 
 @app.get("/api/calendar/sources")

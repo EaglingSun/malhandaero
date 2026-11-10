@@ -122,6 +122,7 @@ chmod +x malhandaero/*.sh malhandaero/*.command
 | 4 | 더블클릭 실행(.command), Tailscale 자동, QR 연결(내 기기 / 가족 초대) |
 | 5 | 목록 중심 화면(+ 버튼 뒤에 넣기), https 인증서 묶음, 연결 실패 사유 표시 |
 | 6 | 공유로 받는 파일 종류 확대 |
+| 22 | 내가 올린 일정이 「캘린더 일정」에 되돌아오던 문제(설명이 근거 문장이면 표식이 없었음): 할 일의 cal_ref와 대조해 거르고, 구글엔 extendedProperties.private.malhandaero 표식. 동기화된 할 일 카드에 「캘린더 ✓」 태그(가져온 것은 「캘린더에서」) |
 | 21 | 읽는 캘린더 선택: 「캘린더 연결」에 "일정을 가져올 캘린더" 목록(구글 calendarList, 네이버 캘린더 목록). 올리는 캘린더는 그대로. 구글은 `calendarlist.readonly` 권한이 추가돼 **기존 연결은 구글을 한 번 다시 연결해야 목록이 보임** (`/api/calendar/sources`, `/api/calendar/source`) |
 | 20 | 캘린더 → 할 일: 연결된 캘린더의 그날 일정을 「캘린더 일정」으로 보여 주고 「할 일로」 한 번에 가져옴(`GET /api/calendar/events`, `POST /api/calendar/events/import`). 가져온 할 일은 `addon='calendar'`+`cal_ref`로 원본 일정을 가리키되 **캘린더 쪽은 건드리지 않음**(고쳐도·지워도). 말한대로가 넣은 일정·취소 일정은 목록에서 제외. 네이버 REPORT, 구글 events.list. 실제 서버 미확인 |
 | 19 | 수치 집계 `GET /api/stats?days=30`(넣은 것 수·종류, 넣고 목록까지 중앙값 초, 뽑힌 내 일·안 함 비율·맡긴 일·직접 적음·회의당 내 일). 넣은 것 탭 맨 아래 한 줄. `inputs.done_at` 칸 추가 — 공모 글 수치(DESIGN 10장)는 여기서 뽑는다 |
