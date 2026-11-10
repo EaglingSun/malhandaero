@@ -260,7 +260,7 @@ GOOGLE_SCOPE = "https://www.googleapis.com/auth/calendar.events https://www.goog
 # 데스크톱형 클라이언트의 비밀값은 구글도 비밀로 보지 않는다. 리디렉션은 localhost로만 되므로 연결은 PC 브라우저에서 한 번 한다.
 # .env에 MALHAN_GOOGLE_CLIENT_ID/SECRET을 넣으면(본인 클라이언트, 웹 유형) 그쪽을 쓰고 어느 주소에서나 연결된다.
 BUILTIN_GOOGLE_CLIENT_ID = os.environ.get("MALHAN_BUILTIN_GOOGLE_ID", "870868558329-ur3hf1c38p4p66q20etchmqk4fd06b09.apps.googleusercontent.com")
-BUILTIN_GOOGLE_CLIENT_SECRET = os.environ.get("MALHAN_BUILTIN_GOOGLE_SECRET", "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")
+BUILTIN_GOOGLE_CLIENT_SECRET = os.environ.get("MALHAN_BUILTIN_GOOGLE_SECRET", "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")
 
 
 def google_client() -> tuple[str, str] | None:
