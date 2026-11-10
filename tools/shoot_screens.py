@@ -42,7 +42,7 @@ def seed(data_dir: Path) -> None:
         ("call", "통화 무당이_261110.txt", "출시 일정과 테스트 범위를 정했어요.", minutes, D),
         ("call", "통화 슈구리_261110.txt", "점심 메뉴 주문 통화", {}, D),
         ("meeting", "1109_계획 리뷰 회의.txt", "계획 리뷰 — 범위를 먼저 정하고 나머지는 후속", {}, y),
-        ("call", "통화 남편_261109_210146_original.txt", "주차 문제 상의", {}, y),
+        ("call", "통화 남편_261110_210146_original.txt", "저녁은 어제 남은 밥과 반찬으로 해결하기로 했어요.\n우유가 필요한데 쿠팡으로 시키면 된다고 했어요.\n밖에 내놓은 쓰레기는 오늘 버리기로 했고 남편이 알겠다고 했어요.\n나는 기름을 넣고 집에 가기로 했어요.", {}, D),
         ("memo", "음성 메모_261109_234522_original.txt", "내일 고객 미팅 자료 챙기기", {}, y),
     ]
     ids = []
@@ -53,20 +53,23 @@ def seed(data_dir: Path) -> None:
         )
         ids.append(cur.lastrowid)
     items = [
-        # text, scope, status, plan_date, done_at, input_id, owner, who, due_text, cal_ref
+        # text, scope, status, plan_date, done_at, input_id, owner, who, due_text, cal_ref, quote
         ("고객 미팅 자료 보내기", "회사", "todo", D, None, ids[4], "me", "", "", None),
         ("공모전 출품하기", "개인", "todo", (TODAY - timedelta(days=1)).isoformat(), None, None, "me", "", "", None),   # 어제에서 넘어옴
         ("시나리오 목록 초안 공유하기", "회사", "todo", (TODAY + timedelta(days=3)).isoformat(), None, ids[0], "me", "", "금요일까지", None),
         ("일정표 갱신해 공지하기", "회사", "other", None, None, ids[0], "other", "무당이", "", None),
         ("외부 자료 도착 시점 확인해 알려 주기", "회사", "other", None, None, ids[0], "other", "슈구리", "이번 주", None),
-        ("집에 가는 길에 기름 넣기", "개인", "done", D, f"{D} 18:40:00", None, "me", "", "", None),
+        ("집에 가는 길에 기름 넣기", "개인", "done", D, f"{D} 18:40:00", ids[3], "me", "", "", None, "아 기름 좀 넣고 갈게."),
+        ("쿠팡으로 우유 주문하기", "개인", "done", D, f"{D} 21:10:00", ids[3], "me", "", "", None, "우유는 뭐 쿠팡 시키면 되긴 한데."),
+        ("밖에 내놓은 쓰레기 버리기", "개인", "other", None, None, ids[3], "other", "남편", "오늘", None, ""),
         ("견적서 검토 의견 보내기", "회사", "done", D, f"{D} 17:10:00", ids[2], "me", "", "", "cal:2"),
         ("점심 메뉴 주문하기", "개인", "done", D, f"{D} 11:50:00", ids[1], "me", "", "", None),
-        ("주차 자리 확인하기", "개인", "done", D, f"{D} 09:00:00", ids[3], "me", "", "", None),
+        ("주차 자리 확인하기", "개인", "done", D, f"{D} 09:00:00", None, "me", "", "", None),
     ]
     for t in items:
+        t = tuple(t) + ("",) * (11 - len(t))
         con.execute(
-            "INSERT INTO items(user_id, text, scope, status, plan_date, done_at, input_id, owner, who, due_text, cal_ref) VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+            "INSERT INTO items(user_id, text, scope, status, plan_date, done_at, input_id, owner, who, due_text, cal_ref, quote) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
             (uid, *t),
         )
     # 캘린더에서 「할 일로」 가져온 일 하나 (화면에 '할 일로 들어옴'이 보이게)
@@ -155,6 +158,14 @@ def main() -> None:
         pg.locator("li", has_text="통화 무당이").locator("text=열어 보기").first.click(); pg.wait_for_timeout(900)
         pg.evaluate("var m=document.querySelector('.minutes'); if(m){window.scrollTo(0, m.getBoundingClientRect().top + window.scrollY - 64);}")
         shot("minutes")                                 # 회의록
+        pg.click('.tabs button[data-tab="inputs"]'); pg.wait_for_timeout(700)
+        try:
+            pg.click("text=목록으로", timeout=1500); pg.wait_for_timeout(600)
+        except Exception:
+            pass
+        pg.locator("li", has_text="통화 남편").locator("text=열어 보기").first.click(); pg.wait_for_timeout(900)
+        pg.evaluate("var h=[...document.querySelectorAll('#input-detail h3, #input-detail strong, #input-detail h4')].find(e=>e.textContent.includes('여기서 나온 내 일')); if(h){window.scrollTo(0, h.getBoundingClientRect().top + window.scrollY - 150);}")
+        shot("call")                                    # 통화 → 개인 할 일 + 근거 문장
         pg.click('.tabs button[data-tab="month"]'); pg.wait_for_timeout(900); shot("month")      # 달력
         EVENTS["now"] = EVENTS_MANY
         pg.click('.tabs button[data-tab="today"]'); pg.wait_for_timeout(900)
