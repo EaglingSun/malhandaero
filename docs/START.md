@@ -11,6 +11,15 @@
 |---|---|---|
 | Python 3.10+ | python.org/downloads | Windows는 설치 때 **"Add python.exe to PATH"** 체크 |
 | Git | git-scm.com | Mac은 터미널에서 `git` 한 번 치면 설치 안내가 떠요 |
+| (집 밖에서도 쓰려면) Tailscale | tailscale.com/download | PC와 폰에 같은 계정으로 |
+
+Windows는 명령 프롬프트에 아래 세 줄로 한 번에 됩니다 (`말한대로 처음 설치.bat`이 git·python은 없으면 알아서 깔아요).
+```
+winget install --id Git.Git -e
+winget install --id Python.Python.3.12 -e
+winget install --id Tailscale.Tailscale -e
+```
+Mac은 `xcode-select --install`(git) 뒤 python.org에서 Python, App Store에서 Tailscale.
 | **Claude 구독(Pro 이상) + Claude Code** | claude.com/claude-code 안내대로 설치 → 터미널에서 `claude` 실행해 로그인 | API 결제 없음. 앱이 이 로그인을 그대로 써요 |
 
 > ChatGPT 구독이면 Codex CLI(`codex login`)로도 돼요. API 키(Anthropic·OpenAI·Gemini)는 INSTALL.md 참고.

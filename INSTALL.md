@@ -94,7 +94,7 @@ http 주소에서는 마이크 허용을 브라우저가 기억하지 않아 매
 Tailscale이라는 무료 프로그램을 씁니다. 내 기기끼리만 통하는 길을 만들어 주어서, 공유기 설정을 건드리지 않고
 바깥 사람에게는 주소가 열리지 않습니다.
 
-1. **집 PC에 Tailscale 설치**: https://tailscale.com/download 에서 받아 설치하고 로그인합니다(구글 계정 등).
+1. **집 PC에 Tailscale 설치**: https://tailscale.com/download 에서 받아 설치하고 로그인합니다(구글 계정 등). Windows는 `winget install --id Tailscale.Tailscale -e`, Mac은 App Store.
 2. **휴대폰에 Tailscale 앱 설치**: 같은 계정으로 로그인하고 연결을 켭니다.
    가족 휴대폰은 같은 계정으로 로그인하거나, Tailscale 관리 화면에서 가족을 초대합니다.
 3. **HTTPS 켜기 (처음 한 번)**: https://login.tailscale.com/admin/dns 에서 MagicDNS와 HTTPS Certificates를 켭니다.
