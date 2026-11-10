@@ -18,6 +18,7 @@ from . import calsync, db, extract, llm, stt, transcript, updater
 
 ROOT = Path(__file__).resolve().parent.parent
 WEB = ROOT / "web"
+PORT = int(os.environ.get("MALHAN_PORT", "8000"))
 TZ = ZoneInfo(os.environ.get("MALHAN_TZ", "Asia/Seoul"))
 COOKIE = "mh_token"
 AUDIO_EXT = {".m4a", ".mp3", ".wav", ".webm", ".ogg", ".aac", ".amr", ".3gp", ".mp4", ".flac"}
@@ -1015,7 +1016,8 @@ def event_ics(item_id: int, time: str | None = None, user=Depends(current_user))
 
 def _calendar_state(user_id: int) -> dict:
     link = calsync.get_link(user_id)
-    out = {"provider": "", "mode": "timed", "status": "", "label": "", "google_ready": calsync.google_client() is not None}
+    out = {"provider": "", "mode": "timed", "status": "", "label": "", "google_ready": calsync.google_client() is not None,
+           "google_local_only": calsync.google_builtin(), "port": PORT}
     if link:
         cfg = link["config"]
         out.update(provider=link["provider"], mode=link["mode"], status=link["status"],
@@ -1058,10 +1060,18 @@ def _redirect_uri(request: Request) -> str:
     return f"{proto}://{host}/api/calendar/google/callback"
 
 
+def _is_local(request: Request) -> bool:
+    host = (request.headers.get("x-forwarded-host") or request.headers.get("host") or request.url.netloc).split(":")[0]
+    return host in ("localhost", "127.0.0.1", "[::1]")
+
+
 @app.get("/api/calendar/google/start")
 def calendar_google_start(request: Request, user=Depends(current_user)):
     if not calsync.google_client():
         raise HTTPException(503, "구글 연결 준비가 안 됐어요. INSTALL.md의 '구글 캘린더 연결 준비'를 먼저 해 주세요.")
+    if calsync.google_builtin() and not _is_local(request):
+        # 내장(데스크톱형) 클라이언트는 localhost 리디렉션만 받는다 → PC 브라우저에서 한 번 하라고 돌려보낸다
+        return RedirectResponse("/?cal=local", status_code=303)
     state = secrets.token_urlsafe(16)
     res = RedirectResponse(calsync.google_auth_url(_redirect_uri(request), state), status_code=303)
     res.set_cookie("mh_gstate", state, max_age=600, httponly=True, samesite="lax")

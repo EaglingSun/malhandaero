@@ -256,9 +256,25 @@ class Naver:
 GOOGLE_SCOPE = "https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.calendarlist.readonly"
 
 
+# 앱에 내장한 구글 OAuth 클라이언트("데스크톱 앱" 유형). 받는 사람이 구글 콘솔을 만질 필요가 없게 한다.
+# 데스크톱형 클라이언트의 비밀값은 구글도 비밀로 보지 않는다. 리디렉션은 localhost로만 되므로 연결은 PC 브라우저에서 한 번 한다.
+# .env에 MALHAN_GOOGLE_CLIENT_ID/SECRET을 넣으면(본인 클라이언트, 웹 유형) 그쪽을 쓰고 어느 주소에서나 연결된다.
+BUILTIN_GOOGLE_CLIENT_ID = os.environ.get("MALHAN_BUILTIN_GOOGLE_ID", "")
+BUILTIN_GOOGLE_CLIENT_SECRET = os.environ.get("MALHAN_BUILTIN_GOOGLE_SECRET", "")
+
+
 def google_client() -> tuple[str, str] | None:
     cid, sec = os.environ.get("MALHAN_GOOGLE_CLIENT_ID"), os.environ.get("MALHAN_GOOGLE_CLIENT_SECRET")
-    return (cid, sec) if cid and sec else None
+    if cid and sec:
+        return (cid, sec)
+    if BUILTIN_GOOGLE_CLIENT_ID and BUILTIN_GOOGLE_CLIENT_SECRET:
+        return (BUILTIN_GOOGLE_CLIENT_ID, BUILTIN_GOOGLE_CLIENT_SECRET)
+    return None
+
+
+def google_builtin() -> bool:
+    """내장 클라이언트를 쓰는 중인가 (= 연결은 localhost에서만)."""
+    return not (os.environ.get("MALHAN_GOOGLE_CLIENT_ID") and os.environ.get("MALHAN_GOOGLE_CLIENT_SECRET")) and bool(BUILTIN_GOOGLE_CLIENT_ID and BUILTIN_GOOGLE_CLIENT_SECRET)
 
 
 def _g(name: str, default: str) -> str:

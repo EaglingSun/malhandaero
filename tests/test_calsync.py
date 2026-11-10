@@ -323,3 +323,18 @@ def test_relink_and_same_target_do_not_duplicate(fake, monkeypatch):
     client.post("/api/calendar/target", json={"id": "primary", "name": "Sun"})
     client.post("/api/calendar/target", json={"id": "primary-id", "name": "Sun"})
     assert len(FakeCalendars.events) == 1
+
+
+def test_builtin_google_client_only_links_from_localhost(monkeypatch):
+    from server import calsync
+    monkeypatch.delenv("MALHAN_GOOGLE_CLIENT_ID", raising=False); monkeypatch.delenv("MALHAN_GOOGLE_CLIENT_SECRET", raising=False)
+    monkeypatch.setattr(calsync, "BUILTIN_GOOGLE_CLIENT_ID", "builtin-id"); monkeypatch.setattr(calsync, "BUILTIN_GOOGLE_CLIENT_SECRET", "builtin-secret")
+    client.post("/api/join", json={"name": "내장", "code": "우리집"})
+    st = client.get("/api/calendar").json()
+    assert st["google_ready"] and st["google_local_only"]
+    r = client.get("/api/calendar/google/start", headers={"host": "10.0.0.5:8000"}, follow_redirects=False)
+    assert r.status_code == 303 and r.headers["location"] == "/?cal=local"
+    r = client.get("/api/calendar/google/start", headers={"host": "localhost:8000"}, follow_redirects=False)
+    assert r.status_code == 303 and "client_id=builtin-id" in r.headers["location"] and "localhost%3A8000%2Fapi%2Fcalendar%2Fgoogle%2Fcallback" in r.headers["location"]
+    monkeypatch.setenv("MALHAN_GOOGLE_CLIENT_ID", "own"); monkeypatch.setenv("MALHAN_GOOGLE_CLIENT_SECRET", "own-s")
+    assert not client.get("/api/calendar").json()["google_local_only"]                 # 본인 클라이언트면 어디서나

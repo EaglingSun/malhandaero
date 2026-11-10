@@ -66,7 +66,8 @@
       var cal = new URLSearchParams(location.search).get("cal");
       if (cal) {
         history.replaceState(null, "", "/"); $("cal-box").hidden = false; loadCal();
-        if (cal !== "ok") $("cal-err").textContent = "구글 연결을 마치지 못했어요. 다시 눌러 주세요.";
+        if (cal === "local") $("cal-err").textContent = "구글 연결은 PC 브라우저에서 한 번만 해 주세요: PC에서 http://localhost:" + (location.port || "8000") + " 을 열고 → 캘린더 연결 → 구글 계정으로 연결. 연결되면 폰에서도 그대로 써요.";
+        else if (cal !== "ok") $("cal-err").textContent = "구글 연결을 마치지 못했어요. 다시 눌러 주세요.";
       }
       $("capture").hidden = me.ai === "none";
       $("no-ai").hidden = me.ai !== "none";
@@ -660,10 +661,14 @@
     var src = $("cal-source"), tgt = $("cal-target"), rs = c.read_source || {}, wt = c.write_target || {};
     ensure(tgt, wt.id, wt.name); tgt.value = wt.id || ""; ensure(src, rs.id, rs.name); src.value = rs.id || "";
     say("cal-source-msg", "올리기: " + (wt.name || "기본 캘린더") + " · 가져오기: " + (rs.id ? (rs.name || rs.id) : "올리는 캘린더와 같게") + (linked ? "  — 다른 캘린더를 쓰려면 목록을 불러와 고르세요." : ""));
-    $("google-go").hidden = !c.google_ready;
-    $("google-hint").textContent = c.google_ready
-      ? "구글 로그인 화면으로 이동해요. 캘린더 일정을 넣고 고치는 권한만 요청해요."
-      : "이 PC에서 구글 연결 준비(한 번, 10~20분)가 아직 안 됐어요. 아래 「설정 도우미 글 복사」를 눌러 Claude나 ChatGPT에 붙여넣으면 한 단계씩 안내해 줘요.";
+    var isLocal = ["localhost", "127.0.0.1", "[::1]"].indexOf(location.hostname) >= 0;
+    var needPc = c.google_ready && c.google_local_only && !isLocal;
+    $("google-go").hidden = !c.google_ready || needPc;
+    $("google-hint").textContent = !c.google_ready
+      ? "이 PC에서 구글 연결 준비(한 번, 10~20분)가 아직 안 됐어요. 아래 「설정 도우미 글 복사」를 눌러 Claude나 ChatGPT에 붙여넣으면 한 단계씩 안내해 줘요."
+      : needPc
+        ? "구글 연결은 PC 브라우저에서 한 번만: PC에서 http://localhost:" + (c.port || 8000) + " 을 열고 → 캘린더 연결 → 「구글 계정으로 연결」. 연결되면 폰에서도 그대로 써요."
+        : "구글 로그인 화면으로 가요. '확인되지 않은 앱' 화면이 나오면 고급 → 이동. 캘린더 일정을 넣고 고치는 권한만 요청해요.";
     $("google-helper").hidden = !!c.google_ready;
   }
   function loadCal() { return api("/api/calendar").then(renderCal).catch(function (e) { $("cal-err").textContent = e.message; }); }
