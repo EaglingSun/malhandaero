@@ -677,6 +677,7 @@
         ? "구글 연결은 PC 브라우저에서 한 번만: PC에서 http://localhost:" + (c.port || 8000) + " 을 열고 → 캘린더 연결 → 「구글 계정으로 연결」. 연결되면 폰에서도 그대로 써요."
         : "구글 로그인 화면으로 가요. '확인되지 않은 앱' 화면이 나오면 고급 → 이동. 캘린더 일정을 넣고 고치는 권한만 요청해요.";
     $("google-helper").hidden = !!c.google_ready;
+    if (linked && !state.calSourcesLoaded) loadSources();   // 연결돼 있으면 목록은 처음 한 번 알아서 읽는다
   }
   function loadCal() { return api("/api/calendar").then(renderCal).catch(function (e) { $("cal-err").textContent = e.message; }); }
   $("btn-cal").addEventListener("click", function () {
@@ -691,7 +692,8 @@
   $("cal-mode").addEventListener("change", function () {
     api("/api/calendar/mode", { method: "POST", json: { mode: $("cal-mode").value } }).then(renderCal).catch(function (e) { $("cal-err").textContent = e.message; });
   });
-  $("cal-source-load").addEventListener("click", function () {
+  function loadSources() {
+    state.calSourcesLoaded = true;
     say("cal-source-msg", "캘린더 목록을 읽고 있어요…");
     api("/api/calendar/sources").then(function (r) {
       var src = $("cal-source"), tgt = $("cal-target"), keep = src.value, keepT = tgt.value; src.textContent = ""; tgt.textContent = "";
@@ -701,8 +703,9 @@
         var t = document.createElement("option"); t.value = c.id; t.textContent = c.name + (c.primary ? " (기본)" : ""); tgt.appendChild(t);
       });
       src.value = keep; tgt.value = keepT; say("cal-source-msg", r.sources.length + "개 캘린더를 찾았어요. 골라 주세요.");
-    }).catch(function (e) { say("cal-source-msg", e.message, true); });
-  });
+    }).catch(function (e) { state.calSourcesLoaded = false; say("cal-source-msg", e.message, true); });
+  }
+  $("cal-source-load").addEventListener("click", loadSources);
   $("cal-target").addEventListener("change", function () {
     var t = $("cal-target"), name = t.options[t.selectedIndex] ? t.options[t.selectedIndex].textContent.replace(" (기본)", "") : "";
     api("/api/calendar/target", { method: "POST", json: { id: t.value, name: name } }).then(function (c) { renderCal(c); refresh(); }).catch(function (e) { say("cal-source-msg", e.message, true); });
