@@ -21,6 +21,10 @@ class _ModelGone(Exception):
     """구글이 '이 모델 대신 X를 쓰라'고 답했을 때, X를 담아 한 번 더 시도하게 한다."""
 
 
+class _Busy(Exception):
+    """503(수요 폭주)·429(한도): 기다렸다 다시 시도하게 한다."""
+
+
 def _whisper_available() -> bool:
     try:
         import faster_whisper  # noqa: F401
@@ -80,8 +84,8 @@ def _gemini_call(url: str, body: bytes | None, headers: dict, method: str = "POS
         print(f"[stt] Gemini {what} → HTTP {e.code} ({time.time() - t0:.0f}초): {detail[:120]}", flush=True)
         if e.code in (401, 403):
             raise SttUnavailable("Gemini 키가 틀리거나 권한이 없어요. .env의 GEMINI_API_KEY를 확인해 주세요.")
-        if e.code == 429:
-            raise SttUnavailable("Gemini 사용량 한도예요. 잠시 뒤 '다시 뽑기'를 눌러 주세요.")
+        if e.code in (503, 429):
+            raise _Busy(e.code)
         if e.code == 404:
             from server.llm import suggested_model
 
@@ -136,14 +140,29 @@ def _transcribe_gemini(path: Path, model: str = "") -> str:
     else:
         part = {"file_data": {"mime_type": mime, "file_uri": _gemini_upload(path, mime, key)}}
     body = {"contents": [{"parts": [part, {"text": TRANSCRIBE_PROMPT}]}], "generationConfig": {"temperature": 0.1}}
-    try:
-        data, _ = _gemini_call(f"{GEMINI_BASE}/v1beta/models/{model}:generateContent?key={key}", json.dumps(body).encode(),
-                               {"Content-Type": "application/json"})
-    except _ModelGone as g:
-        if not retry:
-            raise SttUnavailable(f"Gemini에 '{model}' 모델이 없어요. .env의 MALHAN_GEMINI_STT_MODEL을 확인해 주세요.")
-        print(f"[stt] Gemini 모델 '{model}'은 더 못 써요. 구글이 권한 '{g.args[0]}'로 다시 시도합니다.", flush=True)
-        return _transcribe_gemini(path, g.args[0])
+    from server.llm import BUSY_WAITS, _busy_retry
+
+    data = None
+    for attempt in range(len(BUSY_WAITS) + 1):
+        try:
+            data, _ = _gemini_call(f"{GEMINI_BASE}/v1beta/models/{model}:generateContent?key={key}", json.dumps(body).encode(),
+                                   {"Content-Type": "application/json"})
+            break
+        except _ModelGone as g:
+            if not retry:
+                raise SttUnavailable(f"Gemini에 '{model}' 모델이 없어요. .env의 MALHAN_GEMINI_STT_MODEL을 확인해 주세요.")
+            print(f"[stt] Gemini 모델 '{model}'은 더 못 써요. 구글이 권한 '{g.args[0]}'로 다시 시도합니다.", flush=True)
+            return _transcribe_gemini(path, g.args[0])
+        except _Busy as b:
+            if _busy_retry("Gemini", model, b.args[0], attempt):
+                continue
+            fallback = os.environ.get("MALHAN_GEMINI_FALLBACK", "").strip()
+            if retry and fallback and fallback != model:
+                print(f"[stt] Gemini {model}이 계속 바빠요. 예비 모델 {fallback}로 시도", flush=True)
+                return _transcribe_gemini(path, fallback)
+            if b.args[0] == 429:
+                raise SttUnavailable("Gemini 사용량 한도예요. 잠시 뒤 '다시 뽑기'를 눌러 주세요.")
+            raise SttUnavailable("Gemini가 지금 너무 바빠요(503). 몇 분 뒤 '다시 뽑기'를 눌러 주세요.")
     try:
         text = "".join(p.get("text", "") for p in data["candidates"][0]["content"]["parts"])
     except (KeyError, IndexError, TypeError):

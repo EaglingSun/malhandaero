@@ -84,9 +84,25 @@ def suggested_model(detail: str) -> str:
     return m.group(1) if m else ""
 
 
-def _run_openai(m: str, content, max_tokens: int, model_override: str = "", plain: bool = False) -> str:
+BUSY_WAITS = (5, 15, 40)  # 503(수요 폭주)·429(한도)에 기다렸다 다시 시도하는 간격(초)
+
+
+def _busy_retry(name: str, model: str, code: int, attempt: int) -> bool:
+    """잠깐 기다리면 풀리는 오류면 기다리고 True. 더 못 기다리면 False."""
+    import time
+
+    if attempt >= len(BUSY_WAITS):
+        return False
+    wait = BUSY_WAITS[attempt]
+    print(f"[llm] {name} {model} → {code}, {wait}초 뒤 다시 ({attempt + 1}/{len(BUSY_WAITS)})", flush=True)
+    time.sleep(wait)
+    return True
+
+
+def _run_openai(m: str, content, max_tokens: int, model_override: str = "", plain: bool = False, attempt: int = 0) -> str:
     """OpenAI 호환 chat/completions 한 번. 표준 라이브러리만 쓴다(설치 없음).
-    Gemini는 '생각' 수준을 낮춰(reasoning_effort) 빨리 답하게 한다. 그 옵션을 거부하면 빼고 한 번 더."""
+    Gemini는 '생각' 수준을 낮춰(reasoning_effort) 빨리 답하게 한다. 그 옵션을 거부하면 빼고 한 번 더.
+    503(수요 폭주)·429(한도)는 몇 번 기다렸다 다시, 그래도 안 되면 MALHAN_GEMINI_FALLBACK 모델로 한 번 더."""
     import time
     import urllib.error
     import urllib.request
@@ -113,11 +129,19 @@ def _run_openai(m: str, content, max_tokens: int, model_override: str = "", plai
         detail = e.read().decode("utf-8", "replace")[:200]
         print(f"[llm] {name} {model} {size}자 → HTTP {e.code} ({time.time() - t0:.0f}초): {detail[:120]}", flush=True)
         if e.code == 400 and "reasoning" in detail and not plain:
-            return _run_openai(m, content, max_tokens, model_override, plain=True)
+            return _run_openai(m, content, max_tokens, model_override, plain=True, attempt=attempt)
         if e.code in (401, 403):
             raise LlmUnavailable(f"{name} 키가 틀리거나 권한이 없어요.")
-        if e.code == 429:
-            raise LlmUnavailable(f"{name} 사용량 한도예요. 잠시 뒤 '다시 뽑기'를 눌러 주세요.")
+        if e.code in (503, 429):
+            if _busy_retry(name, model, e.code, attempt):
+                return _run_openai(m, content, max_tokens, model_override, plain, attempt + 1)
+            fallback = os.environ.get("MALHAN_GEMINI_FALLBACK", "").strip() if m == "gemini" else ""
+            if fallback and fallback != model:
+                print(f"[llm] {name} {model}이 계속 바빠요. 예비 모델 {fallback}로 시도", flush=True)
+                return _run_openai(m, content, max_tokens, fallback, plain, attempt=len(BUSY_WAITS) - 1)
+            if e.code == 429:
+                raise LlmUnavailable(f"{name} 사용량 한도예요. 잠시 뒤 '다시 뽑기'를 눌러 주세요.")
+            raise LlmUnavailable(f"{name}가 지금 너무 바빠요(503). 몇 분 뒤 '다시 뽑기'를 눌러 주세요.")
         if e.code == 404 and m == "ollama":
             raise LlmUnavailable(f"Ollama에 '{model}' 모델이 없어요. 터미널에서 'ollama pull {model}'을 해 주세요.")
         if e.code == 404 and not model_override and suggested_model(detail):

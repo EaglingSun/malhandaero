@@ -73,3 +73,19 @@ def test_gemini_auth_error_is_readable(monkeypatch, tmp_path):
     monkeypatch.setattr(urllib.request, "urlopen", denied)
     with pytest.raises(stt.SttUnavailable, match="GEMINI_API_KEY"):
         stt.transcribe(f)
+
+
+def test_stt_503_retries_then_gives_readable_error(monkeypatch, tmp_path):
+    import urllib.error
+    monkeypatch.setenv("MALHAN_STT", "gemini"); monkeypatch.setenv("GEMINI_API_KEY", "k"); monkeypatch.delenv("MALHAN_GEMINI_FALLBACK", raising=False)
+    monkeypatch.setattr("time.sleep", lambda s: None)
+    f = tmp_path / "a.m4a"; f.write_bytes(b"x")
+    n = {"calls": 0}
+    def busy(req, timeout=0):
+        n["calls"] += 1
+        raise urllib.error.HTTPError(req.full_url, 503, "busy", {}, io.BytesIO(b"{}"))
+    monkeypatch.setattr(urllib.request, "urlopen", busy)
+    with pytest.raises(stt.SttUnavailable, match="바빠요"):
+        stt.transcribe(f)
+    from server.llm import BUSY_WAITS
+    assert n["calls"] == len(BUSY_WAITS) + 1

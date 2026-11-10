@@ -69,7 +69,8 @@ def test_openai_generic_needs_config(monkeypatch):
 
 
 def test_rate_limit_message(monkeypatch):
-    monkeypatch.setenv("MALHAN_AI", "gemini"); monkeypatch.setenv("GEMINI_API_KEY", "k")
+    monkeypatch.setenv("MALHAN_AI", "gemini"); monkeypatch.setenv("GEMINI_API_KEY", "k"); monkeypatch.delenv("MALHAN_GEMINI_FALLBACK", raising=False)
+    monkeypatch.setattr("time.sleep", lambda s: None)
     def limited(req, timeout=0):
         raise urllib.error.HTTPError(req.full_url, 429, "too many", {}, io.BytesIO(b"quota"))
     monkeypatch.setattr(urllib.request, "urlopen", limited)
@@ -101,3 +102,27 @@ def test_drops_reasoning_effort_if_server_rejects_it(monkeypatch):
         return _answer("ok")
     monkeypatch.setattr(urllib.request, "urlopen", fake)
     assert llm.complete("x") == "ok" and len(bodies) == 2 and "reasoning_effort" not in bodies[1]
+
+
+def test_503_waits_then_retries_then_fallback(monkeypatch):
+    monkeypatch.setenv("MALHAN_AI", "gemini"); monkeypatch.setenv("GEMINI_API_KEY", "k"); monkeypatch.setenv("MALHAN_GEMINI_FALLBACK", "gemini-lite")
+    monkeypatch.setattr("time.sleep", lambda s: None)
+    models = []
+    def fake(req, timeout=0):
+        models.append(json.loads(req.data)["model"])
+        if models[-1] != "gemini-lite":
+            raise urllib.error.HTTPError(req.full_url, 503, "busy", {}, io.BytesIO(b'{"error":{"status":"UNAVAILABLE"}}'))
+        return _answer("ok")
+    monkeypatch.setattr(urllib.request, "urlopen", fake)
+    assert llm.complete("x") == "ok"
+    assert models == ["gemini-3.8-flash"] * (len(llm.BUSY_WAITS) + 1) + ["gemini-lite"]
+
+
+def test_503_without_fallback_is_readable(monkeypatch):
+    monkeypatch.setenv("MALHAN_AI", "gemini"); monkeypatch.setenv("GEMINI_API_KEY", "k"); monkeypatch.delenv("MALHAN_GEMINI_FALLBACK", raising=False)
+    monkeypatch.setattr("time.sleep", lambda s: None)
+    def busy(req, timeout=0):
+        raise urllib.error.HTTPError(req.full_url, 503, "busy", {}, io.BytesIO(b"{}"))
+    monkeypatch.setattr(urllib.request, "urlopen", busy)
+    with pytest.raises(llm.LlmUnavailable, match="바빠요"):
+        llm.complete("x")
