@@ -370,3 +370,27 @@ def test_daily_note_is_opt_in_and_feeds_the_wrap_up(monkeypatch):
     d = client.get("/api/day").json()
     assert d["summary"] == "비 오는 날 하루를 마쳤어요." and d["note"] == "저녁에 비가 와서 늦게 들어왔다" and d["mood"] == "😮‍💨"   # 마무리를 써도 한 줄은 남는다
     assert client.post("/api/day/note", json={"mood": "😊"}).json() == {"date": d["date"], "note": "", "mood": "😊"}   # 이모지만도 된다
+
+
+def test_month_view_scores_days_and_streak(monkeypatch):
+    from server import app as appmod
+    monkeypatch.setenv("MALHAN_POST_URL", "https://example.com/post/1")
+    join("달력")
+    t = appmod.today()
+    a = client.post("/api/items", json={"text": "하나"}).json()
+    b = client.post("/api/items", json={"text": "둘"}).json()
+    c = client.post("/api/items", json={"text": "셋"}).json()
+    for it in (a, b, c):
+        client.patch(f"/api/items/{it['id']}", json={"status": "done"})
+    client.post("/api/items", json={"text": "남은 것"})
+    client.post("/api/day/note", json={"mood": "😊"})
+    m = client.get("/api/month").json()
+    assert m["ym"] == t.strftime("%Y-%m") and m["post_url"] == "https://example.com/post/1"
+    day = next(d for d in m["days"] if d["date"] == t.isoformat())
+    assert day["done"] == 3 and day["left"] == 1 and day["mood"] == "😊" and day["closed"] is False
+    assert day["score"] == 4                     # 넣음 1 + 마침 2(3건) + 한 줄 1
+    assert m["active_days"] == 1 and m["streak"] == 1 and m["done_total"] == 3 and m["left_total"] == 1
+    assert m["score"] == round(100 * 4 / (5 * m["elapsed_days"]))
+    assert appmod.day_score(0, 0, False, False) == 0 and appmod.day_score(1, 1, True, True) == 4
+    assert client.get("/api/month?ym=2020-13").status_code == 400
+    assert client.get("/api/month?ym=2020-02").json()["days"][-1]["date"] == "2020-02-29"

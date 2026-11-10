@@ -193,7 +193,7 @@ ul.details { margin: 0; padding: 0 0 0 18px; font-size: 14px; color: var(--muted
 .item.ev { background: #f3f9ff; border-color: #d6e8f7; }
 .item.ev .what { display: flex; flex-direction: column; gap: 3px; font-weight: 400; }
 .item.ev .txt { font-weight: 700; font-size: 16px; }
-.tag.cal { background: #e6f0ff; color: #2b5fb0; }
+.tag.synced { background: #e6f0ff; color: #2b5fb0; }
 
 
 /* 오늘 한 줄 */
@@ -205,3 +205,27 @@ ul.details { margin: 0; padding: 0 0 0 18px; font-size: 14px; color: var(--muted
 .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
 .chips button { font-size: 13px; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line, #e5e7eb); background: transparent; color: inherit; }
 .chips button:active { background: var(--accent-soft, #eff6ff); }
+
+
+/* 달력 */
+.mhead { display: flex; align-items: center; justify-content: space-between; margin: 4px 0 8px; }
+.mhead h2 { margin: 0; }
+.mhead .nav { border: 0; background: none; font-size: 24px; padding: 4px 12px; color: inherit; }
+.mgrid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.mgrid .wd { text-align: center; font-size: 12px; color: var(--muted, #6b7280); padding: 2px 0; }
+.mgrid .day { display: flex; flex-direction: column; align-items: center; gap: 1px; min-height: 58px; padding: 4px 0; border-radius: 10px; border: 1px solid var(--line, #e5e7eb); background: transparent; color: inherit; font: inherit; }
+.mgrid .day .n { font-size: 12px; }
+.mgrid .day .m { font-size: 18px; line-height: 20px; min-height: 20px; }
+.mgrid .day .c { font-size: 11px; color: var(--muted, #6b7280); min-height: 13px; }
+.mgrid .day.today { border-color: var(--mint); border-width: 2px; }
+.mgrid .day.future { opacity: .4; }
+.mgrid .day.s1, .mgrid .day.s2 { background: rgba(45, 212, 160, .10); }
+.mgrid .day.s3, .mgrid .day.s4 { background: rgba(45, 212, 160, .22); }
+.mgrid .day.s5 { background: rgba(45, 212, 160, .38); }
+.msg.small { font-size: 12px; }
+.score-row { display: flex; gap: 16px; align-items: center; }
+.score-big { display: flex; flex-direction: column; align-items: center; min-width: 84px; }
+.score-big b { font-size: 36px; line-height: 1; }
+.score-big span { font-size: 12px; color: var(--muted, #6b7280); }
+.score-list { list-style: none; margin: 0; padding: 0; font-size: 14px; line-height: 1.7; }
+a.like { display: block; text-align: center; margin-top: 8px; padding: 10px; border-radius: 12px; background: var(--mint); color: #063; text-decoration: none; font-weight: 600; }

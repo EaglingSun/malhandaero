@@ -199,6 +199,7 @@ def me(user=Depends(current_user)):
         "stt": stt.available(),
         "version": _version(),
         "diary": _diary_on(user["id"]),
+        "post_url": os.environ.get("MALHAN_POST_URL", "").strip(),
     }
 
 
@@ -690,6 +691,58 @@ def week(date_: str | None = Query(None, alias="date"), user=Depends(current_use
             done = con.execute("SELECT COUNT(*) n FROM items WHERE user_id = ? AND status = 'done' AND done_at = ?", (user["id"], xs)).fetchone()["n"]
             out.append({"date": xs, "left": left, "done": done})
     return out
+
+
+def _local_offset() -> str:
+    """created_at(UTC)을 그 지역 날짜로 바꿀 때 쓰는 SQLite 수정자. 예: '+32400 seconds'"""
+    off = datetime.now(TZ).utcoffset() or timedelta(0)
+    return f"{int(off.total_seconds()):+d} seconds"
+
+
+def day_score(added: int, done: int, closed: bool, noted: bool) -> int:
+    """하루 활용 점수 0~5. 넣음 1, 마침 1(3건 이상 2), 마무리 1, 한 줄/기분 1."""
+    return (1 if added else 0) + (2 if done >= 3 else 1 if done else 0) + (1 if closed else 0) + (1 if noted else 0)
+
+
+@app.get("/api/month")
+def month(ym: str | None = None, user=Depends(current_user)):
+    """달력 뷰: 날마다 마친 수 · 남은 수 · 기분 · 마무리 여부 · 점수, 이달 활용 지수(0~100)와 연속 일수."""
+    t = today()
+    try:
+        y, m = (int(x) for x in (ym or t.strftime("%Y-%m")).split("-"))
+        first = date(y, m, 1)
+    except (ValueError, TypeError):
+        raise HTTPException(400, "달은 YYYY-MM 꼴이어야 해요.")
+    last = (first.replace(day=28) + timedelta(days=4)).replace(day=1) - timedelta(days=1)
+    uid, lo, hi, off = user["id"], first.isoformat(), last.isoformat(), _local_offset()
+    with db.session() as con:
+        done = {r["d"]: r["n"] for r in con.execute("SELECT done_at d, COUNT(*) n FROM items WHERE user_id = ? AND status = 'done' AND done_at BETWEEN ? AND ? GROUP BY done_at", (uid, lo, hi))}
+        left = {r["d"]: r["n"] for r in con.execute("SELECT plan_date d, COUNT(*) n FROM items WHERE user_id = ? AND status = 'todo' AND plan_date BETWEEN ? AND ? GROUP BY plan_date", (uid, lo, hi))}
+        added = {r["d"]: r["n"] for r in con.execute("SELECT date(created_at, ?) d, COUNT(*) n FROM items WHERE user_id = ? AND date(created_at, ?) BETWEEN ? AND ? GROUP BY d", (off, uid, off, lo, hi))}
+        inputs = {r["d"]: r["n"] for r in con.execute("SELECT date(created_at, ?) d, COUNT(*) n FROM inputs WHERE user_id = ? AND date(created_at, ?) BETWEEN ? AND ? GROUP BY d", (off, uid, off, lo, hi))}
+        logs = {r["date"]: r for r in con.execute("SELECT date, summary, note, mood FROM day_logs WHERE user_id = ? AND date BETWEEN ? AND ?", (uid, lo, hi))}
+    days = []
+    for i in range((last - first).days + 1):
+        x = (first + timedelta(days=i)).isoformat()
+        lg = logs.get(x)
+        sc = day_score(added.get(x, 0) + inputs.get(x, 0), done.get(x, 0), bool(lg and lg["summary"]), bool(lg and (lg["mood"] or lg["note"])))
+        days.append({"date": x, "done": done.get(x, 0), "left": left.get(x, 0), "inputs": inputs.get(x, 0),
+                     "mood": lg["mood"] if lg else "", "note": lg["note"] if lg else "", "closed": bool(lg and lg["summary"]), "score": sc})
+    elapsed = [d for d in days if d["date"] <= t.isoformat()]
+    active = sum(1 for d in elapsed if d["score"])
+    streak = 0
+    if first <= t:
+        for d in reversed(elapsed):
+            if not d["score"]:
+                break
+            streak += 1
+    return {
+        "ym": first.strftime("%Y-%m"), "today": t.isoformat(), "days": days,
+        "elapsed_days": len(elapsed), "active_days": active, "streak": streak,
+        "done_total": sum(d["done"] for d in days), "left_total": sum(d["left"] for d in days),
+        "score": round(100 * sum(d["score"] for d in elapsed) / (5 * len(elapsed))) if elapsed else 0,
+        "post_url": os.environ.get("MALHAN_POST_URL", "").strip(),
+    }
 
 
 # ---------- 항목 ----------

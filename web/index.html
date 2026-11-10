@@ -110,6 +110,27 @@
       <ul class="list" id="l-later"></ul>
     </div>
 
+    <div id="tab-month" hidden>
+      <div class="mhead">
+        <button class="nav" id="m-prev" type="button" aria-label="지난달">‹</button>
+        <h2 id="m-title"></h2>
+        <button class="nav" id="m-next" type="button" aria-label="다음달">›</button>
+      </div>
+      <div class="mgrid" id="m-grid" role="grid"></div>
+      <p class="msg small">숫자는 마친 일 · 남은 일, 얼굴은 그날 기분. 칸을 누르면 그날로 가요.</p>
+      <div class="card" id="m-score">
+        <div class="score-row">
+          <div class="score-big"><b id="m-pct">0</b><span>활용 지수</span></div>
+          <ul class="score-list">
+            <li>함께한 날 <b id="m-active">0</b>일 / <span id="m-elapsed">0</span>일</li>
+            <li>연속 <b id="m-streak">0</b>일</li>
+            <li>마친 일 <b id="m-done">0</b>건 · 남은 일 <span id="m-left">0</span>건</li>
+          </ul>
+        </div>
+        <p class="msg small">하루 5점: 넣음 1 · 마침 1(3건부터 2) · 마무리 1 · 한 줄 1. 지난 날 합계를 만점으로 나눈 값이에요.</p>
+        <a id="m-like" class="like" href="#" target="_blank" rel="noopener" hidden>공모 글에 좋아요 누르러 가기 👍</a>
+      </div>
+    </div>
     <div id="tab-inputs" hidden>
       <div id="inputs-list">
         <h2>넣은 것</h2>
@@ -213,6 +234,7 @@
       <button type="button" data-tab="today" class="on">오늘</button>
       <button type="button" data-tab="later">나중</button>
       <button type="button" data-tab="inputs">넣은 것</button>
+      <button type="button" data-tab="month">달력</button>
     </nav>
   </section>
 </main>

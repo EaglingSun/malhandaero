@@ -13,7 +13,7 @@
     if (list.some(function (x) { return x.status === "transcribing"; })) return "녹음을 듣고 글로 옮기는 중이에요. 길이만큼 시간이 걸려요.";
     return (list.length > 1 ? list.length + "건을 " : "") + "듣고 챙길 것을 적어 두는 중이에요. 보통 10~30초면 돼요.";
   }
-  var state = { me: null, date: null, today: null, tab: "today", poll: null, open: {}, detail: null };
+  var state = { me: null, date: null, today: null, tab: "today", poll: null, open: {}, detail: null, ym: null };
   /* 펼친 카드를 기억한다. 처리 중에는 화면이 몇 초마다 다시 그려지는데, 그때 펼친 것이 닫히지 않게 */
   function toggleOpen(key, more, what) {
     more.hidden = !more.hidden; what.setAttribute("aria-expanded", String(!more.hidden));
@@ -92,7 +92,7 @@
     if (it.owner === "unclear") m.appendChild(el("span", "tag carry", "누구 일인지 확인" + (it.who ? " · " + it.who : "")));
     if (it.status === "other" && it.who) m.appendChild(el("span", "tag", it.who));
     if (it.plan_time) m.appendChild(el("span", "tag when", niceTime(it.plan_time)));
-    if (it.cal_ref) m.appendChild(el("span", "tag cal", it.addon === "calendar" ? "캘린더에서" : "캘린더"));
+    if (it.cal_ref) m.appendChild(el("span", "tag synced", it.addon === "calendar" ? "캘린더에서" : "캘린더"));
     if (kind === "later" && it.due_date) m.appendChild(el("span", "tag when", shortDate(it.due_date) + " 기한"));
     else if (it.due_text) m.appendChild(el("span", "tag", it.due_text));
     if (it.carried_days > 0) m.appendChild(el("span", "tag carry", it.carried_days === 1 ? "어제에서 넘어옴" : it.carried_days + "일 넘어옴"));
@@ -334,6 +334,7 @@
   function refresh(fromPoll) {
     if (state.tab === "later") return api("/api/items?status=later").then(function (a) { fill("l-later", "c-later", a, "later", "나중으로 미룬 일이 여기에 있어요."); }).catch(fail("in-msg"));
     if (state.tab === "inputs") return state.detail ? openInput(state.detail) : loadInputs();
+    if (state.tab === "month") return loadMonth();
     var pending = Promise.all([api("/api/day?date=" + state.date), api("/api/week?date=" + state.date)])
       .then(function (r) { renderDay(r[0]); renderWeek(r[1]); }).catch(fail("in-msg"));
     if (fromPoll !== true) api("/api/calendar/events?date=" + state.date).then(renderCalEvents).catch(function () {});  // 처리 중 자동 새로고침 때는 캘린더를 두드리지 않는다
@@ -686,12 +687,43 @@
     }).catch(function (e) { say("update-msg", e.message, true); b.disabled = false; });
   });
 
+  /* ---------- 달력 ---------- */
+  function shiftYm(ym, n) { var p = ym.split("-"); var d = new Date(+p[0], +p[1] - 1 + n, 1); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0"); }
+  function loadMonth() {
+    state.ym = state.ym || state.date.slice(0, 7);
+    return api("/api/month?ym=" + state.ym).then(function (m) {
+      $("m-title").textContent = m.ym.replace("-", "년 ") + "월";
+      var g = $("m-grid"); g.innerHTML = "";
+      ["월", "화", "수", "목", "금", "토", "일"].forEach(function (w) { g.appendChild(el("div", "wd", w)); });
+      var first = new Date(+m.ym.slice(0, 4), +m.ym.slice(5) - 1, 1);
+      for (var i = 0; i < (first.getDay() + 6) % 7; i++) g.appendChild(el("div", "pad"));
+      m.days.forEach(function (d) {
+        var c = btn("", "day" + (d.date === m.today ? " today" : "") + (d.date > m.today ? " future" : "") + (d.score ? " s" + d.score : ""), function () {
+          state.date = d.date; state.tab = "today";
+          Array.prototype.forEach.call(document.querySelectorAll(".tabs button"), function (x) { x.classList.toggle("on", x.dataset.tab === "today"); });
+          $("tab-month").hidden = true; $("tab-today").hidden = false; document.querySelector(".top").hidden = false; $("week").hidden = false;
+          refresh();
+        });
+        c.appendChild(el("span", "n", String(+d.date.slice(8))));
+        c.appendChild(el("span", "m", d.mood || (d.closed ? "·" : "")));
+        c.appendChild(el("span", "c", (d.done || d.left) ? d.done + "·" + d.left : ""));
+        c.title = d.date + (d.note ? " — " + d.note : "");
+        g.appendChild(c);
+      });
+      $("m-pct").textContent = m.score; $("m-active").textContent = m.active_days; $("m-elapsed").textContent = m.elapsed_days;
+      $("m-streak").textContent = m.streak; $("m-done").textContent = m.done_total; $("m-left").textContent = m.left_total;
+      var like = $("m-like"); like.hidden = !m.post_url; if (m.post_url) like.href = m.post_url;
+    }).catch(fail("in-msg"));
+  }
+  $("m-prev").addEventListener("click", function () { state.ym = shiftYm(state.ym, -1); loadMonth(); });
+  $("m-next").addEventListener("click", function () { state.ym = shiftYm(state.ym, 1); loadMonth(); });
+
   /* ---------- 탭 ---------- */
   Array.prototype.forEach.call(document.querySelectorAll(".tabs button"), function (b) {
     b.addEventListener("click", function () {
       state.tab = b.dataset.tab; clearTimeout(state.poll);
       Array.prototype.forEach.call(document.querySelectorAll(".tabs button"), function (x) { x.classList.toggle("on", x === b); });
-      $("tab-today").hidden = state.tab !== "today"; $("tab-later").hidden = state.tab !== "later"; $("tab-inputs").hidden = state.tab !== "inputs";
+      $("tab-today").hidden = state.tab !== "today"; $("tab-later").hidden = state.tab !== "later"; $("tab-inputs").hidden = state.tab !== "inputs"; $("tab-month").hidden = state.tab !== "month";
       document.querySelector(".top").hidden = state.tab !== "today"; $("week").hidden = state.tab !== "today";
       if (state.tab !== "today") $("btn-add").hidden = true;
       refresh();
