@@ -92,7 +92,7 @@ chmod +x malhandaero/*.sh malhandaero/*.command
 1-4. 저장소 공개 결정: 공모 전용 계정/조직으로 이전 후 public (익명 유지) — 사내 코드 공개 규정 확인 후. 공개 시 README·privacy.html의 저장소 주소 바꾸기
 2. ~~녹음 앱 공유~~ 11/10 확인 끝: 공유 → 넣기 → 뽑기까지 됨
 3. ~~첫 화면 회의 요약~~ 8판 → 10판에서 의견 반영(목록형 요약, 할 일 아래 제목만). 폰에서 다시 보기
-4. Mac 로그인 시 자동 시작(launchd). 업데이트는 켤 때 알아서 하므로 launchd에서 `run.sh`만 부르면 된다
+4. ~~Mac 로그인 시 자동 시작(launchd)~~ 35판. Mac·Windows 실기기 확인 남음
 5. 앱 알림(웹 푸시): 아침 "오늘 할 일 N건", 정한 시각 알림. 요구 R16의 남은 절반
 6. 개인/회사 나눠 보기(요구 R12. 지금은 표시만)
 7. 개발 계획 문서 갱신(Claude Code 연결, 캘린더 자동, QR, 목록 중심 화면, 자동 업데이트 추가분). 저장소 올리기는 끝남
@@ -125,6 +125,7 @@ chmod +x malhandaero/*.sh malhandaero/*.command
 | 4 | 더블클릭 실행(.command), Tailscale 자동, QR 연결(내 기기 / 가족 초대) |
 | 5 | 목록 중심 화면(+ 버튼 뒤에 넣기), https 인증서 묶음, 연결 실패 사유 표시 |
 | 6 | 공유로 받는 파일 종류 확대 |
+| 35 | 자동 시작 `tools/autostart.py install|remove|status`: Mac은 `~/Library/LaunchAgents/com.malhandaero.server.plist`(RunAtLoad+KeepAlive, `sh run.sh` 실행 → 업데이트 확인·caffeinate 포함, PATH에 claude 경로 포함, 로그 `data/server.log`), Windows는 시작 프로그램 폴더의 `말한대로.bat`(run.bat 최소화 창). 래퍼 `말한대로 자동 시작(해제).command`, `autostart.bat`. **실기기 미확인.** 쓰는 모양 세 가지(집 상시 서버 / +가족 / 회사 PC 근무 중)를 START.md에 정리 |
 | 34 | 서버 이름(`MALHAN_LABEL`, 비우면 Mac/Windows): `/manifest.webmanifest`를 동적으로 내어 앱 이름을 「말한대로 · 집」처럼 붙임 → 한 폰에 서버 둘(집 Mac·회사 Windows)을 각각 앱으로 설치·구분. `/api/me`의 `label`, 화면 아래에 표시. **이름을 바꾸거나 처음 적용할 땐 폰에서 앱을 다시 설치**해야 홈 화면 이름이 바뀜 |
 | 33 | AI 연결 확대: `codex`(이 PC의 Codex CLI `codex exec -s read-only -o 파일 -`, ChatGPT 구독, 사진은 `-i`), `gpt`(OpenAI API, 기본 gpt-5.4-mini, temperature 안 보냄). 자동 감지: Anthropic 키 → Claude Code → Codex → OPENAI_API_KEY → GEMINI_API_KEY. **AI 없음 모드**: 넣기 창에서 말하기·글·파일을 감추고 안내, 직접 적기·캘린더·하루 마무리(규칙 요약)는 그대로, 공유로 들어온 글은 `failed`+사유로 보관(연결 뒤 「다시 뽑기」) |
 | 32 | 공개 준비: 문서·테스트·프롬프트 예시의 실명을 가명(무당이·슈구리, 팀 공유 일정)으로, privacy.html 문의를 Issues로. `docs/START.md` 배포 안내 한 장(준비물 → A 집 안 → B Tailscale → 쓰는 법 → 막히면). Gemini 503/429 재시도·예비 모델, reasoning_effort low, HTTP 제한 10분, 서버 창 `[llm]`/`[stt]` 시간 기록 |
