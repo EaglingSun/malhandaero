@@ -645,7 +645,7 @@
   if (window.matchMedia("(display-mode: standalone)").matches || navigator.standalone) { $("btn-link").hidden = true; $("link-box").hidden = true; }
   // 폰 브라우저로 보고 있으면 주소·QR 대신 "이 폰에 설치" 안내만 (주소는 이미 열려 있으니까)
   var onPhone = /Android|iPhone|iPad/i.test(navigator.userAgent);
-  if (onPhone) { $("link-pc").hidden = true; $("link-phone").hidden = false; $("btn-link").textContent = "이 폰에 앱으로 넣기"; }
+  if (onPhone) { $("link-pc").hidden = true; $("link-phone").hidden = false; $("btn-link").textContent = "앱으로 설치하기"; $("h-link").textContent = "앱으로 설치하기"; }
   window.addEventListener("beforeinstallprompt", function (e) {      // Chrome이 설치를 허락하면 단추 하나로
     e.preventDefault(); state.installPrompt = e; $("link-install").hidden = false;
   });
