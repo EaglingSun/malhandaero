@@ -443,3 +443,14 @@ def test_update_banner_when_remote_is_ahead(monkeypatch):
     calls["rev-parse origin/main"] = "aaaaaaa1"
     appmod._check_remote()
     assert not appmod.UPDATE_AVAILABLE and client.get("/api/me").json()["update"] is None
+
+
+def test_help_prompts_fill_in_this_pc(monkeypatch):
+    monkeypatch.setenv("MALHAN_LAN_URL", "http://10.0.0.5:8000"); monkeypatch.delenv("MALHAN_PUBLIC_URL", raising=False)
+    join("도움")
+    g = client.get("/api/help/google-calendar").json()["text"]
+    assert "http://localhost:8000/api/calendar/google/callback" in g and "10.0.0.5" not in g.split("승인된 리디렉션")[1].split("클라이언트 ID")[0]
+    assert "MALHAN_GOOGLE_CLIENT_ID" in g and "{" not in g.replace("{ROOT}", "")
+    t = client.get("/api/help/tailscale").json()["text"]
+    assert "http://10.0.0.5:8000" in t and "winget install --id Tailscale.Tailscale" in t
+    assert client.get("/api/help/없음").status_code == 404

@@ -73,56 +73,50 @@ def main() -> None:
         sys.exit(1)
     from server import llm, stt  # .env를 읽은 뒤의 상태
 
-    names = {"claude": "이 PC의 Claude Code (API 결제 없음)", "anthropic": "API 키", "fake": "흉내 모드 (화면 확인용, 부정확)", "none": "연결 안 됨", "codex": "이 PC의 Codex (ChatGPT 구독)", "gpt": "OpenAI API", "gemini": "구글 Gemini (무료 티어)", "ollama": "이 PC의 Ollama (오프라인)", "openai": "OpenAI 호환 서버"}
-    print("\n말한대로를 켭니다.")
-    print(f"  이 PC에서        http://localhost:{PORT}")
+    names = {"claude": "Claude Code", "anthropic": "Anthropic API", "fake": "흉내 모드(부정확)", "none": "없음", "codex": "Codex", "gpt": "OpenAI API", "gemini": "Gemini", "ollama": "Ollama", "openai": "OpenAI 호환 서버"}
     ip = lan_ip()
     if ip and not ip.startswith("127."):
-        print(f"  같은 와이파이 폰  http://{ip}:{PORT}")
-    if ip and not ip.startswith("127."):
         os.environ["MALHAN_LAN_URL"] = f"http://{ip}:{PORT}"
-    best = os.environ.get("MALHAN_LAN_URL", "")
+    lan = os.environ.get("MALHAN_LAN_URL", "")
+    public, remote_note = "", ""
     ts = tailscale_bin()
-    local_only = "--local" in sys.argv
-    if local_only:
-        print("  집 밖 주소        꺼짐 (--local)")
+    if "--local" in sys.argv:
+        remote_note = "집 밖 주소는 껐어요 (--local)"
     elif not ts:
-        print("  집 밖 주소        없음. Tailscale을 설치하면 집 밖에서도 쓸 수 있어요 (INSTALL.md)")
+        remote_note = "집 밖에서도 쓰려면 Tailscale을 설치하세요 (앱의 「휴대폰 연결」에 안내)"
     else:
         name = tailscale_name(ts)
         if not name:
-            print("  집 밖 주소        Tailscale이 꺼져 있거나 로그인되지 않았어요.")
+            remote_note = "Tailscale이 꺼져 있거나 로그인되지 않았어요"
         else:
             ok, detail = open_remote(ts)
             if ok:
-                best = f"https://{name}"
-                os.environ["MALHAN_PUBLIC_URL"] = best
-                print(f"  집 밖 주소        {best}   (Tailscale을 켠 내 기기에서만 열려요)")
+                public = f"https://{name}"
+                os.environ["MALHAN_PUBLIC_URL"] = public
             else:
-                print(f"  집 밖 주소        열지 못했어요. 터미널에서 직접 실행해 보세요: tailscale serve --bg {PORT}")
-                if detail:
-                    print("                   " + detail.splitlines()[0][:150])
-    print(f"  AI 연결          {names.get(llm.mode(), llm.mode())}")
-    if llm.mode() == "claude":
-        short, long_ = llm.claude_model_for(""), llm.claude_model_for("x" * 10 ** 6)
-        print(f"  모델             짧은 글 {short or 'Claude Code 기본'} · 긴 글(회의록) {long_ or 'Claude Code 기본'}")
-    if llm.mode() in llm.OPENAI_LIKE:
-        base, _, model, _ = llm.openai_config(llm.mode())
-        print(f"  모델             {model}   ({base})")
+                remote_note = f"Tailscale 주소를 열지 못했어요: {(detail or '').splitlines()[0][:120] if detail else ''}  (터미널에서 tailscale serve --bg {PORT})"
+    best = public or lan
+
+    # 화면: 꼭 필요한 것만. 폰에서 열 주소 하나, PC 주소, 상태 한 줄
+    print("\n말한대로가 켜졌어요.\n")
+    if best:
+        print(f"  휴대폰 → Chrome 주소창에   {best}")
+        print(f"  {'(Tailscale을 켠 내 기기에서 어디서나)' if public else '(같은 와이파이에서만)'}  이름과 가족 코드로 들어가요")
+    print(f"  이 PC → http://localhost:{PORT}")
     eng = stt.engine()
-    stt_text = {"whisper": "켜짐 (이 PC의 whisper, 모델 " + os.environ.get("MALHAN_WHISPER_MODEL", "small") + ")",
-                "gemini": "켜짐 (Gemini가 직접 들음, 설치 없음)"}.get(eng, "꺼짐 — 설치를 한 번 더 실행하거나 GEMINI_API_KEY를 넣으면 켜져요 (글·사진·말하기는 됩니다)")
-    print(f"  녹음 파일 변환    {stt_text}")
+    stt_text = {"whisper": "켜짐", "gemini": "켜짐(Gemini)"}.get(eng, "꺼짐")
+    print(f"\n  AI {names.get(llm.mode(), llm.mode())} · 녹음 변환 {stt_text}" + (f" · 긴 글 {llm.claude_model_for('x' * 10 ** 6)}" if llm.mode() == "claude" and llm.claude_model_for("x" * 10 ** 6) else ""))
+    if remote_note:
+        print("  " + remote_note)
     if not os.environ.get("MALHAN_FAMILY_CODE"):
         print("  ! 가족 코드가 없어요. 설치를 다시 실행하거나 .env에 MALHAN_FAMILY_CODE를 넣어 주세요.")
     if llm.mode() == "none":
-        print("  ! AI 없이 켜졌어요. 직접 적기·캘린더는 되고, 녹음·글에서 뽑기는 AI를 연결해야 해요 (Claude Code/Codex 로그인 또는 .env 키).")
+        print("  ! AI 없이 켜졌어요. 직접 적기·캘린더는 되고, 녹음·글에서 뽑기는 AI를 연결해야 해요 (Claude Code 로그인 또는 .env 키).")
     if best:
-        print("\n  휴대폰에서: Chrome을 열고 주소창에  " + best + "  를 입력 → 이름과 가족 코드로 들어가요.")
-        print("  (카메라로 아래 QR을 찍어도 돼요. 삼성 인터넷으로 열리면 화면 아래 「Chrome으로 열기」를 누르세요)")
         try:
             import segno
 
+            print()
             segno.make(best, error="m").terminal(compact=True, border=1)
         except Exception:
             pass

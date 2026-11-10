@@ -152,7 +152,7 @@
         <p class="msg"><b>① 폰 Chrome에 이 주소를 예외로 등록 (1분, Tailscale 없이)</b><br>
         폰 Chrome 주소창에 <code>chrome://flags/#unsafely-treat-insecure-origin-as-secure</code> → 칸에 아래 주소를 넣고 <b>Enabled</b> → Chrome 다시 시작 → 다시 「홈 화면에 추가」.<br>
         <code id="http-origin"></code> <button type="button" class="link" id="http-copy">복사</button></p>
-        <p class="msg"><b>② Tailscale로 https 주소 만들기</b> — 집 밖에서도 쓰려면 이쪽. PC와 폰에 Tailscale을 깔고 같은 계정으로 로그인한 뒤 PC를 다시 켜면 https 주소가 생겨요(INSTALL.md).</p>
+        <p class="msg"><b>② Tailscale로 https 주소 만들기</b> — 집 밖에서도 쓰려면 이쪽. <button type="button" class="link helper" data-topic="tailscale">설정 도우미 글 복사</button> → Claude나 ChatGPT를 열고 붙여넣으면 한 단계씩 안내해 줘요.</p>
       </details>
     </section>
 
@@ -188,6 +188,7 @@
         <div class="card">
           <strong>구글 캘린더</strong>
           <p class="msg" id="google-hint"></p>
+          <button type="button" class="link helper" id="google-helper" data-topic="google-calendar" hidden>설정 도우미 글 복사</button>
           <a class="filebtn" id="google-go" href="/api/calendar/google/start" hidden>구글 계정으로 연결</a>
         </div>
       </div>

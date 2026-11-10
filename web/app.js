@@ -651,7 +651,8 @@
     $("google-go").hidden = !c.google_ready;
     $("google-hint").textContent = c.google_ready
       ? "구글 로그인 화면으로 이동해요. 캘린더 일정을 넣고 고치는 권한만 요청해요."
-      : "이 PC에서 구글 연결 준비(한 번)가 아직 안 됐어요. INSTALL.md의 '구글 캘린더 연결 준비'를 따라 한 뒤 서버를 다시 켜 주세요.";
+      : "이 PC에서 구글 연결 준비(한 번, 10~20분)가 아직 안 됐어요. 아래 「설정 도우미 글 복사」를 눌러 Claude나 ChatGPT에 붙여넣으면 한 단계씩 안내해 줘요.";
+    $("google-helper").hidden = !!c.google_ready;
   }
   function loadCal() { return api("/api/calendar").then(renderCal).catch(function (e) { $("cal-err").textContent = e.message; }); }
   $("btn-cal").addEventListener("click", function () {
@@ -707,6 +708,15 @@
       $("chromebar").hidden = false;
     }
   })();
+  Array.prototype.forEach.call(document.querySelectorAll("button.helper"), function (b) {
+    b.addEventListener("click", function () {
+      api("/api/help/" + b.dataset.topic).then(function (r) {
+        var done = function () { b.textContent = "복사됐어요 — Claude나 ChatGPT에 붙여넣으세요"; };
+        if (navigator.clipboard) navigator.clipboard.writeText(r.text).then(done).catch(function () { prompt("아래 글을 복사하세요", r.text); });
+        else prompt("아래 글을 복사하세요", r.text);
+      }).catch(fail("in-msg"));
+    });
+  });
   $("upbar-go").addEventListener("click", function () { $("upbar").hidden = true; $("btn-update").click(); window.scrollTo(0, document.body.scrollHeight); });
   $("btn-update").addEventListener("click", function () {
     var b = $("btn-update"); b.disabled = true; say("update-msg", "업데이트가 있는지 보고 있어요…");

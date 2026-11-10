@@ -16,7 +16,8 @@ from pydantic import BaseModel
 
 from . import calsync, db, extract, llm, stt, transcript, updater
 
-WEB = Path(__file__).resolve().parent.parent / "web"
+ROOT = Path(__file__).resolve().parent.parent
+WEB = ROOT / "web"
 TZ = ZoneInfo(os.environ.get("MALHAN_TZ", "Asia/Seoul"))
 COOKIE = "mh_token"
 AUDIO_EXT = {".m4a", ".mp3", ".wav", ".webm", ".ogg", ".aac", ".amr", ".3gp", ".mp4", ".flac"}
@@ -1275,6 +1276,34 @@ def app_label() -> str:
     import platform
 
     return {"Darwin": "Mac", "Windows": "Windows"}.get(platform.system(), platform.system() or "")
+
+
+@app.get("/api/help/{topic}")
+def help_prompt(topic: str, request: Request, user=Depends(current_user)):
+    """Claude·ChatGPT에 붙여 넣을 설치 도우미 글. 이 PC의 실제 값(주소·폴더·OS)을 채워 준다."""
+    import platform
+
+    f = ROOT / "docs" / "prompts" / f"{topic}.md"
+    if topic not in ("google-calendar", "tailscale") or not f.exists():
+        raise HTTPException(404, "그런 안내는 없어요.")
+    win = os.name == "nt"
+    lan = os.environ.get("MALHAN_LAN_URL", "")
+    public = os.environ.get("MALHAN_PUBLIC_URL", "")
+    addrs = [a for a in ("http://localhost:8000", lan, public) if a]
+    redirects = [f"{a}/api/calendar/google/callback" for a in addrs if not a.startswith("http://1") and not a.startswith("http://192")]
+    if public:
+        redirects = [r for r in redirects if "localhost" in r or r.startswith("https")]
+    text = f.read_text(encoding="utf-8").format(
+        OS={"Darwin": "Mac", "Windows": "Windows"}.get(platform.system(), platform.system()),
+        ROOT=str(ROOT),
+        ADDRESSES=" / ".join(addrs) or "http://localhost:8000",
+        REDIRECTS="\n".join(f"   - `{r}`" for r in redirects) or "   - `http://localhost:8000/api/calendar/google/callback`",
+        RESTART="run.bat 더블클릭" if win else "「말한대로 켜기.command」 더블클릭",
+        LAN=lan or "http://(PC 주소):8000",
+        RUNFILE="run.bat" if win else "말한대로 켜기.command",
+        RUNREMOTE="run.bat --remote (명령 프롬프트에서)" if win else "터미널에서 ./run.sh --remote",
+    )
+    return {"topic": topic, "text": text}
 
 
 @app.get("/manifest.webmanifest")
