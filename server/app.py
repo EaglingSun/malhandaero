@@ -144,7 +144,8 @@ def public_base(request: Request) -> str:
 
 
 class LinkBody(BaseModel):
-    kind: str = "me"   # me(내 다른 기기) | family(가족 초대)
+    kind: str = "me"   # me(내 다른 기기) | family(가족·팀원 초대)
+    via: str = ""      # "lan"이면 같은 와이파이 주소(http)로 만든다. 비우면 가장 좋은 주소(Tailscale https가 있으면 그것)
 
 
 @app.post("/api/link")
@@ -154,8 +155,12 @@ def make_link(body: LinkBody, request: Request, user=Depends(current_user)):
     kind = body.kind if body.kind in ("me", "family") else "me"
     token = secrets.token_urlsafe(12)
     _links[token] = {"kind": kind, "user_id": user["id"], "until": datetime.now(TZ) + timedelta(minutes=LINK_MINUTES)}
-    url = f"{public_base(request)}/l/{token}"
-    return {"url": url, "kind": kind, "minutes": LINK_MINUTES, "secure": url.startswith("https://"),
+    base = public_base(request)
+    lan = os.environ.get("MALHAN_LAN_URL", "")
+    if body.via == "lan" and lan:
+        base = lan
+    url = f"{base}/l/{token}"
+    return {"url": url, "kind": kind, "minutes": LINK_MINUTES, "secure": url.startswith("https://"), "has_lan": bool(lan) and base != lan,
             "svg": segno.make(url, error="m").svg_inline(scale=6, border=2, dark="#223244")}
 
 

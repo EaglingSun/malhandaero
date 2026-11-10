@@ -468,3 +468,12 @@ def test_change_family_code_updates_env_and_live(monkeypatch, tmp_path):
     assert client.get("/api/me").status_code == 200                                 # 이미 들어온 쪽은 그대로
     assert client.post("/api/join", json={"name": "새사람", "code": "우리집"}).status_code != 200
     assert client.post("/api/join", json={"name": "새사람", "code": "새코드"}).status_code == 200
+
+
+def test_invite_link_can_use_lan_address(monkeypatch):
+    monkeypatch.setenv("MALHAN_PUBLIC_URL", "https://pc.example.ts.net"); monkeypatch.setenv("MALHAN_LAN_URL", "http://10.0.0.5:8000")
+    join("링크")
+    r = client.post("/api/link", json={"kind": "family"}).json()
+    assert r["url"].startswith("https://pc.example.ts.net/l/") and r["secure"] and r["has_lan"]
+    r2 = client.post("/api/link", json={"kind": "family", "via": "lan"}).json()
+    assert r2["url"].startswith("http://10.0.0.5:8000/l/") and not r2["secure"] and not r2["has_lan"]
