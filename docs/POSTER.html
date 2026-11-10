@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>말한대로 소개 페이지</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&display=swap" rel="stylesheet">
+<style>
+:root {
+  --sky: #eaf6ff; --paper: #fff; --ink: #223244; --muted: #64788c; --line: #dce8f2;
+  --mint: #12b58a; --mint-soft: #dff7ef; --sun: #ffe066; --coral: #ff7d5c;
+  --font-display: "Jua", "Gowun Dodum", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  --font-body: "Gowun Dodum", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  word-break: keep-all; overflow-wrap: anywhere;
+  background:
+    radial-gradient(520px 320px at 88% 4%, #fff3bf 0%, rgba(255,243,191,0) 70%),
+    radial-gradient(560px 380px at 6% 0%, #d3f5ea 0%, rgba(211,245,234,0) 70%),
+    linear-gradient(var(--sky), var(--paper) 620px);
+  background-color: var(--paper); color: var(--ink);
+  font-family: var(--font-body); font-size: 18px; line-height: 1.6; -webkit-font-smoothing: antialiased;
+}
+.wrap { max-width: 1060px; margin: 0 auto; padding: 44px 20px 32px; display: flex; flex-direction: column; gap: 64px; }
+h1, h2, h3 { font-family: var(--font-display); font-weight: 400; margin: 0; text-wrap: balance; }
+mark { background: linear-gradient(transparent 55%, var(--sun) 55%); color: inherit; padding: 0 2px; }
+
+/* hero */
+.hero { display: grid; grid-template-columns: 1.05fr .95fr; gap: 40px; align-items: center; }
+.pitch { display: flex; flex-direction: column; gap: 18px; }
+.name img.ic { width: 26px; height: 26px; border-radius: 7px; vertical-align: -7px; margin-right: 6px; }
+.name { align-self: flex-start; padding-left: 8px; font-family: var(--font-display); font-size: 17px; color: var(--mint); background: var(--paper); border: 1.5px solid var(--mint); padding: 4px 14px; border-radius: 999px; }
+.q { font-size: 21px; color: var(--muted); margin: 0; }
+h1 { font-size: clamp(38px, 6.6vw, 66px); line-height: 1.16; }
+.lead { margin: 0; font-size: 20px; max-width: 28em; }
+.lead b { color: var(--mint); }
+.cta-row { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; }
+.cta { display: inline-block; background: var(--mint); color: #fff; font-family: var(--font-display); font-size: 21px; padding: 14px 32px; border-radius: 999px; text-decoration: none; box-shadow: 0 10px 24px rgba(18,181,138,.32); transition: transform .12s, box-shadow .12s; }
+.cta:hover { transform: translateY(-2px); }
+.cta.ghost { background: var(--ink); box-shadow: none; }
+.cta-note { font-size: 15px; color: var(--muted); }
+.cta-note a { color: var(--mint); font-weight: 700; }
+
+/* 앱 화면 모형 (실제 화면과 같은 구성) */
+.ph { width: 100%; max-width: 300px; background: #fff; border: 1.5px solid var(--line); border-radius: 34px; padding: 10px; box-shadow: 0 24px 60px rgba(60,120,170,.16); justify-self: center; }
+.sc { background: linear-gradient(#eaf6ff, #f7fbff 50%); border-radius: 26px; padding: 16px 14px 14px; display: flex; flex-direction: column; gap: 10px; font-size: 13px; aspect-ratio: 9 / 18.5; position: relative; overflow: hidden; word-break: keep-all; overflow-wrap: normal; padding-bottom: 56px; }
+.sc .top { display: grid; grid-template-columns: 34px 1fr 34px; align-items: center; gap: 6px; }
+.sc .top b { text-align: center; font-size: 17px; font-weight: 800; }
+.sc .top i { font-style: normal; width: 34px; height: 34px; border-radius: 50%; background: #fff; border: 1.5px solid var(--line); display: grid; place-items: center; color: var(--ink); }
+.week { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.week span { background: #fff; border: 1.5px solid var(--line); border-radius: 12px; padding: 6px 0; text-align: center; display: flex; flex-direction: column; gap: 1px; font-size: 11px; color: var(--muted); }
+.week span b { font-size: 15px; color: var(--ink); }
+.week span.on { background: var(--mint); border-color: var(--mint); color: #fff; }
+.week span.on b { color: #fff; }
+.week span small { font-size: 9px; }
+.h { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 16px; margin-top: 4px; }
+.h em { font-style: normal; background: var(--sun); border-radius: 999px; font-size: 11px; padding: 1px 8px; font-weight: 700; }
+.it { background: #fff; border: 1.5px solid var(--line); border-radius: 16px; padding: 10px 12px; display: flex; align-items: center; gap: 10px; }
+.it .o { width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--mint); flex: none; }
+.it .o.on { background: var(--mint); color: #fff; display: grid; place-items: center; font-size: 13px; }
+.it .w { display: flex; flex-direction: column; gap: 5px; flex: 1 1 0; min-width: 0; }
+.it .w b { overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.it .w b { font-size: 14px; line-height: 1.3; }
+.it.done { background: var(--mint-soft); border-color: var(--mint-soft); }
+.it.done b { text-decoration: line-through; color: var(--muted); font-weight: 400; }
+.tg { display: flex; gap: 5px; flex-wrap: wrap; }
+.tg span { font-size: 10px; padding: 1px 8px; border-radius: 999px; background: #f1f6fa; color: var(--muted); }
+.tg .work { background: #e6f0ff; color: #2b5fb0; } .tg .home { background: #fff1ec; color: #b84a26; } .tg .cal { background: #e6f0ff; color: #2b5fb0; } .tg .when { background: var(--mint-soft); color: var(--ink); font-weight: 700; }
+.ev { background: #f3f9ff; border-color: #d6e8f7; }
+.ev .btn { flex: none; font-size: 11px; padding: 5px 9px; border-radius: 999px; border: 1.5px solid var(--line); background: #fff; white-space: nowrap; }
+.ev .btn.flat { border: 0; background: none; color: var(--ink); padding-left: 0; padding-right: 4px; }
+.ev .time { white-space: nowrap; font-size: 10px; background: var(--mint-soft); border-radius: 999px; padding: 1px 8px; align-self: flex-start; }
+.file { background: #fff8d6; border: 1.5px solid #ffeeaa; border-radius: 16px; padding: 10px 12px; display: flex; flex-direction: column; gap: 5px; }
+.file b { font-size: 13px; }
+.file span { font-size: 10px; background: #f1f6fa; color: var(--muted); border-radius: 999px; padding: 1px 8px; align-self: flex-start; }
+.fab { position: absolute; right: 14px; bottom: 62px; width: 48px; height: 48px; border-radius: 50%; background: var(--mint); color: #fff; font-size: 30px; line-height: 48px; text-align: center; box-shadow: 0 8px 18px rgba(18,181,138,.4); }
+.tabs { position: absolute; left: 0; right: 0; bottom: 0; background: #fff; border-top: 1.5px solid var(--line); display: grid; grid-template-columns: repeat(4, 1fr); padding: 8px 6px; font-size: 12px; text-align: center; }
+.tabs span { padding: 6px 0; border-radius: 999px; }
+.tabs span.on { background: var(--mint-soft); font-weight: 800; }
+.cal7 { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+.cal7 b { text-align: center; font-size: 10px; color: var(--muted); font-weight: 400; }
+.cal7 i { font-style: normal; min-height: 40px; border-radius: 9px; border: 1.5px solid var(--line); background: #fff; font-size: 10px; color: var(--muted); display: flex; flex-direction: column; align-items: center; padding: 2px 0; gap: 1px; }
+.cal7 i em { font-style: normal; font-size: 13px; line-height: 14px; min-height: 14px; }
+.cal7 i.s1 { background: rgba(18,181,138,.10); } .cal7 i.s2 { background: rgba(18,181,138,.22); } .cal7 i.s3 { background: rgba(18,181,138,.36); }
+.cal7 i.t { border: 2px solid var(--mint); }
+.grow { display: grid; grid-template-columns: auto 1fr; gap: 1px 12px; align-items: center; background: linear-gradient(135deg, #f3fcf7, #fffbe6); border: 1.5px solid #eaf3dc; border-radius: 16px; padding: 10px 12px; }
+.grow .face { font-size: 36px; line-height: 1; grid-row: 1 / 3; }
+.grow b { font-size: 15px; } .grow span { font-size: 11px; color: var(--muted); }
+.min h4 { margin: 8px 0 3px; font-size: 14px; }
+.min ul { margin: 0; padding-left: 16px; line-height: 1.5; font-size: 12.5px; }
+.min ul.dec { list-style: none; padding: 8px 12px; margin: 6px 0 0; background: var(--mint-soft); border-radius: 14px; }
+.min ul.dec li::before { content: "결정 · "; color: var(--mint); font-weight: 700; }
+.min .meta { font-size: 11px; color: var(--muted); }
+.min .take { align-self: flex-start; background: var(--mint); color: #fff; font-weight: 700; font-size: 11px; padding: 5px 12px; border-radius: 999px; }
+.min .card { flex: none; background: #fff; border: 1.5px solid var(--line); border-radius: 14px; padding: 9px 11px; display: flex; flex-direction: column; gap: 6px; margin-top: 6px; }
+.min .card b { font-size: 13px; }
+.wrapup { background: #fff; border: 1.5px solid var(--line); border-radius: 16px; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+.moods { display: flex; gap: 6px; } .moods span { font-size: 20px; padding: 2px 6px; border-radius: 10px; border: 1.5px solid var(--line); opacity: .45; } .moods span.on { opacity: 1; border-color: var(--mint); background: var(--mint-soft); }
+.chips { display: flex; flex-wrap: wrap; gap: 5px; } .chips span { font-size: 11px; padding: 2px 9px; border-radius: 999px; border: 1.5px solid var(--line); color: var(--muted); } .chips span.on { border-color: var(--mint); background: var(--mint-soft); color: var(--ink); }
+.sum { background: var(--mint-soft); border-radius: 12px; padding: 10px 12px; font-size: 12.5px; line-height: 1.55; }
+
+.sheet { position: absolute; left: 0; right: 0; bottom: 0; background: #fff; border-radius: 22px 22px 0 0; padding: 14px 14px 16px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 -10px 30px rgba(34,50,68,.18); }
+.sheet .hd { display: flex; justify-content: space-between; align-items: center; font-size: 17px; font-weight: 800; } .sheet .hd span { font-size: 12px; color: var(--muted); font-weight: 400; }
+.sheet .lb { font-size: 13px; font-weight: 800; } .sheet .lb span { font-weight: 400; color: var(--muted); font-size: 11px; margin-left: 6px; }
+.sheet .in { display: flex; gap: 8px; } .sheet .in i { font-style: normal; flex: 1; border: 1.5px solid var(--line); border-radius: 14px; padding: 9px 12px; background: #f9fcff; font-size: 13px; } .sheet .in b { background: var(--mint); color: #fff; border-radius: 999px; padding: 9px 14px; font-size: 13px; }
+.sheet .tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.sheet .tiles div { border: 1.5px solid var(--line); border-radius: 14px; padding: 10px 12px; display: flex; flex-direction: column; gap: 2px; background: #fff; }
+.sheet .tiles div.on { background: var(--mint-soft); border-color: var(--mint); }
+.sheet .tiles b { font-size: 13px; } .sheet .tiles span { font-size: 10.5px; color: var(--muted); }
+.dim { position: absolute; inset: 0; background: rgba(34,50,68,.28); }
+.gal > .shot:last-child:nth-child(odd) { grid-column: 1 / -1; max-width: 660px; width: 100%; margin: 0 auto; }
+/* 삼성 녹음 앱 공유 시트 모형 (어두운 화면) */
+.sc.dark { background: #0d0f0d; color: #e8ece8; }
+.sc.dark .rec-h { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 15px; color: #cfe3c2; }
+.sc.dark .rec-t { font-size: 22px; color: #9fcf8a; font-weight: 800; } .sc.dark .rec-t small { font-size: 12px; color: #7f8a7f; font-weight: 400; }
+.sc.dark .wave { height: 36px; background: repeating-linear-gradient(90deg, #4f7a44 0 2px, transparent 2px 5px); opacity: .7; border-radius: 4px; margin: 8px 0; }
+.sc.dark .rec-s { text-align: center; font-size: 13px; color: #cfd6cf; font-weight: 800; } .sc.dark .rec-s small { display: block; font-weight: 400; color: #7f8a7f; font-size: 10px; margin-top: 2px; }
+.sheet.dark { background: #1c1e1c; color: #e8ece8; box-shadow: 0 -10px 30px rgba(0,0,0,.5); }
+.sheet.dark .hd { font-size: 14px; } .sheet.dark .hd span { color: #9aa39a; }
+.sheet.dark .fl { display: flex; align-items: center; gap: 10px; background: #2a2d2a; border-radius: 12px; padding: 9px 10px; font-size: 12.5px; font-weight: 700; }
+.sheet.dark .fl i { font-style: normal; background: #fff; color: #222; border-radius: 9px; font-size: 9px; font-weight: 800; padding: 6px 5px; }
+.apps { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; text-align: center; font-size: 9.5px; color: #cfd6cf; }
+.apps div { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.apps i { font-style: normal; width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; font-size: 15px; background: #3a3d3a; }
+.apps .me i img { width: 100%; height: 100%; border-radius: 10px; }
+.apps .me i { padding: 0; overflow: hidden; background: var(--mint); color: #fff; font-weight: 900; font-size: 18px; box-shadow: 0 0 0 3px rgba(18,181,138,.35); }
+.apps .me { color: #fff; font-weight: 800; }
+.duo { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; justify-self: center; width: 100%; max-width: 460px; }
+.duo .ph { max-width: 225px; padding: 7px; border-radius: 26px; } .duo .sc { padding: 12px 10px 10px; font-size: 11px; border-radius: 20px; gap: 7px; }
+.duo .sheet { padding: 10px 10px 12px; gap: 7px; } .duo .apps i { width: 28px; height: 28px; font-size: 12px; } .duo .apps { font-size: 8.5px; }
+.sc.dark .rl { background: #1a1c1a; border-radius: 12px; padding: 8px 10px; display: flex; flex-direction: column; gap: 3px; }
+.sc.dark .rl b { font-size: 12px; display: flex; justify-content: space-between; } .sc.dark .rl small { color: #7f8a7f; font-size: 9.5px; } .sc.dark .rl span { font-size: 10.5px; color: #cfd6cf; border-top: 1px dashed #333; padding-top: 4px; }
+.sc.dark .rl.on { outline: 2px solid #9fcf8a; } .sc.dark .rl.on b::before { content: "✓ "; color: #9fcf8a; }
+.sc.dark .bar { position: absolute; left: 8px; right: 8px; bottom: 10px; background: #2a2d2a; border-radius: 14px; display: grid; grid-template-columns: repeat(5, 1fr); padding: 7px 4px; text-align: center; font-size: 9px; color: #cfd6cf; gap: 2px; }
+.sc.dark .bar span { background: #c9e7b8; color: #1a2a14; border-radius: 6px; padding: 3px 0; font-weight: 800; } .sc.dark .bar span.hi { background: #9fcf8a; outline: 2px solid #fff; }
+/* AI_docs reader 창 모형 */
+.reader .two { display: grid; grid-template-columns: .9fr 1.1fr; gap: 26px; align-items: center; }
+.win { background: #fff; border: 1.5px solid var(--line); border-radius: 14px; overflow: hidden; box-shadow: 0 20px 50px rgba(60,120,170,.16); font-size: 11px; color: var(--ink); }
+.win .tb { background: #1f2124; color: #e6e6e6; padding: 7px 10px; font-size: 11px; display: flex; justify-content: space-between; } .win .tb span { letter-spacing: 3px; }
+.win .mb { background: #1f2124; color: #cfcfcf; padding: 0 10px 7px; display: flex; gap: 14px; font-size: 10.5px; } .win .mb em { font-style: normal; }
+.win .body { display: grid; grid-template-columns: 120px 1fr; min-height: 230px; }
+.win .tree { background: #f4f6f8; border-right: 1px solid var(--line); padding: 8px 6px; display: flex; flex-direction: column; gap: 3px; font-size: 10px; color: #333; }
+.win .tree i { font-style: normal; display: block; padding: 2px 6px; border-radius: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .win .tree i.d { font-weight: 700; } .win .tree i.l { padding-left: 16px; } .win .tree i.l2 { padding-left: 26px; } .win .tree i.on { background: #e3e8ee; }
+.win .doc { padding: 8px 16px 12px; display: flex; flex-direction: column; gap: 6px; }
+.win .tools { display: flex; gap: 8px; color: #666; font-size: 11px; padding-bottom: 6px; border-bottom: 1px solid var(--line); margin-bottom: 4px; }
+.win .doc h5 { margin: 6px 0 0; font-size: 15px; font-weight: 800; } .win .doc ul { margin: 0; padding-left: 16px; line-height: 1.5; font-size: 10.5px; }
+.win .doc table { border-collapse: collapse; font-size: 10px; margin-top: 2px; } .win .doc td, .win .doc th { border: 1px solid var(--line); padding: 3px 8px; } .win .doc th { background: #f4f6f8; }
+.win .doc code { font-family: ui-monospace, Menlo, Consolas, monospace; background: #f1f6fa; padding: 0 4px; border-radius: 4px; font-size: 10px; }
+.win .doc .dia { display: flex; gap: 6px; align-items: center; font-size: 10px; margin-top: 2px; } .win .doc .dia b { border: 1.5px solid var(--mint); border-radius: 6px; padding: 2px 8px; font-weight: 700; } .win .doc .dia i { font-style: normal; color: var(--mint); }
+@media (max-width: 760px) { .reader .two { grid-template-columns: 1fr; } .win .body { grid-template-columns: 1fr; } .win .tree { display: none; } }
+/* 화면 갤러리 */
+.gal { display: grid; grid-template-columns: repeat(2, 1fr); gap: 40px 28px; }
+.shot { display: grid; grid-template-columns: 1fr 1.1fr; gap: 22px; align-items: center; }
+.shot:nth-child(even) { direction: rtl; } .shot:nth-child(even) > * { direction: ltr; }
+.shot .txt { display: flex; flex-direction: column; gap: 8px; }
+.shot .k { font-family: var(--font-display); font-size: 15px; color: var(--coral); }
+.shot h3 { font-size: 27px; line-height: 1.25; }
+.shot p { margin: 0; color: var(--muted); font-size: 16px; line-height: 1.55; }
+@media (max-width: 1000px) { .gal { grid-template-columns: 1fr; } }
+
+/* 세 단계 */
+.three { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; counter-reset: step; }
+.three li { counter-increment: step; background: var(--paper); border: 1.5px solid var(--line); border-radius: 20px; padding: 18px 20px 20px; display: flex; flex-direction: column; gap: 4px; }
+.three li::before { content: counter(step); font-family: var(--font-display); width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: var(--sun); font-size: 18px; margin-bottom: 6px; }
+.three strong { font-family: var(--font-display); font-weight: 400; font-size: 24px; }
+.three span { color: var(--muted); font-size: 16px; line-height: 1.55; }
+.three .ic-s { width: 22px; height: 22px; border-radius: 6px; vertical-align: -6px; }
+.three.five { grid-template-columns: repeat(5, 1fr); gap: 12px; } .three.five li { padding: 16px 16px 18px; } .three.five strong { font-size: 20px; } .three.five span { font-size: 14.5px; }
+@media (max-width: 1000px) { .three.five { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 760px) { .three.five { grid-template-columns: 1fr; } }
+.three code { white-space: nowrap; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 14px; background: #f1f6fa; padding: 1px 6px; border-radius: 6px; color: var(--ink); }
+.sec { display: flex; flex-direction: column; gap: 18px; }
+.sec h2 { font-size: 30px; }
+.badge { align-self: flex-start; font-size: 13px; background: var(--sun); border-radius: 999px; padding: 2px 12px; }
+.facts { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.facts li { background: var(--paper); border: 1.5px solid var(--line); border-radius: 16px; padding: 14px 16px; display: flex; flex-direction: column; gap: 2px; }
+.facts b { font-family: var(--font-display); font-weight: 400; font-size: 19px; }
+.facts span { font-size: 14px; color: var(--muted); line-height: 1.5; }
+.close { background: var(--mint-soft); border-radius: 24px; padding: 26px 24px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; }
+.close p { margin: 0; font-family: var(--font-display); font-size: 24px; line-height: 1.35; max-width: 22em; text-wrap: balance; }
+footer { font-size: 13px; color: var(--muted); }
+.plain { margin: 0; font-size: 18px; max-width: 34em; color: var(--ink); }
+.plain code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 15px; background: #f1f6fa; padding: 1px 6px; border-radius: 6px; }
+.exts { display: inline-flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; } .exts code { font-size: 14px; }
+@media (max-width: 760px) { .reader .facts { grid-template-columns: 1fr; } }
+@media (max-width: 900px) { .facts { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 760px) {
+  .duo { max-width: 100%; }
+  .wrap { padding-top: 28px; gap: 40px; }
+  .hero, .shot { grid-template-columns: 1fr; gap: 20px; }
+  .shot:nth-child(even) { direction: ltr; }
+  .three { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<main class="wrap">
+
+  <section class="hero">
+    <div class="pitch">
+      <span class="name"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAIAAADdvvtQAAAEsUlEQVR4Xu3bzW3bQBCGYSZwBXEHtm/uxmWlGN9SSm62O3APQUCAECRLHvLb3ZmdeZ+z/jh8uVwl8o9ff34vwFE/jz4R+I+AICEgSAgIEgKChIAgISBICAgSAoKEgCAhIEgICBICgoSAICEgSAgIEgKChIAgISBICAgSAoKEgCAhIEgICBICgoSAICEgSAgIEgKChIAgISBICAgSAoKEgCAhIEgICBICguROeraHz+c3j7cd5/7v07g3k00TUPpuNtuRTlFS9IDqdHNpipLiBlQ5nTPrKGIuSEE30dRzY0EKJWJA1HNNwMnEuoUFHFA00W5ngVYg6rGLM6soAcWZyCyCTCxEQEFmMZ0IcwsREOblH1CEy2he7tNzDsj9+BPwnaFnQL5HnonjJD0DQgJuATleNCl5zdMtIORAQJD4BOS13ubmMlWfgJAGAUHiEJDLShvH48tHvw8zfrYOAVW21tO1ocEIaJzTbtI0RECDXBaToyECGuFaK48vH7NnRED+pm6IgLqz9GF5TEwE1JexjPfXh76foxsC6ih9PctCQN1UqIeAeilSDwF1YawnB/ZAjdnrmXfjfIqAfOSoh1tYY8blJ009BNRSwXoIqJma9RBQG2XrIaAGKtdDQCpjPYnxNf44ez2ZvnadyRyQ/QR3lbiezLew3j9fN9aZu560AfX++Tr1bBLewnr/fJ16TmUL6MbP15tsdKgn8yb69tk1nvsbjK+Qft+TcwWynF3LY64xPrdUPXk20caze/jPiu2vX02SPdCu635vDfbH7/oYOSQJaFn2nTx7E3YF68lzC1vtOoXGhowP2/XWmeRZgXo0RD3fyhZQw3WIeiwSBtSkIeoxyhmQ2BD12KUN6HBDxnqwyhzQgYbs9ZT92nUmeUB7GzKink3+gJo3RD2nSgTUsCHqKXcL2+jnXn+FfKqsQCulAOW5idUK6HBD1HNNuYAON4QvVQxob0MsPzcUDcjeEPXcVjcgS0PU863SAd1uiHosHAK6//tk+WTDrKGc5vL++jBpPeNnezfsPEV22RCMHFYgZOIT0PiVtgKXqfoEhDQICBK3gFzW28S85ukWEHLwDMjrosnHcZKeAS2L55Gn4VhPiL/K8D3+2blPz3kFwuxCBOR+GU0qwtxCBMRm6IAI9YTYA22CTGQKcWYV63/j17l8Pr9NcRZdxElnFeUWdirajOIIOJmIAbEl+lLAepYl2C3sch3idhb8coq1B7q0XXYFS4q55JyJHtDld7T0JU3RzWaagM5K6prRXKfQV9BNtCPq2YWA+BcECQF9sc2C3Xx7oB64bR3GCkQ9kuoBsfaISgdEPbq6AVFPExU30aTTULkViHraqhUQ9TRXKCDq6aFKQNTTSf5NNOl0lXwFop7eMgdEPQOkDYh6xki4ByKdkbKtQNQzWKqAqGe8PAFRj4skAVGPl+k30aTja+4ViHrcTRwQ9UQwa0DUE8SsASEIAoKEgCAhIEgICBICgoSAICEgSAgIEgKChIAgISBICAgSAoKEgCAhIEgICBICgoSAICEgSAgIEgKChIAgISBICAgSAoKEgCAhIEgICBICgoSAICEgSAgIEgKChIAgISBI/gFxEErqgq/4+wAAAABJRU5ErkJggg==" alt="" class="ic">말한대로</span>
+      <p class="q">회의록은 AI가 써 주는데, <b>내 할 일</b>은 아직 여기저기 흩어져 있지 않나요?</p>
+      <h1>말만 하세요.<br><mark>기억은 제가</mark> 할게요</h1>
+      <p class="lead">통화·회의 녹음을 폰에서 <b>공유 한 번</b>. 챙길 일은 할 일로 · 회의는 회의록으로 · 날짜는 캘린더로.</p>
+      <div class="cta-row">
+        <a class="cta" href="#start">15분이면 써 봐요</a>
+        <span class="cta-note">구독 중인 Claude로, API 키 없이 · 설치는 파일 하나 · 기록은 내 PC에만</span>
+      </div>
+    </div>
+
+    <div class="ph" aria-label="오늘 화면">
+      <div class="sc">
+        <div class="top"><i>‹</i><b>11월 10일 화요일</b><i>›</i></div>
+        <div class="week">
+          <span>월<b>9</b></span><span class="on">화<b>10</b><small>2 · ✓10</small></span><span>수<b>11</b></span><span>목<b>12</b></span><span>금<b>13</b></span><span>토<b>14</b></span><span>일<b>15</b></span>
+        </div>
+        <div class="h">오늘 <em>2</em></div>
+        <div class="it"><span class="o"></span><div class="w"><b>교육생 공유 자료 전달하기</b><div class="tg"><span class="work">회사</span><span class="cal">캘린더</span></div></div></div>
+        <div class="it"><span class="o"></span><div class="w"><b>공모전 출품하기</b><div class="tg"><span class="home">개인</span><span class="when">오늘</span></div></div></div>
+        <div class="h">끝낸 일 <em>10</em></div>
+        <div class="it done"><span class="o on">✓</span><div class="w"><b>집에 가는 길에 기름 넣기</b><div class="tg"><span class="home">개인</span></div></div></div>
+        <div class="it done"><span class="o on">✓</span><div class="w"><b>견적서 검토 의견 보내기</b><div class="tg"><span class="work">회사</span><span class="cal">캘린더</span></div></div></div>
+        <div class="fab">+</div>
+        <div class="tabs"><span class="on">오늘</span><span>나중</span><span>넣은 것</span><span>달력</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <h2>통화 세 번, 회의 하나. 할 일은 한 화면에.</h2>
+    <div class="gal">
+
+      <div class="shot">
+        <div class="txt">
+          <span class="k">넣기</span>
+          <h3>말하거나, 붙이거나, 찍거나</h3>
+          <p>+ 하나면 돼요. 그냥 적어도 되고요.</p>
+        </div>
+        <div class="ph"><div class="sc">
+          <div class="top"><i>‹</i><b>11월 10일 화요일</b><i>›</i></div>
+          <div class="week"><span>월<b>9</b></span><span class="on">화<b>10</b><small>2 · ✓10</small></span><span>수<b>11</b></span><span>목<b>12</b></span><span>금<b>13</b></span><span>토<b>14</b></span><span>일<b>15</b></span></div>
+          <div class="h">오늘 <em>2</em></div>
+          <div class="dim"></div>
+          <div class="sheet">
+            <div class="hd">할 일 넣기 <span>닫기</span></div>
+            <div class="lb">직접 적기<span>AI 없이 바로</span></div>
+            <div class="in"><i>내일 미팅 자료 준비</i><b>더하기</b></div>
+            <div class="lb">AI가 대신 적어요<span>듣고·읽고 챙길 것을 뽑아요</span></div>
+            <div class="tiles">
+              <div class="on"><b>말하기</b><span>누르고 말하면 끝</span></div>
+              <div><b>글 붙여넣기</b><span>통화·회의 녹취, 메모</span></div>
+              <div><b>사진 찍기</b><span>안내문·메모·영수증</span></div>
+              <div><b>파일 넣기</b><span>녹음을 글로 바꾼 파일</span></div>
+            </div>
+          </div>
+        </div></div>
+      </div>
+
+      <div class="shot">
+        <div class="txt">
+          <span class="k">공유</span>
+          <h3>녹음 앱에서 「공유」, 끝</h3>
+          <p>녹음 앱에서 「텍스트 변환」 → 「공유」 → <b>말한대로</b>. 통화든 회의든, 챙길 것만 알아서 뽑아요.</p>
+        </div>
+        <div class="duo">
+          <div class="ph"><div class="sc dark">
+            <div class="rec-h">녹음 <span style="margin-left:auto;font-size:10px;color:#9fcf8a">1개 선택</span></div>
+            <div class="rl on"><b>음성 261110_123457 <small>09:31</small></b><small>11월 10일 오후 12:44</small><span>AI 테스트 자동화와 실습 교육 논의</span></div>
+            <div class="rl"><b>통화 무당이_261110… <small>00:33</small></b><small>11월 10일 오전 8:54</small><span>강의 시작 시간 안내</span></div>
+            <div class="rl"><b>통화 슈구리_261109… <small>00:26</small></b><small>11월 9일 오전 11:49</small><span>점심 메뉴 주문 통화</span></div>
+            <div class="rl"><b>통화 남편_261108… <small>01:52</small></b><small>11월 8일 오후 9:30</small><span>주차 문제 상의</span></div>
+            <div class="bar"><span>이동</span><span class="hi">텍스트 변환</span><span class="hi">공유</span><span>삭제</span><span>더보기</span></div>
+          </div></div>
+          <div class="ph"><div class="sc dark">
+            <div class="rec-h">‹ 음성 261110_123457</div>
+            <div class="rec-t">00:00.0 <small>/ 09:31</small></div>
+            <div class="wave"></div>
+            <div class="rec-s">AI 테스트 자동화와 실습 교육 논의<small>AI로 생성된 콘텐츠입니다</small></div>
+            <div class="dim"></div>
+            <div class="sheet dark">
+              <div class="hd">항목 1개 <span>9.39 KB</span></div>
+              <div class="fl"><i>TXT</i>음성 261110_…_original.txt</div>
+              <div class="apps">
+                <div><i>⇄</i>퀵 셰어</div>
+                <div class="me"><i><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAIAAADdvvtQAAAEsUlEQVR4Xu3bzW3bQBCGYSZwBXEHtm/uxmWlGN9SSm62O3APQUCAECRLHvLb3ZmdeZ+z/jh8uVwl8o9ff34vwFE/jz4R+I+AICEgSAgIEgKChIAgISBICAgSAoKEgCAhIEgICBICgoSAICEgSAgIEgKChIAgISBICAgSAoKEgCAhIEgICBICgoSAICEgSAgIEgKChIAgISBICAgSAoKEgCAhIEgICBICguROeraHz+c3j7cd5/7v07g3k00TUPpuNtuRTlFS9IDqdHNpipLiBlQ5nTPrKGIuSEE30dRzY0EKJWJA1HNNwMnEuoUFHFA00W5ngVYg6rGLM6soAcWZyCyCTCxEQEFmMZ0IcwsREOblH1CEy2he7tNzDsj9+BPwnaFnQL5HnonjJD0DQgJuATleNCl5zdMtIORAQJD4BOS13ubmMlWfgJAGAUHiEJDLShvH48tHvw8zfrYOAVW21tO1ocEIaJzTbtI0RECDXBaToyECGuFaK48vH7NnRED+pm6IgLqz9GF5TEwE1JexjPfXh76foxsC6ih9PctCQN1UqIeAeilSDwF1YawnB/ZAjdnrmXfjfIqAfOSoh1tYY8blJ009BNRSwXoIqJma9RBQG2XrIaAGKtdDQCpjPYnxNf44ez2ZvnadyRyQ/QR3lbiezLew3j9fN9aZu560AfX++Tr1bBLewnr/fJ16TmUL6MbP15tsdKgn8yb69tk1nvsbjK+Qft+TcwWynF3LY64xPrdUPXk20caze/jPiu2vX02SPdCu635vDfbH7/oYOSQJaFn2nTx7E3YF68lzC1vtOoXGhowP2/XWmeRZgXo0RD3fyhZQw3WIeiwSBtSkIeoxyhmQ2BD12KUN6HBDxnqwyhzQgYbs9ZT92nUmeUB7GzKink3+gJo3RD2nSgTUsCHqKXcL2+jnXn+FfKqsQCulAOW5idUK6HBD1HNNuYAON4QvVQxob0MsPzcUDcjeEPXcVjcgS0PU863SAd1uiHosHAK6//tk+WTDrKGc5vL++jBpPeNnezfsPEV22RCMHFYgZOIT0PiVtgKXqfoEhDQICBK3gFzW28S85ukWEHLwDMjrosnHcZKeAS2L55Gn4VhPiL/K8D3+2blPz3kFwuxCBOR+GU0qwtxCBMRm6IAI9YTYA22CTGQKcWYV63/j17l8Pr9NcRZdxElnFeUWdirajOIIOJmIAbEl+lLAepYl2C3sch3idhb8coq1B7q0XXYFS4q55JyJHtDld7T0JU3RzWaagM5K6prRXKfQV9BNtCPq2YWA+BcECQF9sc2C3Xx7oB64bR3GCkQ9kuoBsfaISgdEPbq6AVFPExU30aTTULkViHraqhUQ9TRXKCDq6aFKQNTTSf5NNOl0lXwFop7eMgdEPQOkDYh6xki4ByKdkbKtQNQzWKqAqGe8PAFRj4skAVGPl+k30aTja+4ViHrcTRwQ9UQwa0DUE8SsASEIAoKEgCAhIEgICBICgoSAICEgSAgIEgKChIAgISBICAgSAoKEgCAhIEgICBICgoSAICEgSAgIEgKChIAgISBICAgSAoKEgCAhIEgICBICgoSAICEgSAgIEgKChIAgISBI/gFxEErqgq/4+wAAAABJRU5ErkJggg==" alt=""></i>말한대로</div>
+                <div><i>💬</i>카카오톡</div>
+                <div><i>#</i>Slack</div>
+                <div><i>▲</i>Drive</div>
+              </div>
+            </div>
+          </div></div>
+        </div>
+      </div>
+
+      <div class="shot">
+        <div class="txt">
+          <span class="k">회의록</span>
+          <h3>논의 · 결정 · 내 일</h3>
+          <p>그대로 복사해 보내면 회의록. 남의 일은 「내 일로 가져오기」.</p>
+        </div>
+        <div class="ph"><div class="sc min">
+          <div class="h">회의록</div>
+          <span class="meta">참석: 나, 무당이 · 38분</span>
+          <h4>출시 일정</h4>
+          <ul><li>기존 일정은 테스트 기간이 2주뿐이에요</li><li>개발팀도 이번 주 코드 정리를 계획했어요</li></ul>
+          <ul class="dec"><li>코드 프리즈를 약 1주 앞당겨요</li></ul>
+          <h4>테스트 범위</h4>
+          <ul><li>기능별로 다 만들면 케이스가 너무 많아져요</li><li>단순 기능은 케이스가 많아도 괜찮아요</li></ul>
+          <ul class="dec"><li>시나리오 기반으로 테스트해요</li><li>케이스 수는 소요 시간을 보고 정해요</li></ul>
+          <h4>여기서 나온 내 일</h4>
+          <div class="card"><b>시나리오 목록 초안 공유하기</b><div class="tg"><span class="work">회사</span><span class="when">11/13(금)</span></div></div>
+          <div class="card"><b>일정표 갱신해 공지하기</b><div class="tg"><span class="work">회사</span><span>무당이</span></div><span class="take">내 일로 가져오기</span></div>
+        </div></div>
+      </div>
+
+      <div class="shot">
+        <div class="txt">
+          <span class="k">캘린더</span>
+          <h3>오늘 일정이 할 일 위에</h3>
+          <p>구글·네이버 캘린더 한 번 연결. 회의는 「할 일로」, 날짜 정한 일은 캘린더로.</p>
+        </div>
+        <div class="ph"><div class="sc">
+          <div class="top"><i>‹</i><b>11월 10일 화요일</b><i>›</i></div>
+          <div class="h">캘린더 일정 <em>7</em></div>
+          <div class="it ev"><div class="w"><b>슈구리 연차</b><span class="time">하루 종일</span></div><span class="btn">할 일로</span><span class="btn">숨기기</span></div>
+          <div class="it ev"><div class="w"><b>주간 이슈 리뷰</b><span class="time">오전 10:00</span></div><span class="btn">할 일로</span><span class="btn">숨기기</span></div>
+          <div class="it ev"><div class="w"><b>자동화 현황</b><span class="time">오전 10:00</span></div><span class="btn">할 일로</span><span class="btn">숨기기</span></div>
+          <div class="it ev"><div class="w"><b>고객 사전회의</b><span class="time">오전 11:00</span></div><span class="btn flat">할 일로 들어옴</span><span class="btn">숨기기</span></div>
+          <div class="it ev"><div class="w"><b>팀 점심</b><span class="time">오후 12:00</span></div><span class="btn">할 일로</span><span class="btn">숨기기</span></div>
+          <div class="fab">+</div>
+          <div class="tabs"><span class="on">오늘</span><span>나중</span><span>넣은 것</span><span>달력</span></div>
+        </div></div>
+      </div>
+
+      <div class="shot">
+        <div class="txt">
+          <span class="k">하루 끝</span>
+          <h3>「오늘은 여기까지」, 씨앗이 자라요</h3>
+          <p>남은 일은 내일로. 쓴 날만큼 달력에 쌓여요.</p>
+        </div>
+        <div class="ph"><div class="sc">
+          <div class="wrapup">
+            <div class="h" style="margin:0">하루 마무리</div>
+            <div class="moods"><span>😊</span><span class="on">😌</span><span>😮‍💨</span><span>😣</span><span>🔥</span></div>
+            <div class="chips"><span class="on">잘 버텼다</span><span>회의가 많았다</span><span>일찍 자야겠다</span></div>
+            <div class="sum">마친 일 10개, 남은 일 2개는 내일로 넘겨요. 회의가 많았지만 견적 의견은 보냈네요. 내일은 공유 자료부터.</div>
+          </div>
+          <div class="top" style="margin-top:4px"><i>‹</i><b>2026년 11월</b><i>›</i></div>
+          <div class="cal7">
+            <b>월</b><b>화</b><b>수</b><b>목</b><b>금</b><b>토</b><b>일</b>
+            <i class="s2">3<em>😊</em>2·0</i><i class="s3">4<em>🔥</em>4·1</i><i class="s1">5<em></em>1·2</i><i class="s2">6<em>😌</em>3·0</i><i class="s3">7<em>😊</em>3·0</i><i>8<em></em></i><i>9<em></em></i>
+            <i class="s3 t">10<em>😌</em>10·2</i><i>11<em></em></i><i>12<em></em></i><i>13<em></em></i><i>14<em></em></i><i>15<em></em></i><i>16<em></em></i>
+          </div>
+          <div class="grow"><span class="face">🌿</span><b>쑥쑥 자라요</b><span>이달 6일 함께했어요 · 마친 일 23개</span></div>
+          <div class="tabs"><span>오늘</span><span>나중</span><span>넣은 것</span><span class="on">달력</span></div>
+        </div></div>
+      </div>
+
+    </div>
+  </section>
+
+  <section class="sec">
+    <h2>신경 쓸 게 없어요</h2>
+    <ul class="facts">
+      <li><b>내 PC가 서버</b><span>켜 두기만 하면 끝. 따로 운영할 것 없음. 쓰는 건 폰.</span></li>
+      <li><b>내 PC에만</b><span>기록은 밖으로 안 나가요. AI도 내 PC의 Claude Code.</span></li>
+      <li><b>구독 중인 Claude로</b><span>API 키·추가 요금 없음. 구독이 없으면 할 일 앱으로.</span></li>
+      <li><b>새 버전은 알아서</b><span>켤 때·새벽에. 집에서도 쓰려면 집 PC + Tailscale.</span></li>
+    </ul>
+  </section>
+
+  <section class="sec" id="start">
+    <span class="badge">써 보는 데 15분 · 5단계</span>
+    <h2>파일 하나 실행, 그게 설치예요</h2>
+    <ol class="three five">
+      <li><strong>PC에 설치</strong><span>아래 파일 실행, 코드 하나. Claude 연동은 자동 — 구독이 없으면 AI 없이 할 일 앱으로.</span></li>
+      <li><strong>구글 캘린더 연결</strong><span>열린 PC 브라우저에서 「캘린더 연결 → 구글 계정으로」. 1분, 선택.</span></li>
+      <li><strong>폰에 앱으로 설치</strong><span>폰 Chrome에서 주소 열고 띠의 「설치하기」. 홈 화면에 <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAIAAADdvvtQAAAEsUlEQVR4Xu3bzW3bQBCGYSZwBXEHtm/uxmWlGN9SSm62O3APQUCAECRLHvLb3ZmdeZ+z/jh8uVwl8o9ff34vwFE/jz4R+I+AICEgSAgIEgKChIAgISBICAgSAoKEgCAhIEgICBICgoSAICEgSAgIEgKChIAgISBICAgSAoKEgCAhIEgICBICgoSAICEgSAgIEgKChIAgISBICAgSAoKEgCAhIEgICBICguROeraHz+c3j7cd5/7v07g3k00TUPpuNtuRTlFS9IDqdHNpipLiBlQ5nTPrKGIuSEE30dRzY0EKJWJA1HNNwMnEuoUFHFA00W5ngVYg6rGLM6soAcWZyCyCTCxEQEFmMZ0IcwsREOblH1CEy2he7tNzDsj9+BPwnaFnQL5HnonjJD0DQgJuATleNCl5zdMtIORAQJD4BOS13ubmMlWfgJAGAUHiEJDLShvH48tHvw8zfrYOAVW21tO1ocEIaJzTbtI0RECDXBaToyECGuFaK48vH7NnRED+pm6IgLqz9GF5TEwE1JexjPfXh76foxsC6ih9PctCQN1UqIeAeilSDwF1YawnB/ZAjdnrmXfjfIqAfOSoh1tYY8blJ009BNRSwXoIqJma9RBQG2XrIaAGKtdDQCpjPYnxNf44ez2ZvnadyRyQ/QR3lbiezLew3j9fN9aZu560AfX++Tr1bBLewnr/fJ16TmUL6MbP15tsdKgn8yb69tk1nvsbjK+Qft+TcwWynF3LY64xPrdUPXk20caze/jPiu2vX02SPdCu635vDfbH7/oYOSQJaFn2nTx7E3YF68lzC1vtOoXGhowP2/XWmeRZgXo0RD3fyhZQw3WIeiwSBtSkIeoxyhmQ2BD12KUN6HBDxnqwyhzQgYbs9ZT92nUmeUB7GzKink3+gJo3RD2nSgTUsCHqKXcL2+jnXn+FfKqsQCulAOW5idUK6HBD1HNNuYAON4QvVQxob0MsPzcUDcjeEPXcVjcgS0PU863SAd1uiHosHAK6//tk+WTDrKGc5vL++jBpPeNnezfsPEV22RCMHFYgZOIT0PiVtgKXqfoEhDQICBK3gFzW28S85ukWEHLwDMjrosnHcZKeAS2L55Gn4VhPiL/K8D3+2blPz3kFwuxCBOR+GU0qwtxCBMRm6IAI9YTYA22CTGQKcWYV63/j17l8Pr9NcRZdxElnFeUWdirajOIIOJmIAbEl+lLAepYl2C3sch3idhb8coq1B7q0XXYFS4q55JyJHtDld7T0JU3RzWaagM5K6prRXKfQV9BNtCPq2YWA+BcECQF9sc2C3Xx7oB64bR3GCkQ9kuoBsfaISgdEPbq6AVFPExU30aTTULkViHraqhUQ9TRXKCDq6aFKQNTTSf5NNOl0lXwFop7eMgdEPQOkDYh6xki4ByKdkbKtQNQzWKqAqGe8PAFRj4skAVGPl+k30aTja+4ViHrcTRwQ9UQwa0DUE8SsASEIAoKEgCAhIEgICBICgoSAICEgSAgIEgKChIAgISBICAgSAoKEgCAhIEgICBICgoSAICEgSAgIEgKChIAgISBICAgSAoKEgCAhIEgICBICgoSAICEgSAgIEgKChIAgISBI/gFxEErqgq/4+wAAAABJRU5ErkJggg==" alt="" class="ic-s"> 생겨요.</span></li>
+      <li><strong>할 일 넣어 보기</strong><span>+ → 말하기, 또는 녹음 공유 → 말한대로.</span></li>
+      <li><strong>집 밖에서도</strong><span>Tailscale로 PC·폰 묶기. 5분, 선택.</span></li>
+    </ol>
+    <div class="cta-row">
+      <a class="cta" href="https://github.com/EaglingSun/malhandaero/releases/download/v1.0.0/setup-windows.bat">Windows 설치 파일</a>
+      <a class="cta" href="https://github.com/EaglingSun/malhandaero/releases/download/v1.0.0/setup-mac.command">Mac 설치 파일</a>
+      <a class="cta ghost" href="https://github.com/EaglingSun/malhandaero/releases/download/v1.0.0/START.md">시작 안내</a>
+      <span class="cta-note">설치 뒤 새 버전은 알아서 와요</span>
+    </div>
+  </section>
+
+  <section class="sec reader">
+    <span class="badge">함께 쓰면</span>
+    <div class="two">
+      <div>
+        <h2>AI가 써 준 .md, 아직 메모장이나 VS Code로 열어 보세요?</h2>
+        <p class="plain" style="margin-top:14px"><b>AI_docs reader</b> — 더블클릭이면 깔끔하게. 통합 문서 뷰어, 간단한 편집도 OK.<br>
+        <span class="exts"><code>.md</code> <code>.txt</code> <code>.yaml</code> <code>.json</code> <code>.py</code> <code>.c</code> <code>.js</code> <code>.sh</code> <code>.patch</code> <code>.log</code> …</span></p>
+        <div class="cta-row" style="margin-top:16px">
+          <a class="cta ghost" href="https://github.com/EaglingSun/ai-docs-reader/releases/download/v1.4.0/ai-docs-reader-setup-1.4.0.exe">AI_docs reader 설치 파일 (Windows)</a>
+          <span class="cta-note">SmartScreen 경고가 뜨면 「추가 정보 → 실행」</span>
+        </div>
+      </div>
+      <div class="win" aria-label="AI_docs reader 화면">
+        <div class="tb">CLAUDE.md — AI_docs reader <span>– ☐ ✕</span></div>
+        <div class="mb">파일<em>보기</em>도움말</div>
+        <div class="body">
+          <div class="tree">
+            <i class="d">▸ scripts</i><i class="d">▾ templates</i><i class="l2">agent.md</i><i class="l2 on">claude-md.md</i><i class="l2">evals.json</i><i class="l2">review.md</i><i class="l2">skill.md</i><i class="d">▸ tests</i><i class="l">CHANGELOG.md</i><i class="l">README.md</i><i class="l">config.yaml</i><i class="l">main.py</i>
+          </div>
+          <div class="doc">
+            <div class="tools">H <b>B</b> <i>I</i> ☰ ☑ ⟨/⟩ ▦ 🔗 👁</div>
+            <h5>Global Rules</h5>
+            <ul><li>G-01 규칙을 추가할 때는 <code>templates/rule-format.md</code>를 따른다</li><li>G-02 요청이 Skill Routing 표에 있으면 그 스킬을 먼저 로드한다</li><li>G-03 폴더를 3개 이상 만들 땐 트리를 먼저 제안한다</li></ul>
+            <h5>Skill Routing</h5>
+            <table><tr><th>요청 표현</th><th>스킬</th></tr><tr><td>스킬 정리, 규칙 압축</td><td>harness-tidy</td></tr><tr><td>PR 봐 줘</td><td>pr-review</td></tr></table>
+            <div class="dia"><b>요청</b><i>→</i><b>라우팅</b><i>→</i><b>스킬 실행</b><span style="color:#888;margin-left:6px">Mermaid</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="close">
+    <p>써 보고 필요한 건 댓글로. 고쳐 올리면 「업데이트」 한 번에 모두에게.<br><span style="font-family:var(--font-body);font-size:17px;color:var(--muted)">Claude Pro 이상 구독이 없는데 써 보고 싶은 분도 댓글 남겨 주세요 — 다른 AI 연결을 먼저 열게요.</span></p>
+    <a class="cta" href="#start">15분이면 써 봐요</a>
+  </section>
+
+  <footer>사내 공모 「2026 슬기로운 AI 생활」 응모작 · 화면의 이름과 내용은 예시 · 다양한 AI 연결(Codex·GPT·Gemini 등)은 다음 버전에서.</footer>
+</main>
+</body>
+</html>
