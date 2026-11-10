@@ -637,7 +637,7 @@
   $("btn-link").addEventListener("click", function () {
     var b = $("link-box"); b.hidden = !b.hidden;
     if (!b.hidden) {
-      api("/api/link", { method: "POST", json: { kind: "me" } }).then(function (r) { $("phone-url").textContent = r.url.replace(/\/l\/.*$/, ""); }).catch(function () { $("phone-url").textContent = location.origin; });
+      api("/api/link", { method: "POST", json: { kind: "me" } }).then(function (r) { setPhoneUrl(r.url.replace(/\/l\/.*$/, "")); }).catch(function () { setPhoneUrl(location.origin); });
       b.scrollIntoView({ block: "nearest" });
     }
   });
@@ -709,12 +709,14 @@
   });
 
   /* ---------- 업데이트 ---------- */
-  (function () {
-    var insecure = !window.isSecureContext && location.hostname !== "localhost";
+  // 폰에서 열 주소가 http면(Tailscale 없음) 플래그 예외 안내를 보여 준다 — 지금 PC(localhost)에서 보고 있어도
+  function setPhoneUrl(u) {
+    $("phone-url").textContent = u;
+    var insecure = u.indexOf("http://") === 0;
     $("http-help").hidden = !insecure;
-    if (insecure) { $("http-origin").textContent = location.origin; $("http-help").open = true; }
-    $("http-copy").addEventListener("click", function () { navigator.clipboard && navigator.clipboard.writeText(location.origin).then(function () { $("http-copy").textContent = "복사됨"; }); });
-  })();
+    if (insecure) { $("http-origin").textContent = u; $("http-help").open = !window.isSecureContext || location.hostname === "localhost"; }
+  }
+  $("http-copy").addEventListener("click", function () { var u = $("http-origin").textContent; navigator.clipboard && navigator.clipboard.writeText(u).then(function () { $("http-copy").textContent = "복사됨"; }); });
   (function () {
     // 삼성 카메라로 QR을 찍으면 기본 브라우저(삼성 인터넷)로 열린다. 안드로이드에서 Chrome이 아니면 Chrome으로 여는 단추를 보여 준다
     var ua = navigator.userAgent, android = /Android/i.test(ua), chrome = /Chrome\//.test(ua) && !/SamsungBrowser|EdgA|OPR|Whale|NAVER|KAKAOTALK|FB_IAB|Instagram/i.test(ua);
