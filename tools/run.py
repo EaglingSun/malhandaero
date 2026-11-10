@@ -124,6 +124,22 @@ def main() -> None:
     serve()
 
 
+def _open_browser_when_ready(port_free) -> None:
+    """켜지면 이 PC 브라우저로 http://localhost:PORT 를 한 번 연다 (자동 시작은 --no-browser, 끄려면 .env MALHAN_OPEN_BROWSER=0)."""
+    import threading
+    import time
+    import webbrowser
+
+    def go():
+        for _ in range(120):
+            if not port_free():
+                webbrowser.open(f"http://localhost:{PORT}")
+                return
+            time.sleep(0.5)
+
+    threading.Thread(target=go, daemon=True).start()
+
+
 def serve() -> None:
     """서버를 돌리고, 화면의 '업데이트'이나 새벽 자동 확인으로 업데이트를 받아 끝나면(RESTART_CODE) 새 코드로 다시 켠다."""
     import subprocess
@@ -142,6 +158,8 @@ def serve() -> None:
         print(f"\n! 말한대로가 이미 켜져 있어요 (포트 {PORT}). 다른 창을 닫고 다시 켜 주세요.")
         sys.exit(1)
     args = [sys.executable, "-m", "uvicorn", "server.app:app", "--host", "0.0.0.0", "--port", str(PORT), "--log-level", "warning"]
+    if "--no-browser" not in sys.argv and os.environ.get("MALHAN_OPEN_BROWSER", "1") != "0":
+        _open_browser_when_ready(port_free)
     while True:
         started = time.time()
         try:

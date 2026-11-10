@@ -39,7 +39,7 @@ def _mac_install() -> None:
     log = ROOT / "data" / "server.log"
     log.parent.mkdir(exist_ok=True)
     # run.sh를 통해 켠다: 켤 때 업데이트 확인 → caffeinate(잠들지 않게) → 서버
-    args = ["/bin/sh", str(ROOT / "tools" / "run.sh")]
+    args = ["/bin/sh", str(ROOT / "tools" / "run.sh"), "--no-browser"]
     xml_args = "\n".join(f"      <string>{a}</string>" for a in args)
     plist = f"""<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -104,7 +104,7 @@ def _win_install() -> None:
     p = _win_startup()
     p.parent.mkdir(parents=True, exist_ok=True)
     # 시작 프로그램 폴더의 bat 하나: run.bat 을 최소화된 창으로 켠다 (ASCII만 — cmd가 UTF-8 bat를 깨뜨린다)
-    p.write_text(f'@echo off\r\nstart "malhandaero" /min cmd /c ""{ROOT / "tools" / "run.bat"}""\r\n', encoding="ascii", errors="replace")
+    p.write_text(f'@echo off\r\nstart "malhandaero" /min cmd /c ""{ROOT / "tools" / "run.bat"}" --no-browser"\r\n', encoding="ascii", errors="replace")
     print(f"등록했어요. 로그인하면 최소화된 창으로 켜져요.\n  파일: {p}\n  해제: python tools\\autostart.py remove")
     print("  PC가 잠들면 끊겨요: 설정 → 시스템 → 전원 → 화면 및 절전 → 절전 모드 '안 함'")
 
