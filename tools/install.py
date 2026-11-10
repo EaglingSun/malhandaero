@@ -109,7 +109,7 @@ def main() -> int:
             print("  아무것도 없이 화면만 보려면 .env에 MALHAN_AI=fake 를 넣으세요.")
     if os.name == "nt":
         print("· 처음 켤 때 Windows 방화벽 창이 뜨면 '액세스 허용'을 눌러야 폰에서 들어올 수 있어요.")
-    print("· 이제 " + ("바탕 화면의 「말한대로 켜기」" if os.name == "nt" else "「start.command」") + " 를 실행하세요.")
+    print("· 이어서 바로 켜져요. 다음부터는 " + ("바탕 화면의 「말한대로 켜기」" if os.name == "nt" else "「start.command」") + " 더블클릭이 전부예요.")
     return 0
 
 
