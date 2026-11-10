@@ -93,8 +93,8 @@ ul.list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction
 .item { background: var(--paper); border: 1.5px solid var(--line); border-radius: 16px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; }
 .item .head { display: flex; gap: 10px; align-items: flex-start; }
 .item .what { font-weight: 700; flex: 1; overflow-wrap: anywhere; }
-.item .meta { display: flex; flex-wrap: wrap; gap: 6px; font-size: 13px; color: var(--muted); }
-.tag { border-radius: 999px; padding: 1px 9px; background: #f1f6fa; }
+.item .meta { display: flex; flex-wrap: wrap; gap: 6px; font-size: 13px; color: var(--muted); align-items: center; }
+.tag { border-radius: 999px; padding: 0 9px; background: #f1f6fa; display: inline-flex; align-items: center; height: 22px; line-height: 1; white-space: nowrap; }
 .tag.work { background: #e6f0ff; color: #2b5fb0; }
 .tag.home { background: #fff1ec; color: #b84a26; }
 .tag.carry { background: var(--sun); color: var(--ink); }
@@ -193,4 +193,4 @@ ul.details { margin: 0; padding: 0 0 0 18px; font-size: 14px; color: var(--muted
 .item.ev { background: #f3f9ff; border-color: #d6e8f7; }
 .item.ev .what { display: flex; flex-direction: column; gap: 3px; font-weight: 400; }
 .item.ev .txt { font-weight: 700; font-size: 16px; }
-.tag.cal { background: #e6f0ff; color: #2b5fb0; }
+.tag.cal { background: #e6f0ff; color: #2b5fb0; font-family: var(--font), "Apple Color Emoji", "Segoe UI Symbol", sans-serif; }
