@@ -126,6 +126,7 @@ chmod +x malhandaero/*.sh malhandaero/*.command
 | 4 | 더블클릭 실행(.command), Tailscale 자동, QR 연결(내 기기 / 가족 초대) |
 | 5 | 목록 중심 화면(+ 버튼 뒤에 넣기), https 인증서 묶음, 연결 실패 사유 표시 |
 | 6 | 공유로 받는 파일 종류 확대 |
+| 38 | 업데이트 자동화: 한 시간마다 `git fetch`로 새 버전 확인(`_check_remote` → `UPDATE_AVAILABLE`, `/api/me`의 `update`) → 화면 아래 「새 버전이 있어요 · 지금 적용」 띠. `MALHAN_AUTO_UPDATE=now`면 처리 중 녹음 없을 때 즉시 자동 적용. 「업데이트」 버튼은 받을 게 없어도 직접 고친 코드가 있으면 재시작(`RESULT.local`). START.md에서 '같이 개발' 문단 제거, '새 버전은 알아서 와요'로 |
 | 37 | `CLAUDE.md`(Claude Code가 폴더를 열면 읽는 개발 안내: 구조·규칙·시험·공유 방법·자동 업데이트와의 관계). 화면 파일 캐시 수정(index가 `?v=커밋` 부착, css·js no-cache). 넣기 창을 「직접 적기」/「AI가 대신 적어요」 2×2 타일로(36판) |
 | 35 | 자동 시작 `tools/autostart.py install|remove|status`: Mac은 `~/Library/LaunchAgents/com.malhandaero.server.plist`(RunAtLoad+KeepAlive, `sh run.sh` 실행 → 업데이트 확인·caffeinate 포함, PATH에 claude 경로 포함, 로그 `data/server.log`), Windows는 시작 프로그램 폴더의 `말한대로.bat`(run.bat 최소화 창). 래퍼 `말한대로 자동 시작(해제).command`, `autostart.bat`. **실기기 미확인.** 쓰는 모양 세 가지(집 상시 서버 / +가족 / 회사 PC 근무 중)를 START.md에 정리 |
 | 34 | 서버 이름(`MALHAN_LABEL`, 비우면 Mac/Windows): `/manifest.webmanifest`를 동적으로 내어 앱 이름을 「말한대로 · 집」처럼 붙임 → 한 폰에 서버 둘(집 Mac·회사 Windows)을 각각 앱으로 설치·구분. `/api/me`의 `label`, 화면 아래에 표시. **이름을 바꾸거나 처음 적용할 땐 폰에서 앱을 다시 설치**해야 홈 화면 이름이 바뀜 |

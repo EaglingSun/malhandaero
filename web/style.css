@@ -236,3 +236,9 @@ ul.details { margin: 0; padding: 0 0 0 18px; font-size: 14px; color: var(--muted
 .grow-sub { color: var(--muted, #6b7280); font-size: 13px !important; }
 .card.grow a.like { grid-column: 1 / -1; }
 a.like { display: block; text-align: center; margin-top: 8px; padding: 10px; border-radius: 12px; background: var(--mint); color: #063; text-decoration: none; font-weight: 600; }
+
+/* 새 버전 알림 띠 */
+.upbar { position: fixed; left: 12px; right: 12px; bottom: calc(150px + env(safe-area-inset-bottom)); z-index: 7;
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  background: var(--ink); color: #fff; border-radius: 14px; padding: 10px 14px; font-size: 14px; box-shadow: 0 10px 24px rgba(34,50,68,.3); }
+.upbar .pick.small { padding: 6px 12px; font-size: 13px; }

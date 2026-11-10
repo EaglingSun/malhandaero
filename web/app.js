@@ -57,6 +57,8 @@
       $("v-join").hidden = true; $("v-main").hidden = false;
       $("who").textContent = me.name + " 님";
       $("ver").textContent = (me.label ? me.label + " · " : "") + (me.version ? "버전 " + me.version : "");
+      $("upbar").hidden = !me.update;
+      if (me.update) $("upbar-text").textContent = "새 버전이 있어요 (" + me.update.after + ")" + (me.update.log && me.update.log[0] ? " · " + me.update.log[0] : "");
       if (me.label) document.title = "말한대로 · " + me.label;
       var q = new URLSearchParams(location.search).get("shared");
       if (q) { say("in-msg", q === "0" ? "받을 내용이 없었어요." : q + "건 받았어요. 듣고 적어 둘게요."); history.replaceState(null, "", "/"); }
@@ -689,6 +691,7 @@
   });
 
   /* ---------- 업데이트 ---------- */
+  $("upbar-go").addEventListener("click", function () { $("upbar").hidden = true; $("btn-update").click(); window.scrollTo(0, document.body.scrollHeight); });
   $("btn-update").addEventListener("click", function () {
     var b = $("btn-update"); b.disabled = true; say("update-msg", "업데이트가 있는지 보고 있어요…");
     api("/api/update", { method: "POST" }).then(function (r) {

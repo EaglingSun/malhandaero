@@ -428,3 +428,18 @@ def test_index_versions_assets_and_assets_are_no_cache():
     r = client.get("/")
     assert "/style.css?v=" in r.text and "/app.js?v=" in r.text and r.headers["cache-control"] == "no-cache"
     assert client.get("/style.css").headers["cache-control"] == "no-cache"
+
+
+def test_update_banner_when_remote_is_ahead(monkeypatch):
+    from server import app as appmod, updater
+    calls = {"rev-parse HEAD": "aaaaaaa1", "rev-parse origin/main": "bbbbbbb2", "rev-parse --abbrev-ref HEAD": "main",
+             "merge-base --is-ancestor aaaaaaa1 bbbbbbb2": "", "log --oneline --no-decorate aaaaaaa1..bbbbbbb2": "bbbbbbb2 말하기 고침\n",
+             "fetch --quiet origin main": ""}
+    monkeypatch.setattr(updater, "git", lambda *a: calls[" ".join(a)])
+    appmod._check_remote()
+    assert appmod.UPDATE_AVAILABLE == {"after": "bbbbbbb", "log": ["말하기 고침"]}
+    join("띠")
+    assert client.get("/api/me").json()["update"]["after"] == "bbbbbbb"
+    calls["rev-parse origin/main"] = "aaaaaaa1"
+    appmod._check_remote()
+    assert not appmod.UPDATE_AVAILABLE and client.get("/api/me").json()["update"] is None

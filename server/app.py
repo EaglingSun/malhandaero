@@ -199,6 +199,7 @@ def me(user=Depends(current_user)):
         "stt": stt.available(),
         "version": _version(),
         "label": app_label(),
+        "update": dict(UPDATE_AVAILABLE) if UPDATE_AVAILABLE else None,
         "diary": _diary_on(user["id"]),
         "post_url": os.environ.get("MALHAN_POST_URL", "").strip(),
     }
@@ -297,20 +298,47 @@ def update_now(user=Depends(current_user)):
     return _update_now()
 
 
+UPDATE_AVAILABLE: dict = {}  # {"after": "abc1234", "log": [...]} 새 버전이 있을 때. 화면 위 띠로 알린다
+
+
+def _check_remote() -> None:
+    """받지는 않고 새 버전이 있는지만 본다 (git fetch). 있으면 UPDATE_AVAILABLE에 적어 화면이 띠를 보여 준다."""
+    try:
+        branch = updater.git("rev-parse", "--abbrev-ref", "HEAD")
+        updater.git("fetch", "--quiet", "origin", branch)
+        here, there = updater.git("rev-parse", "HEAD"), updater.git("rev-parse", f"origin/{branch}")
+        if here != there and updater.git("merge-base", "--is-ancestor", here, there) == "":
+            log = updater.git("log", "--oneline", "--no-decorate", f"{here}..{there}").splitlines()
+            UPDATE_AVAILABLE.update(after=there[:7], log=[(l.split(" ", 1)[1] if " " in l else l) for l in log][:8])
+        else:
+            UPDATE_AVAILABLE.clear()
+    except Exception:
+        pass
+
+
 def _nightly_update() -> None:
-    """새벽 4시쯤 하루 한 번 업데이트를 확인한다. 아무도 안 쓰는 시간에 저절로 새 버전이 된다."""
+    """한 시간마다 새 버전이 있는지 보고(화면에 띠), 새벽 4시쯤 하루 한 번 저절로 받아 다시 켠다.
+    MALHAN_AUTO_UPDATE=now 이면 새 버전을 보는 즉시 — 단 처리 중인 녹음이 없을 때 — 받아 다시 켠다."""
     import time
 
-    last = ""
+    last, tick = "", 0
     while True:
         time.sleep(600)
+        tick += 1
+        if os.environ.get("MALHAN_AUTO_UPDATE") == "0":
+            continue
         now = datetime.now(TZ)
-        if now.hour == 4 and last != now.date().isoformat() and os.environ.get("MALHAN_AUTO_UPDATE") != "0":
-            last = now.date().isoformat()
-            try:
-                _update_now()
-            except Exception:
-                pass
+        nightly = now.hour == 4 and last != now.date().isoformat()
+        if tick % 6 == 0 or nightly:
+            _check_remote()
+        if nightly or (UPDATE_AVAILABLE and os.environ.get("MALHAN_AUTO_UPDATE", "1").lower() == "now" and not pending_count()):
+            if nightly:
+                last = now.date().isoformat()
+            if UPDATE_AVAILABLE or nightly:
+                try:
+                    _update_now()
+                except Exception:
+                    pass
 
 
 if os.environ.get("MALHAN_NIGHTLY_UPDATE", "1") == "1" and not os.environ.get("PYTEST_CURRENT_TEST"):
