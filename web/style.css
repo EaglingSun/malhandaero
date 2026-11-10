@@ -269,6 +269,6 @@ ol.steps { margin: 4px 0; padding-left: 20px; display: flex; flex-direction: col
   }
   .fab { right: calc(50% - 320px - 80px); bottom: auto; top: 24px; }
   .upbar, .chromebar { left: 50%; right: auto; transform: translateX(-50%); width: 616px; bottom: 104px; }
-  .sheet-body { max-width: 640px; border-radius: 22px; bottom: 24px; }
+  .sheet-body { max-width: 640px; border-radius: 22px; bottom: auto; top: 10vh; max-height: 80vh; }   /* PC에선 아래서 올라오지 않고 가운데 창으로 */
   .card { padding: 20px; }
 }
