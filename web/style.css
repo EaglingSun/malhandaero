@@ -248,3 +248,5 @@ details#http-help, details#share-help { background: #fff8d6; border: 1.5px solid
 details#share-help { background: #f8fcff; border-color: var(--line); }
 details#http-help summary, details#share-help summary { cursor: pointer; font-weight: 700; }
 details#http-help code { background: #fff; border-radius: 6px; padding: 1px 6px; font-size: 13px; word-break: break-all; }
+
+ol.steps { margin: 4px 0; padding-left: 20px; display: flex; flex-direction: column; gap: 4px; }

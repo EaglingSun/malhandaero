@@ -139,7 +139,7 @@
 
     <section id="link-box" class="card" hidden aria-labelledby="h-link">
       <h2 id="h-link">휴대폰에서 쓰기</h2>
-      <p class="msg">폰에서 <b>Chrome</b>을 열고 아래 주소를 입력한 뒤, 이름과 코드로 들어가 Chrome 메뉴 → <b>「홈 화면에 추가」</b>를 누르면 앱처럼 쓸 수 있어요.</p>
+      <p class="msg">폰 <b>Chrome</b>에서 이 주소 열기 → 이름·코드 → 메뉴 「홈 화면에 추가」</p>
       <p class="msg"><code id="phone-url"></code> <button type="button" class="link" id="phone-copy">복사</button></p>
       <div class="row">
         <button type="button" class="pick" id="link-me">QR로 바로 들어가기</button>
@@ -148,18 +148,22 @@
       <div id="link-qr" class="qr" hidden></div>
       <p class="msg" id="link-url"></p>
       <details id="http-help" hidden>
-        <summary>폰에서 「설치」가 안 되거나 공유 목록에 안 보여요</summary>
-        <p class="msg">지금 주소가 <b>http</b>라서 그래요. 폰 Chrome에 이 주소를 예외로 등록하면 설치·공유·말하기가 돼요 (1분).<br>
-        폰 Chrome 주소창에 <code>chrome://flags/#unsafely-treat-insecure-origin-as-secure</code> → 칸에 아래 주소를 넣고 <b>Enabled</b> → Chrome 다시 시작 → 다시 「홈 화면에 추가」.<br>
-        <code id="http-origin"></code> <button type="button" class="link" id="http-copy">복사</button></p>
+        <summary>「설치」가 안 돼요 (http 주소라서)</summary>
+        <p class="msg">폰 Chrome에 이 주소를 예외로 등록하면 돼요.</p>
+        <ol class="msg steps">
+          <li>주소창에 <code>chrome://flags/#unsafely-treat-insecure-origin-as-secure</code></li>
+          <li>칸에 <code id="http-origin"></code> 넣고 <b>Enabled</b> → Chrome 다시 시작</li>
+          <li>다시 「홈 화면에 추가」</li>
+        </ol>
+        <button type="button" class="link" id="http-copy">주소 복사</button>
       </details>
       <details id="share-help">
-        <summary>가족이나 팀과 같이 쓰고 싶다면</summary>
-        <p class="msg">한 PC(또는 팀 서버)에 설치하고 Tailscale을 더하면 집 밖에서도 언제나 쓸 수 있어요. 약간 손이 가지만 가이드(INSTALL.md)를 따라 하면 돼요. <button type="button" class="link helper" data-topic="tailscale">Tailscale 설정 도우미 글 복사</button> → Claude나 ChatGPT에 붙여넣으면 한 단계씩 안내해 줘요.</p>
-        <p class="msg">준비가 되면 여기서 초대해요:
+        <summary>가족·팀과 같이 쓰기</summary>
+        <p class="msg">한 PC에 설치하고 Tailscale을 더하면 집 밖에서도 돼요. 가이드는 INSTALL.md. <button type="button" class="link helper" data-topic="tailscale">도우미 글 복사</button>(Claude·ChatGPT에 붙여넣기)</p>
+        <div class="row">
           <button type="button" id="link-family">초대 QR</button>
-          <span id="link-lan" hidden><button type="button" class="link" id="link-lan-go">같은 와이파이용 QR</button></span>
-        </p>
+          <span id="link-lan" hidden><button type="button" id="link-lan-go">같은 와이파이용 QR</button></span>
+        </div>
         <form id="code-form" class="row">
           <label class="sr" for="code-new">새 코드</label>
           <input id="code-new" maxlength="32" placeholder="들어올 때 쓰는 코드 바꾸기">
