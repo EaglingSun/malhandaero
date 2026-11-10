@@ -2,28 +2,29 @@
 
 > 말만 하세요. 기억은 제가 할게요.
 
-녹음(통화, 회의, 혼잣말)과 사진에서 **내가 챙길 일**을 뽑아 하루 단위로 관리해 주는 개인 비서 앱. 설치·사용은 `docs/START.md`, 이력은 `docs/HANDOFF.md`.
+녹음(통화, 회의, 혼잣말)과 사진에서 **내가 챙길 일**을 뽑아 하루 단위로 관리해 주는 개인 비서 앱. 설치·사용은 `docs/START.md`, 코드 구조와 결정은 `docs/ARCHITECTURE.md`, 남은 일은 `docs/HANDOFF.md`.
 사람이 하는 일은 "말하기, 고르기, 체크"뿐이고 기록·정리·이월은 앱이 한다.
 
 ## 1. 홍보에서 한 약속과 설계 대응
 
-홍보 페이지에 쓴 문장은 곧 요구사항이다. 각 문장이 어떤 기능으로 지켜지는지 추적한다. (1차 배포 11/10 기준)
+홍보 페이지(`docs/POSTER.html`)에 쓴 문장은 곧 요구사항이다. 각 문장이 어떤 기능으로 지켜지는지 추적한다. 포스터 문구를 바꾸면 이 표도 맞춘다. (1차 배포 11/10 기준)
 
-| 약속 | 지키는 기능 | 상태 |
+| 약속 (포스터 문구) | 지키는 기능 | 상태 |
 |---|---|---|
 | 말만 하세요 | 넣기 시트의 「말하기」(브라우저 음성 인식, 안 되면 녹음해 서버로) | 됨 — 앱으로 설치한 뒤(또는 https)에서 |
-| 녹음 공유 한 번 | 폰 녹음 앱의 공유 목록에 말한대로 (PWA share target). 텍스트 변환본이 기본, 음성 파일도 됨(whisper) | 됨 |
-| 대신 적어 둘게요 | 받는 즉시 자동 추출. 통화·회의면 회의록까지 | 됨 |
-| 고른다 | 오늘 / 나중 / 안 함 하나만 | 됨 |
-| 쉰다 | 「오늘은 여기까지」 정리 글, 못 끝낸 일 자동 이월, 오늘 한 줄(기분·문구), 달력 | 됨 |
-| 회사에서도, 집에서도 | 개인/회사 구분. PC 두 대면 `MALHAN_LABEL`로 폰에 두 앱 | 됨 |
-| 캘린더 | 구글(내장 클라이언트, PC localhost에서 한 번)·네이버. 올리기 + 가져오기 | 됨 |
-| 찍기만 하세요 | 사진에서 챙길 일 추출 | 됨 |
-| 설치는 파일 하나 | `setup-windows.bat` / `setup-mac.command` → 바탕 화면 바로가기, 폰은 Chrome 예외 등록 후 설치 | 됨 |
+| 녹음 앱에서 「공유」 한 번 | 폰 녹음 앱의 공유 목록에 말한대로 (PWA share target). 텍스트 변환본이 기본, 음성 파일도 됨(whisper) | 됨 |
+| 챙길 일은 할 일로 · 회의는 회의록으로 | 받는 즉시 자동 추출. 통화·회의면 회의록까지. 남의 일은 「내 일로 가져오기」 | 됨 |
+| 말하거나, 붙이거나, 찍거나 | 넣기 시트: 말하기 · 글 붙여넣기 · 사진 찍기 · 파일 넣기 · 직접 적기 | 됨 |
+| 일정은 캘린더로 · 오늘 일정이 할 일 위에 | 구글(내장 클라이언트, PC localhost에서 한 번)·네이버. 올리기 + 가져오기 | 됨 |
+| 「오늘은 여기까지」, 씨앗이 자라요 | 정리 글, 못 끝낸 일 자동 이월, 오늘 한 줄(기분·문구), 달력 | 됨 |
+| 내 PC가 서버 · 내 PC에만 | 각자 PC의 서버와 `data/`. AI로 가는 때는 8장 | 됨 |
+| 설치는 파일 하나로 시작해요 | `setup-windows.bat` / `setup-mac.command` → 바탕 화면 바로가기, 폰은 Chrome 예외 등록 후 설치 | 됨 |
 | 구독 중인 Claude로, API 키 없이 | 이 PC의 Claude Code CLI를 부른다. 없으면 AI 없이 할 일 앱으로 | 됨 — Pro 이상 구독 전제 |
 | 새 버전은 알아서 | 켤 때·새벽 4시 자동, 한 시간마다 확인해 「지금 적용」 띠 | 됨 |
+| (포스터에 없음) 오늘 · 나중 · 안 함 | 하나만 누르면 끝. `README.md` 「되는 것」에 있다 | 됨 |
+| (포스터에 없음) 개인/회사 | 할 일에 개인/회사 표시. PC 두 대면 `MALHAN_LABEL`로 폰에 두 앱 | 됨 |
 | 필요한 것만 골라 더하기 | 더하기(애드온) | **공모 이후**. 홍보에서는 뺐다 |
-| 다양한 AI 연결 | codex / api / gpt / gemini / ollama 모드 | 코드만, 다음 버전에서 안내 |
+| 다양한 AI 연결 | codex / api / gpt / gemini / ollama / openai 모드 | 코드만, 다음 버전에서 안내 |
 
 ## 2. 입력 종류
 
@@ -42,18 +43,18 @@
 ```
 받기 ─→ 글로 바꾸기 ─→ 화자 해석 ─→ 추출 ─→ 겹침 제거 ─→ "새로 적어 둔 것"
 (공유/말하기/     (음성: 음성 인식   (나 지정)    (AI)     (기존 목록과 비교)
- 사진/파일)       사진: AI가 읽기)                  └─→ 켜 둔 더하기(애드온)도 같은 글을 본다
+ 사진/파일)       사진: AI가 읽기)
 ```
 
-입력 한 건의 상태: `received → transcribing → ready → extracting → extracted` (실패 시 `failed` + 사유)
+입력 한 건의 상태 값은 `docs/ARCHITECTURE.md` 1절.
 
-- **글로 바꾸기**: 집 PC에서 로컬 음성 인식(faster-whisper)을 돌린다. 녹음이 밖으로 나가지 않는다.
+- **글로 바꾸기**: 기본은 이 PC의 로컬 음성 인식(faster-whisper)이라 녹음이 밖으로 나가지 않는다. whisper가 없고 Gemini 키가 있으면 Gemini가 듣는다(8장).
   말하기 버튼은 브라우저 음성 인식이 되면 그것을 먼저 쓰고, 안 되면 녹음해서 서버로 보낸다.
 - **사진 읽기**: 글로 바꾸기 단계의 다른 길이다. 사진을 AI에 보내 보이는 글을 옮겨 적게 하고, 그 뒤는 녹음과 같다.
   큰 사진은 서버에서 줄여서 보낸다.
 - **화자 해석**: 화자 표기가 2명 이상이면 "누가 나인가요?"를 한 번 묻는다. 답하기 전에도 추출은 하되
   "내 일로 보이는 것"만 뽑고, 지정하면 다시 추출한다.
-- **추출 규칙**: 내가 하겠다고 한 일, 내가 부탁받아 맡은 일, 잊지 않으려고 말한 일만. 남의 일·끝난 일·잡담 제외.
+- **추출 규칙**: 내 일은 내가 하겠다고 한 일, 내가 부탁받아 맡은 일, 잊지 않으려고 말한 일. 남의 일은 따로 담아 두고(「내 일로 가져오기」), 끝난 일·잡담은 뺀다.
   항목마다 근거 문장, 기한 표현, 기한 날짜, 개인/회사를 붙인다.
 - **겹침 제거**: 아직 열려 있는 항목과 문장이 거의 같으면 새로 만들지 않는다.
 - **쓸수록 맞춰지기**: "안 함"으로 넘긴 최근 항목을 추출 지시에 반례로 넣는다.
@@ -64,7 +65,7 @@
 
 | 필드 | 뜻 |
 |---|---|
-| `status` | `new`(새로 적어 둠) `todo`(하기로 함) `later`(나중) `skipped`(안 함) `done`(끝냄) |
+| `status` | `new`(새로 적어 둠) `todo`(하기로 함) `later`(나중) `skipped`(안 함) `done`(끝냄) `other`(남의 일 — 날짜 화면에는 안 나온다) |
 | `plan_date` | 하기로 한 날. `todo`일 때만 있음 |
 | `due_date` | 녹음에 나온 기한 |
 | `done_at` | 끝낸 날 |
@@ -116,57 +117,21 @@
 
 ## 7. 구조
 
-```
-폰 (설치형 웹앱, Chrome)  /  PC 브라우저
-   │  같은 와이파이 http (Chrome 예외 등록)  또는  Tailscale https (선택)
-내 PC 서버 (FastAPI, uvicorn)  ← tools/run.py 가 감독, 업데이트 뒤 다시 켬
-   ├─ SQLite data/        : 사람, 입력, 항목, 하루 정리, 캘린더 연결
-   ├─ 음성 인식 server/stt.py : faster-whisper(로컬) | gemini | 없음
-   ├─ AI server/llm.py    : claude(Claude Code CLI, 기본) | codex | api | gpt | gemini | ollama | fake
-   ├─ 캘린더 server/calsync.py : 구글(내장 데스크톱형 OAuth 클라이언트, localhost에서 연결) · 네이버(CalDAV, 앱 비밀번호)
-   └─ 업데이트 server/updater.py : git fast-forward → 필요 시 재설치 → 재시작. 켤 때·새벽 4시·한 시간마다 확인
-```
+코드 구성 · 데이터 모델 · 바깥 연결 · 켜기와 업데이트는 `docs/ARCHITECTURE.md`에 있다. 여기에는 그렇게 정한 이유만 남긴다.
 
 - **왜 서버에 저장하나**: 폰에서 말하고 PC에서 고르는 흐름이 되려면 기기 간에 같은 목록이 보여야 한다.
 - **사람 구분**: 로그인 코드(서버 `.env`의 `MALHAN_FAMILY_CODE`)와 이름으로 들어온다. 사람마다 목록이 완전히 분리된다. 설치 때 본인이 정하고 앱에서 바꿀 수 있다.
-- **폰 접속**: 기본은 같은 와이파이 http. 브라우저가 http에서 막는 설치·공유·마이크는 폰 Chrome에 주소를 예외 등록(`chrome://flags/#unsafely-treat-insecure-origin-as-secure`)해 푼다(실기기 확인). 집 밖·가족·팀은 Tailscale https(선택).
-- **AI**: 이 PC에 로그인된 Claude Code(`claude -p`)가 기본. 각자 PC·각자 로그인이 전제이고, 한 로그인으로 여러 명이 쓰는 공용 서버는 만들지 않는다. 다른 모드는 `.env`의 `MALHAN_AI`로 고르고, 비워 두면 Anthropic 키 → claude → codex → OpenAI 키 → Gemini 키 순으로 있는 것을 쓴다. 없으면 `none` — 직접 적기·캘린더·하루 마무리는 그대로 된다.
-- **켜기**: `setup-*`가 설치 뒤 바로 켜고, 이후 바탕 화면 「말한대로 켜기」(`tools/run.bat`) / `start.command`. 켜면 PC 브라우저가 localhost로 한 번 열린다(자동 시작은 안 엶). 포트가 쓰이는 중이면 켜지지 않고 안내.
-- **서버 라벨**: `MALHAN_LABEL`이 manifest 이름에 붙어 PC 두 대가 폰에 두 앱으로 깔린다.
-
-### 데이터 모델
-
-```
-users(id, name, token, created_at)
-inputs(id, user_id, kind, title, source_name, received_date, transcript, summary, minutes,
-       speakers, me_speaker, status, error, done_at, created_at)
-items(id, user_id, input_id, text, quote, details(JSON), due_text, due_date, scope, owner(me|other), who,
-      status(new|todo|later|skipped|done|other), plan_date, plan_time, done_at, cal_ref, addon, record_id,
-      created_at, updated_at)
-day_logs(user_id, date, summary, mood, note, created_at)
-calendar_links(user_id, provider, ... 연결 정보·올릴 캘린더·가져올 캘린더·모드)
-calendar_hidden(user_id, event_key)          -- 「숨기기」한 캘린더 일정
-addon_settings(user_id, addon, enabled, options)   -- 자리만
-records(id, user_id, addon, type, input_id, data(JSON), date, status, created_at)   -- 자리만
-```
-
-칸을 더할 때는 `server/db.py`의 `MIGRATIONS`에 한 줄. 표를 새로 만들지 않는다(사용자가 이미 자료를 쌓고 있다).
 
 ## 8. 개인정보와 회사 정보
 
-- 사진도 읽기 단계에서 AI API로 전송된다. 주민등록증·카드처럼 민감한 것이 찍힌 사진은 넣지 않도록 안내한다.
-- 통화에는 상대방의 말이 들어 있다. 녹음과 글은 집 PC 밖으로 나가지 않게 하되, **추출 단계에서 글 내용이 AI API로 전송된다**는 점을 설정 화면에 밝힌다.
-- 회사 회의는 회사 보안 규정을 따른다. 사내 배포판은 사내 허용 모델만 쓰도록 설정값으로 막는다.
-- 음성 파일은 변환 후 삭제가 기본값이다.
+- 기록은 이 PC의 `data/`에만 저장한다. **AI로 가는 때는 할 일을 뽑을 때와 하루 마무리 글을 쓸 때 둘이다**(기본은 이 PC의 Claude Code). 무엇이 가는지는 `docs/ARCHITECTURE.md` D-14. 통화에는 상대방의 말이 들어 있으므로 이 점을 `README.md`와 `docs/START.md`의 「알아 둘 것」에 밝힌다.
+- 회사 회의는 회사 보안 규정을 따른다.
+- 음성·사진 원본은 글로 바꾼 뒤 지운다.
+- 아직 없는 것(계획): 앱 화면 안의 같은 안내, 민감한 사진(주민등록증·카드)을 넣지 말라는 안내, 사내 배포판에서 사내 허용 모델만 쓰게 막는 설정.
 
 ## 9. 단계
 
-| 단계 | 내용 | 상태 |
-|---|---|---|
-| M0~M3 | 뼈대, 추출, 날짜 관리, 화자 지정, 하루 정리, 음성 변환, 말하기, PWA·공유, 로그인 코드 | 완료 |
-| 배포 준비 | 캘린더(구글 원클릭·네이버), 자동 업데이트, 설치 파일 하나(Windows/Mac), 폰 http 설치 경로, 달력·오늘 한 줄, PC 화면, 셋업 가이드 | 완료 (11/10 1차 배포, 릴리스 v1.0.0) |
-| 공모 | 게시글(「회의와 업무 기록」), 포스터, 댓글로 요청 받기 | 11/10~18 |
-| 다음 | 다양한 AI 연결 안내(Codex·GPT·Gemini, 회사 AI가 OpenAI 호환이면 `openai` 모드로), 수치 측정, 더하기 틀 | 공모 이후 |
+지금은 1차 배포(11/10, 릴리스 v1.0.0) 뒤 공모 기간(11/10~18)이다. 다음에 할 일은 `docs/HANDOFF.md` 3절, 끝난 단계는 `docs/ARCHIVE.md` 4절.
 
 ## 10. 측정할 것 (공모 글의 수치)
 
@@ -174,7 +139,7 @@ records(id, user_id, addon, type, input_id, data(JSON), date, status, created_at
 - 추출 정확도: 뽑힌 것 중 "안 함"으로 넘긴 비율, 빠뜨려서 직접 추가한 건수
 - 녹음을 넣은 뒤 목록에 뜰 때까지 걸린 시간
 
-## 11. 더하기(애드온)
+## 11. 더하기(애드온) — 계획. 아직 만들지 않았다
 
 본체는 "챙길 일"만 안다. 주제별 기능은 **더하기**로 붙이고, 사람마다 켜고 끈다.
 배포한 뒤에도 폴더 하나를 추가하면 새 더하기가 붙도록 한다.

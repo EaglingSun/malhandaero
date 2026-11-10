@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>말한대로 디자인 덱</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&display=swap" rel="stylesheet">
+<style>
+/* 색과 글꼴의 기준. docs/POSTER.html · tools/build_start_html.py 가 같은 값을 쓴다 (tests/test_docs_sync.py 가 확인) */
+:root {
+  --sky: #eaf6ff; --paper: #fff; --ink: #223244; --muted: #64788c; --line: #dce8f2;
+  --mint: #12b58a; --mint-soft: #dff7ef; --sun: #ffe066; --coral: #ff7d5c;
+  --font-display: "Jua", "Gowun Dodum", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  --font-body: "Gowun Dodum", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+body { margin: 0; word-break: keep-all; background: linear-gradient(var(--sky), var(--paper) 620px); background-color: var(--paper); color: var(--ink); font-family: var(--font-body); font-size: 17px; line-height: 1.6; }
+main { max-width: 960px; margin: 0 auto; padding: 40px 20px 60px; display: flex; flex-direction: column; gap: 44px; }
+h1, h2, h3 { font-family: var(--font-display); font-weight: 400; margin: 0; }
+h1 { font-size: 40px; } h2 { font-size: 26px; }
+section { display: flex; flex-direction: column; gap: 14px; }
+.note { color: var(--muted); font-size: 15px; margin: 0; }
+code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 13.5px; background: #f1f6fa; padding: 1px 6px; border-radius: 6px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 12px; }
+.sw { background: var(--paper); border: 1.5px solid var(--line); border-radius: 16px; overflow: hidden; font-size: 14px; }
+.sw i { display: block; height: 64px; border-bottom: 1.5px solid var(--line); }
+.sw div { padding: 8px 12px 10px; display: flex; flex-direction: column; gap: 2px; }
+.sw span { color: var(--muted); font-size: 13px; }
+.row { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; }
+.box { background: var(--paper); border: 1.5px solid var(--line); border-radius: 20px; padding: 18px 20px; display: flex; flex-direction: column; gap: 10px; }
+.box > small { color: var(--muted); font-size: 13px; }
+table { border-collapse: collapse; width: 100%; font-size: 15px; background: var(--paper); }
+th, td { border: 1px solid var(--line); padding: 8px 12px; text-align: left; vertical-align: top; } th { background: #f4f8fb; }
+
+/* 아래는 포스터에서 그대로 가져온 부품 */
+mark { background: linear-gradient(transparent 55%, var(--sun) 55%); color: inherit; padding: 0 2px; }
+.name { font-family: var(--font-display); font-size: 17px; color: var(--mint); background: var(--paper); border: 1.5px solid var(--mint); padding: 4px 14px; border-radius: 999px; }
+.cta { display: inline-block; background: var(--mint); color: #fff; font-family: var(--font-display); font-size: 21px; padding: 14px 32px; border-radius: 999px; text-decoration: none; box-shadow: 0 10px 24px rgba(18,181,138,.32); }
+.cta.ghost { background: var(--ink); box-shadow: none; }
+.cta-note { font-size: 15px; color: var(--muted); }
+.badge { font-size: 13px; background: var(--sun); border-radius: 999px; padding: 2px 12px; }
+.k { font-family: var(--font-display); font-size: 15px; color: var(--coral); }
+.fact { background: var(--paper); border: 1.5px solid var(--line); border-radius: 16px; padding: 14px 16px; display: flex; flex-direction: column; gap: 2px; max-width: 240px; }
+.fact b { font-family: var(--font-display); font-weight: 400; font-size: 19px; } .fact span { font-size: 14px; color: var(--muted); line-height: 1.5; }
+.step { background: var(--paper); border: 1.5px solid var(--line); border-radius: 20px; padding: 16px 16px 18px; display: flex; flex-direction: column; gap: 4px; max-width: 220px; }
+.step::before { content: "1"; font-family: var(--font-display); width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: var(--sun); font-size: 18px; margin-bottom: 6px; }
+.step strong { font-family: var(--font-display); font-weight: 400; font-size: 20px; } .step span { color: var(--muted); font-size: 14.5px; line-height: 1.55; }
+.close { background: var(--mint-soft); border-radius: 24px; padding: 22px 24px; font-family: var(--font-display); font-size: 22px; }
+.ph { width: 260px; background: #fff; border: 1.5px solid var(--line); border-radius: 34px; padding: 10px; box-shadow: 0 24px 60px rgba(60,120,170,.16); }
+.sc { background: linear-gradient(#eaf6ff, #f7fbff 50%); border-radius: 26px; padding: 16px 14px 60px; display: flex; flex-direction: column; gap: 10px; font-size: 13px; position: relative; overflow: hidden; }
+.h { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 16px; }
+.h em { font-style: normal; background: var(--sun); border-radius: 999px; font-size: 11px; padding: 1px 8px; font-weight: 700; }
+.it { background: #fff; border: 1.5px solid var(--line); border-radius: 16px; padding: 10px 12px; display: flex; align-items: center; gap: 10px; }
+.it .o { width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--mint); flex: none; }
+.it .o.on { background: var(--mint); color: #fff; display: grid; place-items: center; font-size: 13px; }
+.it .w { display: flex; flex-direction: column; gap: 5px; } .it .w b { font-size: 14px; line-height: 1.3; }
+.it.done { background: var(--mint-soft); border-color: var(--mint-soft); } .it.done b { text-decoration: line-through; color: var(--muted); font-weight: 400; }
+.tg { display: flex; gap: 5px; flex-wrap: wrap; }
+.tg span { font-size: 10px; padding: 1px 8px; border-radius: 999px; background: #f1f6fa; color: var(--muted); }
+.tg .work { background: #e6f0ff; color: #2b5fb0; } .tg .home { background: #fff1ec; color: #b84a26; } .tg .when { background: var(--mint-soft); color: var(--ink); font-weight: 700; }
+.fab { position: absolute; right: 14px; bottom: 62px; width: 48px; height: 48px; border-radius: 50%; background: var(--mint); color: #fff; font-size: 30px; line-height: 48px; text-align: center; box-shadow: 0 8px 18px rgba(18,181,138,.4); }
+.tabs { position: absolute; left: 0; right: 0; bottom: 0; background: #fff; border-top: 1.5px solid var(--line); display: grid; grid-template-columns: repeat(4, 1fr); padding: 8px 6px; font-size: 12px; text-align: center; }
+.tabs span { padding: 6px 0; border-radius: 999px; } .tabs span.on { background: var(--mint-soft); font-weight: 800; }
+</style>
+</head>
+<body>
+<main>
+
+  <section>
+    <span class="name" style="align-self:flex-start">말한대로</span>
+    <h1>디자인 덱</h1>
+    <p class="note">홍보 페이지(<code>docs/POSTER.html</code>)의 색 · 글꼴 · 부품을 모아 둔 견본. 고치는 순서는 맨 아래 「쓰는 법」.</p>
+  </section>
+
+  <section>
+    <h2>색</h2>
+    <div class="grid">
+      <div class="sw"><i style="background:#12b58a"></i><div><b>--mint #12b58a</b><span>단추, 강조 글자, 체크</span></div></div>
+      <div class="sw"><i style="background:#dff7ef"></i><div><b>--mint-soft #dff7ef</b><span>끝낸 일, 결정 상자, 맺음 띠</span></div></div>
+      <div class="sw"><i style="background:#ffe066"></i><div><b>--sun #ffe066</b><span>형광펜, 배지, 숫자 동그라미</span></div></div>
+      <div class="sw"><i style="background:#ff7d5c"></i><div><b>--coral #ff7d5c</b><span>화면 설명 위 작은 이름</span></div></div>
+      <div class="sw"><i style="background:#223244"></i><div><b>--ink #223244</b><span>본문 글자, 어두운 단추</span></div></div>
+      <div class="sw"><i style="background:#64788c"></i><div><b>--muted #64788c</b><span>보조 설명</span></div></div>
+      <div class="sw"><i style="background:#dce8f2"></i><div><b>--line #dce8f2</b><span>테두리 1.5px</span></div></div>
+      <div class="sw"><i style="background:#eaf6ff"></i><div><b>--sky #eaf6ff</b><span>위쪽 배경. 아래로 흰색까지</span></div></div>
+    </div>
+    <p class="note">태그 색: 회사 <code>#e6f0ff</code> 바탕에 <code>#2b5fb0</code> 글자, 개인 <code>#fff1ec</code> 바탕에 <code>#b84a26</code> 글자.</p>
+  </section>
+
+  <section>
+    <h2>글꼴과 크기</h2>
+    <div class="box">
+      <h1>말만 하세요. <mark>기억은 제가</mark> 할게요</h1>
+      <small>제목 — Jua. 큰 제목 38~66px, 절 제목 30px, 카드 제목 19~27px. 굵기는 400만 쓴다.</small>
+      <p style="margin:0;font-size:20px">통화·회의 녹음을 폰에서 <b style="color:var(--mint)">공유 한 번</b>. 챙길 일은 할 일로.</p>
+      <small>본문 — Gowun Dodum. 본문 18px, 이끄는 글 20px, 설명 14~16px. 줄 간격 1.6.</small>
+    </div>
+    <p class="note">글꼴을 못 받으면 Apple SD Gothic Neo, 맑은 고딕 순으로 바뀐다. 줄바꿈은 낱말 단위(<code>word-break: keep-all</code>).</p>
+  </section>
+
+  <section>
+    <h2>모양</h2>
+    <table>
+      <tr><th>대상</th><th>값</th></tr>
+      <tr><td>둥근 모서리</td><td>알약 999px (단추 · 배지 · 태그) · 카드 16~24px · 폰 모형 34px</td></tr>
+      <tr><td>테두리</td><td>1.5px <code>--line</code>. 강조할 때만 <code>--mint</code></td></tr>
+      <tr><td>그림자</td><td>민트 단추 <code>0 10px 24px rgba(18,181,138,.32)</code> · 폰 모형 <code>0 24px 60px rgba(60,120,170,.16)</code></td></tr>
+      <tr><td>폭과 간격</td><td>본문 폭 1060px · 절 사이 64px (폰 40px) · 카드 사이 12~16px</td></tr>
+      <tr><td>화면 너비</td><td>1000px 아래에서 갤러리 한 줄 · 760px 아래에서 모두 한 줄</td></tr>
+    </table>
+  </section>
+
+  <section>
+    <h2>부품</h2>
+    <div class="row">
+      <a class="cta" href="#">15분이면 써 봐요</a>
+      <a class="cta ghost" href="#">시작 안내</a>
+      <span class="cta-note">단추 옆 보조 설명</span>
+    </div>
+    <div class="row">
+      <span class="name">말한대로</span>
+      <span class="badge">준비된 PC 기준 15분 · 5단계</span>
+      <span class="k">넣기</span>
+      <span><mark>형광펜 강조</mark></span>
+    </div>
+    <div class="row" style="align-items:stretch">
+      <div class="fact"><b>내 PC가 서버</b><span>사실 카드. 제목 한 줄, 설명 두 줄까지.</span></div>
+      <div class="step"><strong>PC에 설치</strong><span>단계 카드. 숫자 동그라미, 제목, 설명 두 줄.</span></div>
+      <div class="ph"><div class="sc">
+        <div class="h">오늘 <em>1</em></div>
+        <div class="it"><span class="o"></span><div class="w"><b>공모전 출품하기</b><div class="tg"><span class="home">개인</span><span class="when">오늘</span></div></div></div>
+        <div class="it done"><span class="o on">✓</span><div class="w"><b>견적서 검토 의견 보내기</b><div class="tg"><span class="work">회사</span></div></div></div>
+        <div class="fab">+</div>
+        <div class="tabs"><span class="on">오늘</span><span>나중</span><span>넣은 것</span><span>달력</span></div>
+      </div></div>
+    </div>
+    <div class="close">맺음 띠 — 마지막 한마디와 단추 하나</div>
+  </section>
+
+  <section>
+    <h2>쓰는 법</h2>
+    <table>
+      <tr><th>할 일</th><th>지킬 것</th></tr>
+      <tr><td>포스터에 절을 더할 때</td><td>위 부품을 그대로 쓴다. 새 색을 만들지 않는다</td></tr>
+      <tr><td>화면 모형을 그릴 때</td><td>앱의 실제 화면 구성(탭 4개, + 단추)과 같게 그린다. 이름과 내용은 예시로</td></tr>
+      <tr><td>강조</td><td>한 화면에 민트 단추는 하나, 형광펜은 제목에 한 번</td></tr>
+      <tr><td>색을 바꿀 때</td><td>이 파일 → <code>docs/POSTER.html</code> → <code>tools/build_start_html.py</code> 순서로. 시험이 세 곳의 값을 비교한다</td></tr>
+    </table>
+  </section>
+
+</main>
+</body>
+</html>

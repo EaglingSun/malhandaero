@@ -1,6 +1,7 @@
 """docs/START.md → docs/START.html (그림을 안에 심은 파일 하나). 릴리스에 올리거나 메일로 보내도 캡처가 보인다.
 
-실행: python tools/build_start_html.py   (pip install markdown 필요)
+실행: python tools/build_start_html.py   (markdown은 requirements-dev.txt에 있다)
+색 값은 docs/STYLE.html의 :root가 기준이다. START.md를 고치고 다시 만들지 않으면 tests/test_docs_sync.py가 실패한다.
 """
 import base64
 import re
@@ -13,8 +14,8 @@ SRC = ROOT / "docs" / "START.md"
 OUT = ROOT / "docs" / "START.html"
 
 CSS = """
-:root { --ink:#223244; --muted:#64788c; --line:#dce8f2; --mint:#12b58a; --mint-soft:#dff7ef; --sun:#ffe066; }
-* { box-sizing:border-box } body { margin:0; background:linear-gradient(#eaf6ff,#fff 520px); color:var(--ink); font-family:"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif; font-size:17px; line-height:1.7; word-break:keep-all; }
+:root { --sky:#eaf6ff; --ink:#223244; --muted:#64788c; --line:#dce8f2; --mint:#12b58a; --mint-soft:#dff7ef; --sun:#ffe066; }
+* { box-sizing:border-box } body { margin:0; background:linear-gradient(var(--sky),#fff 520px); color:var(--ink); font-family:"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif; font-size:17px; line-height:1.7; word-break:keep-all; }
 main { max-width:860px; margin:0 auto; padding:40px 20px 60px; }
 h1 { font-size:34px; margin:0 0 6px } h2 { font-size:24px; margin:44px 0 10px; padding-top:18px; border-top:1.5px solid var(--line) } h2:first-of-type { border:0; padding-top:0 }
 p { margin:8px 0 } ol, ul { padding-left:24px } li { margin:6px 0 }
@@ -39,16 +40,28 @@ def embed_images(html: str) -> str:
     return re.sub(r'src="(img/[^"]+)"', rep, html)
 
 
-def main() -> None:
-    body = markdown.markdown(SRC.read_text(encoding="utf-8"), extensions=["tables"])
+def slug(value: str, separator: str) -> str:
+    """제목의 id를 GitHub와 같은 꼴로 만든다(START.md 안의 #링크와 앱의 /start#… 링크가 그대로 통하게)."""
+    return re.sub(r"\s", separator, re.sub(r"[^\w\s-]", "", value).strip().lower())
+
+
+def render() -> str:
+    body = markdown.markdown(
+        SRC.read_text(encoding="utf-8"),
+        extensions=["tables", "toc"],
+        extension_configs={"toc": {"slugify": slug}},
+    )
     body = embed_images(body)
-    OUT.write_text(
+    return (
         "<!DOCTYPE html>\n<html lang=\"ko\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">"
         f"<title>말한대로 시작하기</title><style>{CSS}</style></head><body><main>"
         "<p class=\"top\">말한대로 · 시작 안내</p>"
-        f"{body}</main></body></html>",
-        encoding="utf-8",
+        f"{body}</main></body></html>"
     )
+
+
+def main() -> None:
+    OUT.write_text(render(), encoding="utf-8", newline="\n")
     print(f"{OUT} ({OUT.stat().st_size // 1024} KB)")
 
 
