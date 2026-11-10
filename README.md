@@ -68,4 +68,5 @@ python -m pytest -q
 | `server/llm.py` | AI 호출 (모델을 바꿀 때 이 파일만) |
 | `server/stt.py` | 음성 인식 (엔진을 바꿀 때 이 파일만) |
 | `web/` | 화면 (빌드 단계 없음) |
+| `docs/MINUTES_FORMAT.md` | 회의록·할 일 형식의 기준. `skills/meeting-minutes`는 같은 형식을 Claude Code에서 쓰는 스킬 |
 | `server/updater.py` | 업데이트(git fast-forward) → 필요 시 재설치. 켜기 전(`tools/update.py`), 화면의 '업데이트', 새벽 자동 확인이 부른다 |

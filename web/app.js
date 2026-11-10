@@ -4,8 +4,25 @@
   var $ = function (id) { return document.getElementById(id); };
   var DAYS = ["일", "월", "화", "수", "목", "금", "토"];
   var KIND = { call: "통화", meeting: "회의", memo: "내 메모", file: "파일", photo: "사진" };
-  var STATUS = { received: "받았어요", transcribing: "글로 바꾸는 중", ready: "준비됨", extracting: "챙길 것 찾는 중", extracted: "다 적어 뒀어요", failed: "못 했어요" };
-  var state = { me: null, date: null, today: null, tab: "today", poll: null };
+  var STATUS = { received: "받았어요", transcribing: "듣고 글로 옮기는 중", ready: "준비됨", extracting: "듣고 정리하는 중", extracted: "다 적어 뒀어요", failed: "못 했어요" };
+  function pendingText(list) {
+    /* 처리 중 안내. 앱 말투로 가볍게, 긴 회의는 시간이 걸린다고 미리 말한다 */
+    var longs = list.filter(function (x) { return x.long || x.kind === "meeting"; });
+    var name = function (x) { return x.title ? "\"" + x.title.replace(/\.[a-z0-9]+$/i, "") + "\"" : KIND[x.kind] || "이야기"; };
+    if (longs.length) return name(longs[0]) + (list.length > 1 ? " 외 " + (list.length - 1) + "건" : "") + "을 꼼꼼히 듣고 정리하는 중이에요 ☕ 긴 회의는 몇 분 걸려요. 다른 일 보고 오셔도 돼요.";
+    if (list.some(function (x) { return x.status === "transcribing"; })) return "녹음을 듣고 글로 옮기는 중이에요. 길이만큼 시간이 걸려요.";
+    return (list.length > 1 ? list.length + "건을 " : "") + "듣고 챙길 것을 적어 두는 중이에요. 보통 10~30초면 돼요.";
+  }
+  var state = { me: null, date: null, today: null, tab: "today", poll: null, open: {}, detail: null };
+  /* 펼친 카드를 기억한다. 처리 중에는 화면이 몇 초마다 다시 그려지는데, 그때 펼친 것이 닫히지 않게 */
+  function toggleOpen(key, more, what) {
+    more.hidden = !more.hidden; what.setAttribute("aria-expanded", String(!more.hidden));
+    if (more.hidden) delete state.open[key]; else state.open[key] = true;
+  }
+  function restoreOpen(key, more, what) {
+    if (state.open[key]) { more.hidden = false; what.setAttribute("aria-expanded", "true"); return true; }
+    return false;
+  }
 
   /* ---------- 도우미 ---------- */
   function api(path, opts) {
@@ -41,7 +58,7 @@
       $("who").textContent = me.name + " 님";
       $("ver").textContent = me.version ? "버전 " + me.version : "";
       var q = new URLSearchParams(location.search).get("shared");
-      if (q) { say("in-msg", q === "0" ? "받을 내용이 없었어요." : q + "건 받았어요. 챙길 것을 찾고 있어요."); history.replaceState(null, "", "/"); }
+      if (q) { say("in-msg", q === "0" ? "받을 내용이 없었어요." : q + "건 받았어요. 듣고 적어 둘게요."); history.replaceState(null, "", "/"); }
       if (params.get("link") === "ok") { history.replaceState(null, "", "/"); say("in-msg", "이 기기를 연결했어요."); }
       var cal = new URLSearchParams(location.search).get("cal");
       if (cal) {
@@ -126,8 +143,9 @@
       head.appendChild(c);
     }
     var more = el("div", "more"); more.hidden = true;
-    var what = btn("", "what", function () { more.hidden = !more.hidden; what.setAttribute("aria-expanded", String(!more.hidden)); });
-    what.setAttribute("aria-expanded", "false");
+    var okey = "item:" + it.id;
+    var what = btn("", "what", function () { toggleOpen(okey, more, what); });
+    what.setAttribute("aria-expanded", "false"); restoreOpen(okey, more, what);
     what.appendChild(el("span", "txt", it.text)); what.appendChild(meta(it, kind));
     head.appendChild(what);
     var future = it.due_date && it.due_date > state.today;
@@ -215,18 +233,19 @@
     $("s-brief").hidden = !list.length; $("c-brief").textContent = String(list.length);
     list.forEach(function (b) {
       var li = el("li", "item brief"), head = el("div", "head"), more = el("div", "more"); more.hidden = true;
-      var what = btn("", "what", function () { more.hidden = !more.hidden; what.setAttribute("aria-expanded", String(!more.hidden)); });
+      var okey = "brief:" + b.id, loaded = false, box = el("div");
+      function loadMinutes() {
+        if (loaded || more.hidden) return; loaded = true;
+        api("/api/inputs/" + b.id).then(function (inp) { box.appendChild(minutesView(inp)); }).catch(function () {});
+      }
+      var what = btn("", "what", function () { toggleOpen(okey, more, what); loadMinutes(); });
       what.setAttribute("aria-expanded", "false");
       what.appendChild(el("span", "txt", b.title || KIND[b.kind]));
       var m = el("div", "meta"); m.appendChild(el("span", "tag", KIND[b.kind] || b.kind)); what.appendChild(m);
       head.appendChild(what); li.appendChild(head);
       if (b.summary) more.appendChild(bullets(b.summary));
-      var box = el("div"); more.appendChild(box);
-      var loaded = false;
-      what.addEventListener("click", function () {
-        if (loaded || more.hidden) return; loaded = true;
-        api("/api/inputs/" + b.id).then(function (inp) { box.appendChild(minutesView(inp)); }).catch(function () {});
-      });
+      more.appendChild(box);
+      if (restoreOpen(okey, more, what)) loadMinutes();
       var row = el("div", "row");
       row.appendChild(btn("넣은 것에서 보기", "", function () { document.querySelector('.tabs button[data-tab="inputs"]').click(); openInput(b.id); }));
       more.appendChild(row); li.appendChild(more); ul.appendChild(li);
@@ -275,14 +294,14 @@
     $("btn-sum").textContent = d.summary ? "다시 정리해 줘" : "정리해 줘";
     renderNeedMe(d.need_me || []);
     renderBriefs(d.briefs || []);
-    $("pending").hidden = !d.pending_inputs;
+    $("pending").hidden = !d.pending_inputs; if (d.pending_inputs) $("pending").textContent = pendingText(d.pending || []);
     $("bulk").hidden = !(isToday && d["new"].length > 1);
     clearTimeout(state.poll);
     if (d.pending_inputs && state.tab === "today") state.poll = setTimeout(refresh, 2500);
   }
   function refresh() {
     if (state.tab === "later") return api("/api/items?status=later").then(function (a) { fill("l-later", "c-later", a, "later", "나중으로 미룬 일이 여기에 있어요."); }).catch(fail("in-msg"));
-    if (state.tab === "inputs") return loadInputs();
+    if (state.tab === "inputs") return state.detail ? openInput(state.detail) : loadInputs();
     return Promise.all([api("/api/day?date=" + state.date), api("/api/week?date=" + state.date)])
       .then(function (r) { renderDay(r[0]); renderWeek(r[1]); }).catch(fail("in-msg"));
   }
@@ -338,12 +357,12 @@
   $("paste-form").addEventListener("submit", function (ev) {
     ev.preventDefault();
     var fd = new FormData(); fd.append("kind", $("paste-kind").value); fd.append("text", $("paste-text").value);
-    send(fd, "받았어요. 챙길 것을 찾고 있어요.").then(function () { $("paste-text").value = ""; $("paste-form").hidden = true; });
+    send(fd, "받았어요. 듣고 적어 둘게요.").then(function () { $("paste-text").value = ""; $("paste-form").hidden = true; });
   });
   function sendFiles(ev) {
     var files = Array.prototype.slice.call(ev.target.files || []);
     files.reduce(function (p, f) {
-      return p.then(function () { var fd = new FormData(); fd.append("kind", "file"); fd.append("file", f, f.name); return send(fd, f.name + " 받았어요. 챙길 것을 찾고 있어요."); });
+      return p.then(function () { var fd = new FormData(); fd.append("kind", "file"); fd.append("file", f, f.name); return send(fd, f.name + " 받았어요. 듣고 적어 둘게요."); });
     }, Promise.resolve());
     ev.target.value = "";
   }
@@ -401,6 +420,7 @@
 
   /* ---------- 넣은 것 ---------- */
   function loadInputs() {
+    state.detail = null;
     $("input-detail").hidden = true; $("inputs-list").hidden = false;
     return api("/api/inputs").then(function (list) {
       var ul = $("l-inputs"); ul.textContent = "";
@@ -426,8 +446,15 @@
     }).catch(fail("in-msg"));
   }
   function openInput(id) {
-    api("/api/inputs/" + id).then(function (inp) {
-      var box = $("input-detail"); box.textContent = ""; box.hidden = false; $("inputs-list").hidden = true;
+    state.detail = id;
+    return api("/api/inputs/" + id).then(function (inp) {
+      var box = $("input-detail"), y = window.scrollY, same = box.dataset.sig === id + ":" + inp.status + ":" + inp.items.length + ":" + inp.me_speaker;
+      if (same && !box.hidden) {  // 바뀐 게 없으면 다시 그리지 않는다 (처리 중 몇 초마다 새로고침될 때 화면이 튀지 않게)
+        if (inp.status !== "extracted" && inp.status !== "failed") { clearTimeout(state.poll); state.poll = setTimeout(refresh, 2500); }
+        return;
+      }
+      box.dataset.sig = id + ":" + inp.status + ":" + inp.items.length + ":" + inp.me_speaker;
+      box.textContent = ""; box.hidden = false; $("inputs-list").hidden = true;
       box.appendChild(btn("‹ 목록으로", "link", loadInputs));
       box.appendChild(el("h2", "", inp.title || KIND[inp.kind]));
       var m = el("div", "meta"); m.appendChild(el("span", "tag", KIND[inp.kind])); m.appendChild(el("span", "tag", nice(inp.received_date))); m.appendChild(el("span", "tag", STATUS[inp.status] || inp.status)); box.appendChild(m);
@@ -492,6 +519,9 @@
       });
       act.appendChild(del); box.appendChild(act);
       box.appendChild(el("p", "msg", "다시 뽑기: 아직 고르지 않은 것만 새로 만들어요(안 함으로 넘긴 건 다시 안 나와요). 처음부터 다시 뽑기: 이 녹음의 할 일을 모두 지우고 새로 만들어요. 녹음을 지워도 이미 고른 일은 남아요."));
+      window.scrollTo(0, y);
+      clearTimeout(state.poll);
+      if (inp.status !== "extracted" && inp.status !== "failed") state.poll = setTimeout(refresh, 2500);  // 처리 중이면 상태가 바뀔 때까지 지켜본다
     }).catch(fail("in-msg"));
   }
 

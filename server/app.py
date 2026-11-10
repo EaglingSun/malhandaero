@@ -560,9 +560,11 @@ def day(date_: str | None = Query(None, alias="date"), user=Depends(current_user
         done = q("SELECT * FROM items WHERE user_id = ? AND status = 'done' AND done_at = ? ORDER BY updated_at", uid, ds)
         due = q("SELECT * FROM items WHERE user_id = ? AND status IN ('new','later') AND due_date = ? ORDER BY id", uid, ds)
         log = con.execute("SELECT summary FROM day_logs WHERE user_id = ? AND date = ?", (uid, ds)).fetchone()
-        pending = con.execute(
-            "SELECT COUNT(*) AS n FROM inputs WHERE user_id = ? AND status IN ('received','transcribing','ready','extracting')", (uid,)
-        ).fetchone()["n"]
+        pending_rows = con.execute(
+            "SELECT id, title, kind, status, length(transcript) AS chars, created_at FROM inputs WHERE user_id = ? AND status IN ('received','transcribing','ready','extracting') ORDER BY id",
+            (uid,),
+        ).fetchall()
+        pending = len(pending_rows)
         need_me = q(
             "SELECT id, title, kind, speakers FROM inputs WHERE user_id = ? AND status = 'extracted' AND me_speaker IS NULL AND speakers != '[]' ORDER BY id DESC LIMIT 3",
             uid,
@@ -582,6 +584,7 @@ def day(date_: str | None = Query(None, alias="date"), user=Depends(current_user
         "due": [item_dict(r) for r in due],
         "summary": log["summary"] if log else "",
         "pending_inputs": pending,
+        "pending": [{"id": r["id"], "title": r["title"], "kind": r["kind"], "status": r["status"], "long": (r["chars"] or 0) > 10000} for r in pending_rows],
         "need_me": [{"id": r["id"], "title": r["title"], "kind": r["kind"], "speakers": json.loads(r["speakers"])} for r in need_me],
         "briefs": [dict(r) for r in briefs],
     }

@@ -16,7 +16,7 @@
 | 실행 중인 곳 | 사용자의 집 Mac. Tailscale로 https 주소를 열어 휴대폰 2대(Android)가 접속 |
 | 개발 계획 문서 | claude.ai 아티팩트 「말한대로 개발 계획」 https://claude.ai/artifact/9hymSQQhmXfwhpuEw14dua (11/9 밤 기준. 그 뒤 추가분 미반영) |
 | 홍보 페이지 | 아티팩트 「말한대로 소개 페이지」 https://claude.ai/artifact/CR8DdiWzVDDpbBLp258iqD |
-| 설계서, 설치 안내 | 소스 묶음 안의 `docs/DESIGN.md`, `INSTALL.md`, `README.md` |
+| 설계서, 설치 안내 | `docs/DESIGN.md`, `INSTALL.md`, `README.md`. 회의록 형식은 `docs/MINUTES_FORMAT.md`(지시문·내보내기·스킬의 기준) |
 
 ### 코드 받는 법
 
@@ -121,6 +121,7 @@ chmod +x malhandaero/*.sh malhandaero/*.command
 | 4 | 더블클릭 실행(.command), Tailscale 자동, QR 연결(내 기기 / 가족 초대) |
 | 5 | 목록 중심 화면(+ 버튼 뒤에 넣기), https 인증서 묶음, 연결 실패 사유 표시 |
 | 6 | 공유로 받는 파일 종류 확대 |
+| 16 | 처리 중 자동 새로고침에 펼친 카드가 닫히던 문제(펼침 상태 기억·복원, 넣은 것 상세 유지). 처리 중 문구를 앱 말투로("꼼꼼히 듣고 정리하는 중이에요 ☕ 긴 회의는 몇 분"). `docs/MINUTES_FORMAT.md`(회의록 표준 형식), `skills/meeting-minutes/SKILL.md`(Claude Code 스킬) |
 | 15 | Claude Code 모델 선택: 지시문 1만 자 초과(회의록)는 `--model opus`, 짧은 글은 Claude Code 기본. `MALHAN_CLAUDE_MODEL(_LONG)`, `MALHAN_LONG_CHARS`. 「처음부터 다시 뽑기」 |
 | 14 | 회의록 v2: 참석자·안건·다음 일정, 결정 모음, 대화 중계체 금지·주제당 3~5줄. 「모두 안 함」 한 번에 + 되돌리기(`/api/items/restore`) |
 | 13 | 회의록 구조화: 추출이 `minutes`(주제별 논의·결정, 확인할 것)와 `details`(상위 할 일의 세부)를 함께 냄. 조각 12k→60k자(회의 1~2시간을 한 번에). 내 일 ≤5건 묶기, 이름 붙은 일은 `other`. 화면: 들은 이야기 ▸ 회의록·맡긴 일, 「회의록 복사 / 파일로 받기」(`/api/inputs/{id}/minutes.md`), 「모두 안 함」(`/api/items/skip-all`). DB 칸 inputs.minutes, items.details |

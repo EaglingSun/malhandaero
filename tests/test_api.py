@@ -300,6 +300,8 @@ def test_inputs_stuck_in_processing_resume_after_restart():
         con.execute("UPDATE inputs SET status = 'extracting' WHERE id = ?", (iid,))
         con.execute("DELETE FROM items WHERE input_id = ?", (iid,))
     assert appmod.pending_count() == 1
+    pend = client.get("/api/day").json()
+    assert pend["pending_inputs"] == 1 and pend["pending"][0]["id"] == iid and pend["pending"][0]["long"] is False   # 화면이 '듣고 정리하는 중'을 보여 줄 재료
     assert appmod.resume_pending() == 1
     inp = client.get(f"/api/inputs/{iid}").json()
     assert inp["status"] == "extracted" and len(inp["items"]) == 1 and appmod.pending_count() == 0
