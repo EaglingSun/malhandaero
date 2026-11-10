@@ -86,13 +86,23 @@
     return (h < 12 ? "오전 " : "오후 ") + (h % 12 === 0 ? 12 : h % 12) + ":" + p[1];
   }
   function shortDate(d) { var x = toDate(d); return (x.getMonth() + 1) + "/" + x.getDate() + "(" + DAYS[x.getDay()] + ")"; }
+  function calTag(label) {
+    /* '✓' 글자는 폰마다 글꼴이 달라 줄이 틀어진다. 작은 그림으로 그린다 */
+    var t = el("span", "tag cal", label);
+    var svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttribute("viewBox", "0 0 12 12"); svg.setAttribute("width", "11"); svg.setAttribute("height", "11"); svg.setAttribute("aria-hidden", "true");
+    var path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    path.setAttribute("d", "M2 6.5 L5 9.5 L10.5 3"); path.setAttribute("fill", "none"); path.setAttribute("stroke", "currentColor"); path.setAttribute("stroke-width", "2"); path.setAttribute("stroke-linecap", "round"); path.setAttribute("stroke-linejoin", "round");
+    svg.appendChild(path); t.appendChild(svg);
+    return t;
+  }
   function meta(it, kind) {
     var m = el("div", "meta");
     m.appendChild(el("span", "tag " + (it.scope === "회사" ? "work" : "home"), it.scope));
     if (it.owner === "unclear") m.appendChild(el("span", "tag carry", "누구 일인지 확인" + (it.who ? " · " + it.who : "")));
     if (it.status === "other" && it.who) m.appendChild(el("span", "tag", it.who));
     if (it.plan_time) m.appendChild(el("span", "tag when", niceTime(it.plan_time)));
-    if (it.cal_ref) m.appendChild(el("span", "tag cal", it.addon === "calendar" ? "캘린더에서" : "캘린더 ✓"));
+    if (it.cal_ref) m.appendChild(calTag(it.addon === "calendar" ? "캘린더에서" : "캘린더"));
     if (kind === "later" && it.due_date) m.appendChild(el("span", "tag when", shortDate(it.due_date) + " 기한"));
     else if (it.due_text) m.appendChild(el("span", "tag", it.due_text));
     if (it.carried_days > 0) m.appendChild(el("span", "tag carry", it.carried_days === 1 ? "어제에서 넘어옴" : it.carried_days + "일 넘어옴"));
