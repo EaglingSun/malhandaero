@@ -47,9 +47,12 @@ python -m pytest -q
 |---|---|
 | `server/app.py` | API와 날짜별 조회 규칙 |
 | `server/extract.py` | 추출 지시문, 응답 해석, 회의록 |
-| `server/llm.py` / `server/stt.py` | AI 호출 / 음성 인식 |
+| `server/llm.py` / `server/stt.py` | AI 호출(claude/codex/api/gpt/gemini/ollama/fake) / 음성 인식 |
+| `server/transcript.py` | 화자 표기 해석 |
 | `server/calsync.py` | 네이버·구글 캘린더 |
+| `server/db.py` | SQLite 스키마와 `MIGRATIONS`(칸 추가) |
 | `server/updater.py` | 자동 업데이트(git fast-forward → 필요 시 재설치) |
-| `web/` | 화면 (빌드 없음, PWA) |
-| `tools/` | 켜기·설치·자동 시작·`build_start_html.py` |
+| `web/` | 화면 (빌드 없음, PWA). `app.js` 하나에 다 있다 |
+| `tools/` | 켜기(`run.py`)·설치(`install.py`)·자동 시작(`autostart.py`)·켜기 전 업데이트(`update.py`)·`build_start_html.py` |
+| `tests/` | pytest. AI·캘린더·업데이트는 흉내 서버/임시 git으로 시험 |
 | `.claude/skills/meeting-minutes` | 회의록 형식의 Claude Code 스킬 |

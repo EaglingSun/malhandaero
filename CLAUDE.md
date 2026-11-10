@@ -6,12 +6,9 @@
 녹음·말·사진에서 "내가 챙길 일"을 뽑아 날짜별로 관리하는 개인 비서 웹앱. 각자 PC에 서버를 켜고 폰(PWA)으로 쓴다.
 AI는 이 PC의 Claude Code(`claude -p`)를 부른다. 자료는 전부 `data/`(SQLite)에, 설정은 `.env`에.
 
-## 구조 (자세한 것은 docs/DESIGN.md, 이력은 docs/HANDOFF.md)
-- `server/app.py` API와 날짜별 조회 규칙 · `server/extract.py` 추출 지시문·해석·회의록 · `server/llm.py` AI 연결(claude/codex/api/gpt/gemini/ollama/fake) · `server/transcript.py` 화자 표기 해석
-- `server/stt.py` 음성→글 · `server/calsync.py` 네이버·구글 캘린더 · `server/db.py` SQLite 스키마와 `MIGRATIONS` · `server/updater.py` 자동 업데이트
+## 구조 (파일별 설명은 README.md 「개발」 표, 설계는 docs/DESIGN.md, 이력은 docs/HANDOFF.md)
 - `web/` 빌드 없는 화면(순수 HTML/JS/CSS, PWA). `app.js` 하나에 다 있다
-- `tools/run.py` 켜기 · `tools/install.py` 설치 · `tools/autostart.py` 로그인 시 자동 시작 · `tools/update.py` 켜기 전 업데이트 · `tools/build_start_html.py` 시작 안내 만들기. 이들을 부르는 `run.bat`·`run.sh`·`install.*`·`autostart.bat`도 `tools/`에. 최상위에는 사용자가 더블클릭하는 setup-*/start/autostart-* 파일만 둔다
-- `tests/` pytest. AI·캘린더·업데이트는 흉내 서버/임시 git으로 시험한다
+- 최상위에는 사용자가 더블클릭하는 setup-*/start/autostart-* 파일만 둔다. 이들이 부르는 `.bat`·`.sh`·`.py`는 `tools/`에
 - `.claude/skills/` Claude Code 스킬: `meeting-minutes`(회의록 형식, 기준은 `docs/MINUTES_FORMAT.md`) · `harness-tidy`(이 파일과 스킬 정리)
 - `docs/prompts/` 앱이 화면에 내주는 설치 도우미 글(`/api/help/{topic}`이 읽는다). 지우거나 이름을 바꾸면 그 안내가 사라진다
 - 세션 인계는 `docs/handoffs/` 최신 파일, 세션 일지는 `docs/dev-sessions/`, 판별 이력은 `docs/HANDOFF.md`
