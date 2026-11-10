@@ -196,34 +196,39 @@
           <h2 id="h-sheet">할 일 넣기</h2>
           <button type="button" class="ghost" id="sheet-close">닫기</button>
         </div>
-        <form id="add-form" class="row">
-          <label class="sr" for="add-text">직접 적기</label>
-          <input id="add-text" maxlength="200" placeholder="직접 적기">
-          <button type="submit" class="pick">더하기</button>
-        </form>
-        <p class="msg" id="add-on"></p>
-        <p class="msg" id="no-ai" hidden>AI가 연결돼 있지 않아 말하기·글·녹음에서 뽑기는 쉬고 있어요. 직접 적기와 캘린더는 그대로 돼요. 연결하려면 PC에서 Claude Code나 Codex에 로그인하거나 <code>.env</code>에 API 키를 넣어 주세요.</p>
-        <div class="speak" id="capture">
-        <button class="mic" id="btn-mic" type="button">말하기</button>
-        <p class="msg" id="mic-msg" role="status" aria-live="polite">누르고 할 일을 말해 주세요.</p>
-        <div class="row center">
-          <button id="btn-paste" type="button">글 붙여넣기</button>
-          <label class="filebtn" for="photo">사진 찍어 넣기</label>
-          <input id="photo" type="file" accept="image/*" capture="environment">
-          <label class="filebtn" for="file">파일 넣기</label>
-          <input id="file" type="file" multiple>
-        </div>
-        <form id="paste-form" hidden>
-          <label for="paste-kind">어떤 녹음인가요?</label>
-          <select id="paste-kind">
-            <option value="call">통화</option>
-            <option value="meeting">회의</option>
-            <option value="memo">내 메모</option>
-          </select>
-          <label for="paste-text">녹음을 글로 바꾼 내용</label>
-          <textarea id="paste-text" rows="5" required></textarea>
-          <button class="primary small" type="submit">보내기</button>
-        </form>
+        <section class="grp">
+          <h3 class="grp-h">직접 적기 <span>AI 없이 바로</span></h3>
+          <form id="add-form" class="row">
+            <label class="sr" for="add-text">직접 적기</label>
+            <input id="add-text" maxlength="200" placeholder="예: 우유 사기">
+            <button type="submit" class="pick">더하기</button>
+          </form>
+          <p class="msg" id="add-on"></p>
+        </section>
+        <p class="msg" id="no-ai" hidden>AI가 연결돼 있지 않아 아래 넣기는 쉬고 있어요. 직접 적기와 캘린더는 그대로 돼요. 연결하려면 PC에서 Claude Code나 Codex에 로그인하거나 <code>.env</code>에 API 키를 넣어 주세요.</p>
+        <section class="grp" id="capture">
+          <h3 class="grp-h">AI가 대신 적어요 <span>듣고·읽고 챙길 것을 뽑아요</span></h3>
+          <div class="tiles">
+            <button class="tile mic" id="btn-mic" type="button"><b>말하기</b><small>누르고 말하면 끝</small></button>
+            <button class="tile" id="btn-paste" type="button"><b>글 붙여넣기</b><small>통화·회의 녹취, 메모</small></button>
+            <label class="tile" for="photo"><b>사진 찍기</b><small>안내문·메모·영수증</small></label>
+            <input id="photo" type="file" accept="image/*" capture="environment">
+            <label class="tile" for="file"><b>파일 넣기</b><small>녹음(m4a)·텍스트</small></label>
+            <input id="file" type="file" multiple>
+          </div>
+          <p class="msg" id="mic-msg" role="status" aria-live="polite"></p>
+          <form id="paste-form" hidden>
+            <label for="paste-kind">어떤 녹음인가요?</label>
+            <select id="paste-kind">
+              <option value="call">통화</option>
+              <option value="meeting">회의</option>
+              <option value="memo">내 메모</option>
+            </select>
+            <label for="paste-text">녹음을 글로 바꾼 내용</label>
+            <textarea id="paste-text" rows="5" required></textarea>
+            <button class="primary small" type="submit">보내기</button>
+          </form>
+        </section>
         </div>
       </div>
     </div>

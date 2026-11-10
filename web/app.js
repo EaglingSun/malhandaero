@@ -435,9 +435,9 @@
 
   var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   function micDone(text) {
-    mic.on = false; $("btn-mic").classList.remove("rec"); $("btn-mic").textContent = "말하기";
+    mic.on = false; $("btn-mic").classList.remove("rec"); micLabel("말하기", "누르고 말하면 끝");
     if (!text.trim()) { say("mic-msg", "들린 말이 없었어요. 다시 눌러 말해 주세요."); return; }
-    say("mic-msg", "누르고 할 일을 말해 주세요.");
+    say("mic-msg", "");
     var fd = new FormData(); fd.append("kind", "memo"); fd.append("title", "말로 한 메모"); fd.append("text", text);
     send(fd, "들었어요. 적어 두는 중이에요.");
   }
@@ -460,7 +460,7 @@
       mic.media.ondataavailable = function (e) { if (e.data.size) mic.chunks.push(e.data); };
       mic.media.onstop = function () {
         stream.getTracks().forEach(function (t) { t.stop(); });
-        mic.on = false; $("btn-mic").classList.remove("rec"); $("btn-mic").textContent = "말하기"; say("mic-msg", "누르고 할 일을 말해 주세요.");
+        mic.on = false; $("btn-mic").classList.remove("rec"); micLabel("말하기", "누르고 말하면 끝"); say("mic-msg", "");
         var fd = new FormData(); fd.append("kind", "memo"); fd.append("title", "말로 한 메모");
         fd.append("file", new Blob(mic.chunks, { type: mic.media.mimeType || "audio/webm" }), "memo.webm");
         send(fd, "들었어요. 글로 바꾸는 중이에요.");
@@ -468,18 +468,19 @@
       mic.media.start();
     });
   }
+  function micLabel(b, small) { $("btn-mic").innerHTML = ""; var x = el("b", "", b); var y = el("small", "", small); $("btn-mic").appendChild(x); $("btn-mic").appendChild(y); }
   $("btn-mic").addEventListener("click", function () {
     if (mic.on) { if (mic.rec) mic.rec.stop(); else if (mic.media) mic.media.stop(); return; }
     if (!window.isSecureContext) {
       say("mic-msg", "말하기는 https 주소로 열었을 때만 돼요. 지금 주소에서는 글 붙여넣기나 사진을 써 주세요.", true); return;
     }
     mic.on = true; mic.rec = null; mic.media = null;
-    $("btn-mic").classList.add("rec"); $("btn-mic").textContent = "다 말했어요"; say("mic-msg", "듣고 있어요…");
+    $("btn-mic").classList.add("rec"); micLabel("다 말했어요", "듣고 있어요…"); say("mic-msg", "듣고 있어요…");
     try {
       if (SR) micStartSpeech();
-      else if (navigator.mediaDevices && window.MediaRecorder && state.me && state.me.stt) micStartRecord().catch(function () { mic.on = false; $("btn-mic").classList.remove("rec"); $("btn-mic").textContent = "말하기"; say("mic-msg", "마이크를 쓸 수 있게 허용해 주세요.", true); });
-      else { mic.on = false; $("btn-mic").classList.remove("rec"); $("btn-mic").textContent = "말하기"; say("mic-msg", "이 브라우저에서는 말하기를 쓸 수 없어요. 글 붙여넣기를 써 주세요.", true); }
-    } catch (e) { mic.on = false; $("btn-mic").classList.remove("rec"); $("btn-mic").textContent = "말하기"; say("mic-msg", "마이크를 켜지 못했어요.", true); }
+      else if (navigator.mediaDevices && window.MediaRecorder && state.me && state.me.stt) micStartRecord().catch(function () { mic.on = false; $("btn-mic").classList.remove("rec"); micLabel("말하기", "누르고 말하면 끝"); say("mic-msg", "마이크를 쓸 수 있게 허용해 주세요.", true); });
+      else { mic.on = false; $("btn-mic").classList.remove("rec"); micLabel("말하기", "누르고 말하면 끝"); say("mic-msg", "이 브라우저에서는 말하기를 쓸 수 없어요. 글 붙여넣기를 써 주세요.", true); }
+    } catch (e) { mic.on = false; $("btn-mic").classList.remove("rec"); micLabel("말하기", "누르고 말하면 끝"); say("mic-msg", "마이크를 켜지 못했어요.", true); }
   });
 
   /* ---------- 넣은 것 ---------- */

@@ -78,14 +78,21 @@ button.icon { width: 44px; height: 44px; padding: 0; font-size: 24px; line-heigh
 .week button.sel * { color: #fff; }
 .week button.today:not(.sel) { border-color: var(--mint); }
 
-/* 말하기 */
-.speak { align-items: center; text-align: center; }
-.mic {
-  width: 104px; height: 104px; border-radius: 50%;
-  background: var(--mint); border: 0; color: #fff; font-size: 21px; font-weight: 700;
-  box-shadow: 0 12px 28px rgba(18,181,138,.32);
+/* 넣기 창: 직접 적기 / AI가 대신 적어요 */
+.grp { display: flex; flex-direction: column; gap: 8px; }
+.grp-h { margin: 0; font-size: 15px; font-weight: 800; display: flex; align-items: baseline; gap: 8px; }
+.grp-h span { font-size: 12px; font-weight: 400; color: var(--muted); }
+.tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.tile {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 2px;
+  padding: 12px 14px; border-radius: 14px; border: 1.5px solid var(--line); background: var(--paper);
+  text-align: left; font: inherit; color: inherit; cursor: pointer; min-height: 60px;
 }
-.mic.rec { background: var(--coral); box-shadow: 0 0 0 10px rgba(229,89,58,.18); }
+.tile b { font-size: 15px; }
+.tile small { font-size: 12px; color: var(--muted); }
+.tile.mic { background: var(--mint-soft); border-color: var(--mint); }
+.tile.mic.rec { background: var(--coral); border-color: var(--coral); color: #fff; }
+.tile.mic.rec small { color: #fff; }
 #paste-form { display: flex; flex-direction: column; gap: 8px; width: 100%; text-align: left; }
 
 /* 목록 */
@@ -117,7 +124,7 @@ ul.list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction
 }
 .tabs button { border-color: transparent; font-size: 15px; padding: 10px 0; white-space: nowrap; min-width: 0; }
 .tabs button.on { background: var(--mint-soft); }
-@media (prefers-reduced-motion: no-preference) { .mic { transition: box-shadow .2s ease, background .2s ease; } }
+@media (prefers-reduced-motion: no-preference) { .tile.mic { transition: background .2s ease; } }
 
 /* 고르기 버튼, 고치기, 캘린더 */
 button.pick { background: var(--mint); border-color: var(--mint); color: #fff; font-weight: 700; }
@@ -170,8 +177,6 @@ button.quick { flex: none; padding: 6px 12px; font-size: 14px; }
   display: flex; flex-direction: column; gap: 12px;
 }
 .row.between { justify-content: space-between; }
-.speak { display: flex; flex-direction: column; gap: 10px; }
-.mic { width: 92px; height: 92px; font-size: 19px; align-self: center; }
 main { padding-bottom: calc(160px + env(safe-area-inset-bottom)); }
 
 /* 들은 이야기 요약: 접힌 한 줄 */
