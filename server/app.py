@@ -791,9 +791,9 @@ def patch_item(item_id: int, body: ItemPatch, bg: BackgroundTasks, user=Depends(
 @app.delete("/api/items/{item_id}")
 def delete_item(item_id: int, bg: BackgroundTasks, user=Depends(current_user)):
     with db.session() as con:
-        row = con.execute("SELECT cal_ref FROM items WHERE id = ? AND user_id = ?", (item_id, user["id"])).fetchone()
+        row = con.execute("SELECT cal_ref, addon FROM items WHERE id = ? AND user_id = ?", (item_id, user["id"])).fetchone()
         con.execute("DELETE FROM items WHERE id = ? AND user_id = ?", (item_id, user["id"]))
-    if row and row["cal_ref"]:
+    if row and row["cal_ref"] and row["addon"] != "calendar":  # 캘린더에서 가져온 일정은 지우지 않는다
         bg.add_task(calsync.sync_item, user["id"], item_id, row["cal_ref"])
     return {"ok": True}
 
@@ -912,6 +912,55 @@ def calendar_google_callback(request: Request, code: str = "", state: str = "", 
     res = RedirectResponse("/?cal=ok", status_code=303)
     res.delete_cookie("mh_gstate")
     return res
+
+
+@app.get("/api/calendar/events")
+def calendar_events(date_: str | None = Query(None, alias="date"), user=Depends(current_user)):
+    """연결된 캘린더의 그날 일정. 이미 할 일로 가져온 것은 item_id가 붙는다."""
+    link = calsync.get_link(user["id"])
+    if not link:
+        return {"linked": False, "events": []}
+    d = parse_date(date_)
+    try:
+        evs = calsync.day_events(link, d)
+    except calsync.CalendarError as e:
+        return {"linked": True, "events": [], "error": str(e)}
+    except Exception as e:
+        return {"linked": True, "events": [], "error": f"캘린더를 읽지 못했어요: {type(e).__name__}"}
+    with db.session() as con:
+        have = {r["cal_ref"]: r["id"] for r in con.execute("SELECT id, cal_ref FROM items WHERE user_id = ? AND cal_ref IS NOT NULL", (user["id"],))}
+    for e in evs:
+        e["item_id"] = have.get(e["ref"])
+    return {"linked": True, "events": evs}
+
+
+class ImportEvent(BaseModel):
+    ref: str
+    title: str
+    time: str | None = None
+    date: str | None = None
+    scope: str = "회사"
+
+
+@app.post("/api/calendar/events/import")
+def calendar_import(body: ImportEvent, user=Depends(current_user)):
+    """캘린더 일정을 그날 할 일로 가져온다. cal_ref로 같은 일정을 가리키되 addon='calendar'로 표시해, 캘린더 쪽 일정은 건드리지 않는다(원본은 캘린더)."""
+    d = parse_date(body.date).isoformat()
+    title = body.title.strip()[:200]
+    if not title:
+        raise HTTPException(400, "일정 제목이 비어 있어요.")
+    if body.time and not extract._TIME.match(body.time):
+        raise HTTPException(400, "시각은 HH:MM 꼴이어야 해요.")
+    with db.session() as con:
+        row = con.execute("SELECT * FROM items WHERE user_id = ? AND cal_ref = ?", (user["id"], body.ref)).fetchone()
+        if row:
+            return {**item_dict(row, today()), "already": True}
+        cur = con.execute(
+            "INSERT INTO items(user_id, text, quote, scope, status, plan_date, plan_time, cal_ref, addon) VALUES (?,?,?,?,'todo',?,?,?,'calendar')",
+            (user["id"], title, "캘린더 일정에서 가져옴", "회사" if body.scope == "회사" else "개인", d, body.time.zfill(5) if body.time else None, body.ref),
+        )
+        row = con.execute("SELECT * FROM items WHERE id = ?", (cur.lastrowid,)).fetchone()
+    return item_dict(row, today())
 
 
 class CalendarMode(BaseModel):

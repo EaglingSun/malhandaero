@@ -297,13 +297,32 @@
     $("pending").hidden = !d.pending_inputs; if (d.pending_inputs) $("pending").textContent = pendingText(d.pending || []);
     $("bulk").hidden = !(isToday && d["new"].length > 1);
     clearTimeout(state.poll);
-    if (d.pending_inputs && state.tab === "today") state.poll = setTimeout(refresh, 2500);
+    if (d.pending_inputs && state.tab === "today") state.poll = setTimeout(function () { refresh(true); }, 2500);
   }
-  function refresh() {
+  function renderCalEvents(r) {
+    /* 연결된 캘린더의 그날 일정. '할 일로'를 누르면 같은 일정을 가리키는 할 일이 된다 */
+    var sec = $("s-cal-ev"), ul = $("l-cal-ev"); ul.textContent = "";
+    if (!r || !r.linked || (!r.events.length && !r.error)) { sec.hidden = true; return; }
+    sec.hidden = false; $("c-cal-ev").textContent = String(r.events.length); say("cal-ev-msg", r.error || "", !!r.error);
+    r.events.forEach(function (e) {
+      var li = el("li", "item ev"), head = el("div", "head"), what = el("div", "what");
+      what.appendChild(el("span", "txt", e.title));
+      var m = el("div", "meta"); if (e.time) m.appendChild(el("span", "tag when", niceTime(e.time))); else m.appendChild(el("span", "tag", "하루 종일"));
+      what.appendChild(m); head.appendChild(what);
+      if (e.item_id) head.appendChild(el("span", "tag", "할 일로 들어옴"));
+      else head.appendChild(btn("할 일로", "quick", function () {
+        api("/api/calendar/events/import", { method: "POST", json: { ref: e.ref, title: e.title, time: e.time, date: state.date } }).then(refresh).catch(fail("in-msg"));
+      }));
+      li.appendChild(head); ul.appendChild(li);
+    });
+  }
+  function refresh(fromPoll) {
     if (state.tab === "later") return api("/api/items?status=later").then(function (a) { fill("l-later", "c-later", a, "later", "나중으로 미룬 일이 여기에 있어요."); }).catch(fail("in-msg"));
     if (state.tab === "inputs") return state.detail ? openInput(state.detail) : loadInputs();
-    return Promise.all([api("/api/day?date=" + state.date), api("/api/week?date=" + state.date)])
+    var pending = Promise.all([api("/api/day?date=" + state.date), api("/api/week?date=" + state.date)])
       .then(function (r) { renderDay(r[0]); renderWeek(r[1]); }).catch(fail("in-msg"));
+    if (fromPoll !== true) api("/api/calendar/events?date=" + state.date).then(renderCalEvents).catch(function () {});  // 처리 중 자동 새로고침 때는 캘린더를 두드리지 않는다
+    return pending;
   }
   $("btn-skip-all").addEventListener("click", function () {
     /* 한 번에 실행하고 되돌리기 버튼을 준다 */
@@ -442,7 +461,7 @@
         ul.appendChild(li);
       });
       clearTimeout(state.poll);
-      if (busy && state.tab === "inputs") state.poll = setTimeout(refresh, 2500);
+      if (busy && state.tab === "inputs") state.poll = setTimeout(function () { refresh(true); }, 2500);
       api("/api/stats?days=30").then(function (st) {
         if (!st.inputs.total) { $("stats").textContent = ""; return; }
         var m = st.seconds_to_list.median, parts = ["지난 30일 · 넣은 것 " + st.inputs.total + "건"];
@@ -460,7 +479,7 @@
     return api("/api/inputs/" + id).then(function (inp) {
       var box = $("input-detail"), y = window.scrollY, same = box.dataset.sig === id + ":" + inp.status + ":" + inp.items.length + ":" + inp.me_speaker;
       if (same && !box.hidden) {  // 바뀐 게 없으면 다시 그리지 않는다 (처리 중 몇 초마다 새로고침될 때 화면이 튀지 않게)
-        if (inp.status !== "extracted" && inp.status !== "failed") { clearTimeout(state.poll); state.poll = setTimeout(refresh, 2500); }
+        if (inp.status !== "extracted" && inp.status !== "failed") { clearTimeout(state.poll); state.poll = setTimeout(function () { refresh(true); }, 2500); }
         return;
       }
       box.dataset.sig = id + ":" + inp.status + ":" + inp.items.length + ":" + inp.me_speaker;
@@ -533,7 +552,7 @@
       box.appendChild(el("p", "msg", "다시 뽑기: 아직 고르지 않은 것만 새로 만들어요(안 함으로 넘긴 건 다시 안 나와요). 처음부터 다시 뽑기: 이 녹음의 할 일을 모두 지우고 새로 만들어요. 녹음을 지워도 이미 고른 일은 남아요."));
       window.scrollTo(0, y);
       clearTimeout(state.poll);
-      if (inp.status !== "extracted" && inp.status !== "failed") state.poll = setTimeout(refresh, 2500);  // 처리 중이면 상태가 바뀔 때까지 지켜본다
+      if (inp.status !== "extracted" && inp.status !== "failed") state.poll = setTimeout(function () { refresh(true); }, 2500);  // 처리 중이면 상태가 바뀔 때까지 지켜본다
     }).catch(fail("in-msg"));
   }
 

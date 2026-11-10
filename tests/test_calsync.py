@@ -47,6 +47,29 @@ class FakeCalendars(BaseHTTPRequestHandler):
                  "<c:supported-calendar-component-set><c:comp name=\"VEVENT\"/></c:supported-calendar-component-set></d:prop></d:propstat></d:response>")
         self._send(207, (ms % x).encode())
 
+    def do_REPORT(self):
+        self._body()
+        if self.headers.get("Authorization") != GOOD:
+            return self._send(401)
+        ics = ("BEGIN:VCALENDAR\r\nVERSION:2.0\r\nBEGIN:VEVENT\r\nUID:ev-1@naver\r\nDTSTART;TZID=Asia/Seoul:20990301T140000\r\nDTEND;TZID=Asia/Seoul:20990301T150000\r\n"
+               "SUMMARY:주간 회의\\, 2층\r\nDESCRIPTION:안건 공유\r\nEND:VEVENT\r\nEND:VCALENDAR")
+        ours = ("BEGIN:VCALENDAR\r\nBEGIN:VEVENT\r\nUID:malhandaero-7@malhandaero\r\nDTSTART:20990301T060000Z\r\nSUMMARY:우유 사기\r\nDESCRIPTION:말한대로에서 보냄\r\nEND:VEVENT\r\nEND:VCALENDAR")
+        allday = "BEGIN:VCALENDAR\r\nBEGIN:VEVENT\r\nUID:ev-2@naver\r\nDTSTART;VALUE=DATE:20990301\r\nSUMMARY:창립기념일\r\nEND:VEVENT\r\nEND:VCALENDAR"
+        def resp(href, body):
+            return f"<d:response><d:href>{href}</d:href><d:propstat><d:prop><c:calendar-data><![CDATA[{body}]]></c:calendar-data></d:prop></d:propstat></d:response>"
+        ms = ('<d:multistatus xmlns:d="DAV:" xmlns:c="urn:ietf:params:xml:ns:caldav">' + resp("/caldav/sun/calendar/111/ev1.ics", ics)
+              + resp("/caldav/sun/calendar/111/malhandaero-7.ics", ours) + resp("/caldav/sun/calendar/111/ev2.ics", allday) + "</d:multistatus>")
+        self._send(207, ms.encode())
+
+    def do_GET(self):
+        if self.path.startswith("/g/calendars/primary/events?") and self.headers.get("Authorization") == "Bearer at":
+            items = [{"id": "g1", "summary": "고객 미팅", "start": {"dateTime": "2099-05-05T10:00:00+09:00"}, "end": {"dateTime": "2099-05-05T11:00:00+09:00"}},
+                     {"id": "g2", "summary": "휴가", "start": {"date": "2099-05-05"}},
+                     {"id": "ev9", "summary": "회의 자료 보내기", "description": "말한대로에서 보냄", "start": {"dateTime": "2099-05-05T09:30:00+09:00"}},
+                     {"id": "g3", "status": "cancelled", "summary": "취소됨", "start": {"dateTime": "2099-05-05T12:00:00+09:00"}}]
+            return self._send(200, json.dumps({"items": items}).encode(), "application/json")
+        self._send(404)
+
     def do_PUT(self):
         body = self._body()
         if self.headers.get("Authorization") != GOOD:
@@ -207,3 +230,36 @@ def test_naver_falls_back_to_known_paths_when_discovery_is_refused(fake, monkeyp
 
     monkeypatch.setattr(nav, "_propfind", picky)
     assert [c["name"] for c in nav.calendars()] == ["내 캘린더"]
+
+
+def test_calendar_events_can_be_pulled_in_as_todos(fake, monkeypatch):
+    monkeypatch.setenv("MALHAN_NAVER_CALDAV", fake)
+    join("일정")
+    assert client.get("/api/calendar/events", params={"date": "2099-03-01"}).json() == {"linked": False, "events": []}
+    client.post("/api/calendar/naver", json={"user": "sun", "password": "app-pass"})
+    r = client.get("/api/calendar/events", params={"date": "2099-03-01"}).json()
+    assert r["linked"] and [e["title"] for e in r["events"]] == ["주간 회의, 2층", "창립기념일"]   # 말한대로가 넣은 일정은 뺀다, 시각 있는 것 먼저
+    ev = r["events"][0]
+    assert ev["time"] == "14:00" and ev["item_id"] is None and ev["ref"].endswith("/ev1.ics")
+    it = client.post("/api/calendar/events/import", json={"ref": ev["ref"], "title": ev["title"], "time": ev["time"], "date": "2099-03-01"}).json()
+    assert it["status"] == "todo" and it["plan_time"] == "14:00" and it["cal_ref"] == ev["ref"]
+    assert client.get("/api/calendar/events", params={"date": "2099-03-01"}).json()["events"][0]["item_id"] == it["id"]
+    again = client.post("/api/calendar/events/import", json={"ref": ev["ref"], "title": ev["title"], "date": "2099-03-01"}).json()
+    assert again["id"] == it["id"] and again["already"] is True                                 # 두 번 눌러도 하나
+    # 가져온 할 일은 캘린더 쪽을 건드리지 않는다: 고쳐도 복사본이 안 생기고, 지워도 일정은 남는다
+    FakeCalendars.store.clear()
+    client.patch(f"/api/items/{it['id']}", json={"text": "주간 회의 준비"})
+    client.delete(f"/api/items/{it['id']}")
+    assert FakeCalendars.store == {}
+
+
+def test_google_events_listing(fake, monkeypatch):
+    for k, v in {"MALHAN_GOOGLE_CLIENT_ID": "cid", "MALHAN_GOOGLE_CLIENT_SECRET": "sec",
+                 "MALHAN_GOOGLE_TOKEN_URL": fake + "/token", "MALHAN_GOOGLE_API": fake + "/g"}.items():
+        monkeypatch.setenv(k, v)
+    from server import calsync
+    join("구글일정")
+    calsync.save_link(client.get("/api/me").json() and 0 or __import__("server.db", fromlist=["x"]).connect().execute("SELECT id FROM users WHERE name='구글일정'").fetchone()["id"],
+                      "google", {"refresh_token": "rt-1", "calendar_name": "구글 캘린더"})
+    r = client.get("/api/calendar/events", params={"date": "2099-05-05"}).json()
+    assert [(e["title"], e["time"]) for e in r["events"]] == [("고객 미팅", "10:00"), ("휴가", None)]   # 취소·말한대로 일정은 뺀다

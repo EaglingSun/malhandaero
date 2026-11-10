@@ -103,6 +103,55 @@ def _http(method: str, url: str, headers: dict | None = None, body: bytes | None
         raise CalendarError(f"캘린더 서버({host})에 닿지 못했어요. 인터넷 연결을 확인해 주세요. [{type(reason).__name__}: {str(reason)[:80]}]")
 
 
+def _ics_unescape(v: str) -> str:
+    return v.replace("\\n", "\n").replace("\\,", ",").replace("\\;", ";").replace("\\\\", "\\")
+
+
+def parse_vevent(ics: str, day: date) -> dict | None:
+    """VEVENT 하나에서 제목·시각·설명을 꺼낸다. 접힌 줄(앞에 공백)을 펴고, 그날 것만 돌려준다."""
+    lines: list[str] = []
+    for raw in ics.replace("\r\n", "\n").split("\n"):
+        if raw[:1] in (" ", "\t") and lines:
+            lines[-1] += raw[1:]
+        else:
+            lines.append(raw)
+    props: dict = {}
+    in_event = False
+    for line in lines:
+        if line == "BEGIN:VEVENT":
+            in_event = True
+            continue
+        if line == "END:VEVENT":
+            break
+        if in_event and ":" in line:
+            key, val = line.split(":", 1)
+            props[key.split(";")[0].upper()] = (key, val)
+    if "SUMMARY" not in props:
+        return None
+    start_key, start = props.get("DTSTART", ("", ""))
+    time_: str | None = None
+    if start:
+        if "VALUE=DATE" in start_key.upper() or len(start) == 8:
+            if start[:8] != f"{day:%Y%m%d}":
+                return None
+        else:
+            try:
+                dt = datetime.strptime(start[:15], "%Y%m%dT%H%M%S")
+                if start.endswith("Z"):
+                    dt = dt.replace(tzinfo=UTC).astimezone(tz())
+                elif "TZID" in start_key.upper():
+                    dt = dt.replace(tzinfo=tz())  # 한국 안에서 쓰는 전제. 다른 시간대 표기는 그대로 본다
+                else:
+                    dt = dt.replace(tzinfo=tz())
+                if dt.date() != day:
+                    return None
+                time_ = f"{dt:%H:%M}"
+            except ValueError:
+                pass
+    return {"title": _ics_unescape(props["SUMMARY"][1]).strip()[:200], "time": time_,
+            "description": _ics_unescape(props.get("DESCRIPTION", ("", ""))[1]).strip()[:300], "uid": props.get("UID", ("", ""))[1]}
+
+
 # ---------- 네이버 (CalDAV) ----------
 class Naver:
     def __init__(self, user: str, password: str):
@@ -162,6 +211,33 @@ class Naver:
         if not out:
             raise CalendarError("일정을 넣을 수 있는 네이버 캘린더를 찾지 못했어요.")
         return out
+
+    def events(self, calendar_url: str, day: date) -> list[dict]:
+        """그날의 일정. CalDAV calendar-query(REPORT)로 받아 VEVENT를 읽는다."""
+        start = datetime(day.year, day.month, day.day, tzinfo=tz()).astimezone(UTC)
+        end = start + timedelta(days=1)
+        body = ('<?xml version="1.0" encoding="utf-8"?><c:calendar-query xmlns:d="DAV:" xmlns:c="urn:ietf:params:xml:ns:caldav">'
+                '<d:prop><d:getetag/><c:calendar-data/></d:prop><c:filter><c:comp-filter name="VCALENDAR"><c:comp-filter name="VEVENT">'
+                f'<c:time-range start="{start:%Y%m%dT%H%M%SZ}" end="{end:%Y%m%dT%H%M%SZ}"/></c:comp-filter></c:comp-filter></c:filter></c:calendar-query>')
+        code, data = _http("REPORT", calendar_url, {**self.auth, "Depth": "1", "Content-Type": "application/xml; charset=utf-8"}, body.encode())
+        if code in (401, 403):
+            raise CalendarError("네이버 아이디나 애플리케이션 비밀번호가 맞지 않아요.")
+        if code != 207:
+            raise CalendarError(f"네이버 캘린더에서 일정을 읽지 못했어요 (응답 {code}).")
+        try:
+            root = ET.fromstring(data)
+        except ET.ParseError:
+            raise CalendarError("네이버 캘린더의 응답을 읽지 못했어요.")
+        out = []
+        for resp in root.findall(f"{DAV}response"):
+            h, cd = resp.find(f"{DAV}href"), resp.find(f".//{CAL}calendar-data")
+            if h is None or cd is None or not cd.text:
+                continue
+            ev = parse_vevent(cd.text, day)
+            if ev:
+                ev["ref"] = self._abs(h.text)
+                out.append(ev)
+        return sorted(out, key=lambda e: (e["time"] is None, e["time"] or ""))
 
     def put(self, calendar_url: str, uid: str, ics: str) -> str:
         url = calendar_url + urllib.parse.quote(uid) + ".ics"
@@ -239,6 +315,28 @@ class Google:
             b["end"] = {"date": (d + timedelta(days=1)).isoformat()}
         return b
 
+    def events(self, day: date) -> list[dict]:
+        """그날의 일정 (기본 캘린더)."""
+        start = datetime(day.year, day.month, day.day, tzinfo=tz())
+        q = urllib.parse.urlencode({"timeMin": start.isoformat(), "timeMax": (start + timedelta(days=1)).isoformat(),
+                                    "singleEvents": "true", "orderBy": "startTime", "maxResults": "50"})
+        code, out = _http("GET", f"{self.api}/calendars/primary/events?{q}", self.h)
+        if code != 200:
+            raise CalendarError(f"구글 캘린더에서 일정을 읽지 못했어요 (응답 {code}).")
+        res = []
+        for e in json.loads(out).get("items", []):
+            if e.get("status") == "cancelled" or not e.get("summary"):
+                continue
+            st = e.get("start", {})
+            time_ = None
+            if st.get("dateTime"):
+                try:
+                    time_ = f"{datetime.fromisoformat(st['dateTime'].replace('Z', '+00:00')).astimezone(tz()):%H:%M}"
+                except ValueError:
+                    pass
+            res.append({"ref": e["id"], "title": e["summary"][:200], "time": time_, "description": (e.get("description") or "")[:300], "uid": e.get("iCalUID", "")})
+        return res
+
     def upsert(self, row, ref: str | None) -> str:
         data = json.dumps(self.body(row)).encode()
         if ref:
@@ -288,6 +386,19 @@ def wants(link: dict, row) -> bool:
     return bool(row["status"] in ("todo", "done") and row["plan_date"] and (link["mode"] == "all" or row["plan_time"]))
 
 
+OURS = "말한대로에서 보냄"
+
+
+def day_events(link: dict, day: date) -> list[dict]:
+    """연결된 캘린더의 그날 일정. 말한대로가 넣은 일정은 뺀다."""
+    if link["provider"] == "naver":
+        cfg = link["config"]
+        evs = Naver(cfg["user"], cfg["password"]).events(cfg["calendar_url"], day)
+    else:
+        evs = Google(link["config"]["refresh_token"]).events(day)
+    return [e for e in evs if OURS not in (e.get("description") or "") and not (e.get("uid") or "").endswith("@malhandaero")]
+
+
 def _remove(link: dict, ref: str) -> None:
     if link["provider"] == "naver":
         Naver(link["config"]["user"], link["config"]["password"]).delete(ref)
@@ -307,6 +418,8 @@ def sync_item(user_id: int, item_id: int, removed_ref: str | None = None) -> Non
         with db.session() as con:
             row = con.execute("SELECT * FROM items WHERE id = ? AND user_id = ?", (item_id, user_id)).fetchone()
         if not row:
+            return
+        if row["addon"] == "calendar":  # 캘린더에서 가져온 할 일: 원본은 캘린더라 건드리지 않는다
             return
         ref = row["cal_ref"]
         if wants(link, row):

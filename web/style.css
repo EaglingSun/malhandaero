@@ -190,3 +190,6 @@ ul.bullets.plain { background: none; padding: 0 0 0 18px; }
 ul.bullets.decided { background: var(--mint-soft); }
 ul.bullets.decided li::before { content: "결정 · "; color: var(--mint); font-weight: 700; }
 ul.details { margin: 0; padding: 0 0 0 18px; font-size: 14px; color: var(--muted); display: flex; flex-direction: column; gap: 2px; }
+.item.ev { background: #f3f9ff; border-color: #d6e8f7; }
+.item.ev .what { display: flex; flex-direction: column; gap: 3px; font-weight: 400; }
+.item.ev .txt { font-weight: 700; font-size: 16px; }
