@@ -86,23 +86,13 @@
     return (h < 12 ? "오전 " : "오후 ") + (h % 12 === 0 ? 12 : h % 12) + ":" + p[1];
   }
   function shortDate(d) { var x = toDate(d); return (x.getMonth() + 1) + "/" + x.getDate() + "(" + DAYS[x.getDay()] + ")"; }
-  function calTag(label) {
-    /* '✓' 글자는 폰마다 글꼴이 달라 줄이 틀어진다. 작은 그림으로 그린다 */
-    var t = el("span", "tag cal", label);
-    var svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    svg.setAttribute("viewBox", "0 0 12 12"); svg.setAttribute("width", "11"); svg.setAttribute("height", "11"); svg.setAttribute("aria-hidden", "true");
-    var path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-    path.setAttribute("d", "M2 6.5 L5 9.5 L10.5 3"); path.setAttribute("fill", "none"); path.setAttribute("stroke", "currentColor"); path.setAttribute("stroke-width", "2"); path.setAttribute("stroke-linecap", "round"); path.setAttribute("stroke-linejoin", "round");
-    svg.appendChild(path); t.appendChild(svg);
-    return t;
-  }
   function meta(it, kind) {
     var m = el("div", "meta");
     m.appendChild(el("span", "tag " + (it.scope === "회사" ? "work" : "home"), it.scope));
     if (it.owner === "unclear") m.appendChild(el("span", "tag carry", "누구 일인지 확인" + (it.who ? " · " + it.who : "")));
     if (it.status === "other" && it.who) m.appendChild(el("span", "tag", it.who));
     if (it.plan_time) m.appendChild(el("span", "tag when", niceTime(it.plan_time)));
-    if (it.cal_ref) m.appendChild(calTag(it.addon === "calendar" ? "캘린더에서" : "캘린더"));
+    if (it.cal_ref) m.appendChild(el("span", "tag cal", it.addon === "calendar" ? "캘린더에서" : "캘린더"));
     if (kind === "later" && it.due_date) m.appendChild(el("span", "tag when", shortDate(it.due_date) + " 기한"));
     else if (it.due_text) m.appendChild(el("span", "tag", it.due_text));
     if (it.carried_days > 0) m.appendChild(el("span", "tag carry", it.carried_days === 1 ? "어제에서 넘어옴" : it.carried_days + "일 넘어옴"));
@@ -300,9 +290,9 @@
     fill("l-todo", "c-todo", d.todo, "todo", isToday ? "아직 없어요. 오른쪽 아래 + 를 눌러 말하거나 녹음을 넣어 보세요." : past ? "이날 남긴 일이 없어요." : "이날 하기로 한 일이 아직 없어요.");
     $("s-due").hidden = !d.due.length; fill("l-due", "c-due", d.due, "due");
     $("s-done").hidden = !d.done.length; fill("l-done", "c-done", d.done, "done");
-    $("sum-text").textContent = d.summary || (isToday ? "하루를 마칠 때 누르면 한 일과 남은 일을 정리해 드려요." : past ? "이날의 정리가 없어요." : "");
+    $("sum-text").textContent = d.summary || (isToday ? "오늘 할 일을 마쳤으면 누르세요. 한 일과 남은 일을 정리해 둘게요. 남은 일은 내일로 넘어가요." : past ? "이날의 마무리가 없어요." : "");
     $("btn-sum").hidden = d.date > d.today;
-    $("btn-sum").textContent = d.summary ? "다시 정리해 줘" : "정리해 줘";
+    $("btn-sum").textContent = d.summary ? "마무리 다시 쓰기" : "오늘은 여기까지";
     renderNeedMe(d.need_me || []);
     renderBriefs(d.briefs || []);
     $("pending").hidden = !d.pending_inputs; if (d.pending_inputs) $("pending").textContent = pendingText(d.pending || []);
@@ -364,10 +354,10 @@
     api("/api/items", { method: "POST", json: { text: t, plan_date: state.date } }).then(function () { $("add-text").value = ""; sheet(false); refresh(); }).catch(fail("in-msg"));
   });
   $("btn-sum").addEventListener("click", function () {
-    $("btn-sum").disabled = true; $("sum-text").textContent = "정리하고 있어요…";
+    $("btn-sum").disabled = true; $("sum-text").textContent = "오늘 하루를 정리하고 있어요…";
     api("/api/day/close?date=" + state.date, { method: "POST" }).then(function (r) { $("sum-text").textContent = r.summary || r.note || ""; })
       .catch(function (e) { $("sum-text").textContent = e.message; })
-      .then(function () { $("btn-sum").disabled = false; $("btn-sum").textContent = "다시 정리해 줘"; });
+      .then(function () { $("btn-sum").disabled = false; $("btn-sum").textContent = "마무리 다시 쓰기"; });
   });
 
   var mic = { on: false, rec: null, text: "", media: null, chunks: [] };
@@ -637,12 +627,6 @@
   $("cal-source").addEventListener("change", function () {
     var src = $("cal-source"), name = src.options[src.selectedIndex] ? src.options[src.selectedIndex].textContent.replace(" (기본)", "") : "";
     api("/api/calendar/source", { method: "POST", json: { id: src.value, name: src.value ? name : "" } }).then(function (c) { renderCal(c); refresh(); }).catch(function (e) { say("cal-source-msg", e.message, true); });
-  });
-  $("cal-dedupe").addEventListener("click", function () {
-    $("cal-dedupe").disabled = true; say("cal-dedupe-msg", "캘린더를 살펴보고 있어요…");
-    api("/api/calendar/dedupe", { method: "POST" }).then(function (r) {
-      say("cal-dedupe-msg", r.removed ? "중복 " + r.removed + "건을 지웠어요" + (r.relinked ? ", 할 일 " + r.relinked + "건을 남은 일정에 다시 연결했어요." : ".") : "중복된 일정이 없어요.");
-    }).catch(function (e) { say("cal-dedupe-msg", e.message, true); }).then(function () { $("cal-dedupe").disabled = false; });
   });
   $("cal-unlink").addEventListener("click", function () {
     api("/api/calendar", { method: "DELETE" }).then(renderCal).catch(function (e) { $("cal-err").textContent = e.message; });

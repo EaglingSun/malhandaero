@@ -425,54 +425,6 @@ def unlink(user_id: int) -> None:
                     (json.dumps({"prev_provider": link["provider"]}, ensure_ascii=False), user_id))
 
 
-def _event_key(summary: str, start: dict | None) -> tuple:
-    st = start or {}
-    return ((summary or "").strip(), st.get("dateTime") or st.get("date") or "")
-
-
-def dedupe_google(user_id: int, link: dict, days_back: int = 30, days_ahead: int = 90) -> dict:
-    """올리는 캘린더에서 말한대로가 만든 중복 일정을 정리한다. 같은 제목·같은 시작이면 하나만 남기고 지운다.
-    남길 것은 할 일이 가리키는 것 우선. 번호가 없는 할 일은 남긴 일정에 다시 연결한다."""
-    cfg = link["config"]
-    g = Google(cfg["refresh_token"])
-    cal = cfg.get("write_calendar_id") or "primary"
-    now = datetime.now(tz())
-    q = urllib.parse.urlencode({"timeMin": (now - timedelta(days=days_back)).isoformat(), "timeMax": (now + timedelta(days=days_ahead)).isoformat(),
-                                "singleEvents": "true", "maxResults": "2500"})
-    code, out = _http("GET", f"{g.api}/calendars/{urllib.parse.quote(cal, safe='')}/events?{q}", g.h)
-    if code != 200:
-        raise CalendarError(f"구글 캘린더를 읽지 못했어요 (응답 {code}).")
-    with db.session() as con:
-        rows = con.execute("SELECT id, text, cal_ref FROM items WHERE user_id = ? AND addon != 'calendar'", (user_id,)).fetchall()
-    refs = {r["cal_ref"]: r["id"] for r in rows if r["cal_ref"]}
-    texts = {r["text"].strip() for r in rows}
-    groups: dict = {}
-    for e in json.loads(out).get("items", []):
-        if e.get("status") == "cancelled" or not e.get("summary"):
-            continue
-        ours = bool(((e.get("extendedProperties") or {}).get("private") or {}).get("malhandaero")) or e["id"] in refs \
-            or (e["summary"].strip() in texts and (OURS in (e.get("description") or "") or e.get("description")))
-        if not ours:
-            continue
-        groups.setdefault(_event_key(e["summary"], e.get("start")), []).append(e)
-    removed, relinked = 0, 0
-    for key, evs in groups.items():
-        if len(evs) < 2:
-            continue
-        keep = next((e for e in evs if e["id"] in refs), evs[0])
-        for e in evs:
-            if e is keep:
-                continue
-            g.delete(e["id"], cal)
-            removed += 1
-        if keep["id"] not in refs:  # 번호 없는 할 일에 붙여 준다
-            with db.session() as con:
-                cur = con.execute("UPDATE items SET cal_ref = ? WHERE user_id = ? AND cal_ref IS NULL AND text = ? AND addon != 'calendar'",
-                                  (keep["id"], user_id, key[0]))
-                relinked += cur.rowcount
-    return {"removed": removed, "relinked": relinked, "groups": sum(1 for v in groups.values() if len(v) > 1)}
-
-
 def _note(user_id: int, text: str) -> None:
     with db.session() as con:
         con.execute("UPDATE calendar_links SET status = ?, updated_at = datetime('now') WHERE user_id = ?", (text, user_id))

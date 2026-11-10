@@ -301,7 +301,7 @@ def test_google_events_listing(fake, monkeypatch):
     assert [e["title"] for e in client.get("/api/calendar/events", params={"date": "2099-05-05"}).json()["events"]] == ["팀 주간 회의"]
 
 
-def test_relink_and_same_target_do_not_duplicate_and_dedupe_cleans(fake, monkeypatch):
+def test_relink_and_same_target_do_not_duplicate(fake, monkeypatch):
     for k, v in {"MALHAN_GOOGLE_CLIENT_ID": "cid", "MALHAN_GOOGLE_CLIENT_SECRET": "sec",
                  "MALHAN_GOOGLE_TOKEN_URL": fake + "/token", "MALHAN_GOOGLE_API": fake + "/g"}.items():
         monkeypatch.setenv(k, v)
@@ -323,10 +323,3 @@ def test_relink_and_same_target_do_not_duplicate_and_dedupe_cleans(fake, monkeyp
     client.post("/api/calendar/target", json={"id": "primary", "name": "Sun"})
     client.post("/api/calendar/target", json={"id": "primary-id", "name": "Sun"})
     assert len(FakeCalendars.events) == 1
-    # 이미 생긴 중복은 정리한다: 같은 제목·시작 세 개 → 할 일이 가리키는 것만 남김
-    ref = client.get("/api/day", params={"date": "2099-07-01"}).json()["todo"][0]["cal_ref"]
-    body = FakeCalendars.events[ref]
-    FakeCalendars.events["dupA"] = dict(body); FakeCalendars.events["dupB"] = dict(body)
-    r = client.post("/api/calendar/dedupe").json()
-    assert r["removed"] == 2 and list(FakeCalendars.events) == [ref]
-    assert client.post("/api/calendar/dedupe").json()["removed"] == 0

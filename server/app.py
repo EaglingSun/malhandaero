@@ -1090,20 +1090,6 @@ def calendar_unlink(user=Depends(current_user)):
     return _calendar_state(user["id"])
 
 
-@app.post("/api/calendar/dedupe")
-def calendar_dedupe(user=Depends(current_user)):
-    """올리는 캘린더의 중복 일정 정리 (구글). 같은 제목·같은 시작은 하나만 남긴다."""
-    link = calsync.get_link(user["id"])
-    if not link:
-        raise HTTPException(400, "먼저 캘린더를 연결해 주세요.")
-    if link["provider"] != "google":
-        raise HTTPException(400, "지금은 구글 캘린더만 정리할 수 있어요.")
-    try:
-        return calsync.dedupe_google(user["id"], link)
-    except calsync.CalendarError as e:
-        raise HTTPException(400, str(e))
-
-
 # ---------- 하루 정리 ----------
 @app.post("/api/day/close")
 def close_day(date_: str | None = Query(None, alias="date"), user=Depends(current_user)):

@@ -194,4 +194,3 @@ ul.details { margin: 0; padding: 0 0 0 18px; font-size: 14px; color: var(--muted
 .item.ev .what { display: flex; flex-direction: column; gap: 3px; font-weight: 400; }
 .item.ev .txt { font-weight: 700; font-size: 16px; }
 .tag.cal { background: #e6f0ff; color: #2b5fb0; }
-.tag.cal svg { flex: none; }
