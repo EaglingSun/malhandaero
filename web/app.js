@@ -717,6 +717,11 @@
       }).catch(fail("in-msg"));
     });
   });
+  $("code-form").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var v = $("code-new").value.trim(); if (!v) return;
+    api("/api/settings/code", { method: "POST", json: { code: v } }).then(function () { $("code-new").value = ""; say("code-msg", "바꿨어요. 이미 들어와 있는 폰은 그대로고, 새로 들어오는 기기부터 새 코드를 써요."); }).catch(function (x) { say("code-msg", x.message, true); });
+  });
   $("upbar-go").addEventListener("click", function () { $("upbar").hidden = true; $("btn-update").click(); window.scrollTo(0, document.body.scrollHeight); });
   $("btn-update").addEventListener("click", function () {
     var b = $("btn-update"); b.disabled = true; say("update-msg", "업데이트가 있는지 보고 있어요…");

@@ -146,6 +146,12 @@
       <p class="msg" id="link-msg">QR을 휴대폰 카메라로 찍으면 주소나 코드를 치지 않고 바로 들어와요.</p>
       <div id="link-qr" class="qr" hidden></div>
       <p class="msg" id="link-url"></p>
+      <form id="code-form" class="row">
+        <label class="sr" for="code-new">새 코드</label>
+        <input id="code-new" maxlength="32" placeholder="들어올 때 쓰는 코드 바꾸기">
+        <button type="submit">바꾸기</button>
+      </form>
+      <p class="msg" id="code-msg"></p>
       <details id="http-help" hidden>
         <summary>폰에서 「설치」가 안 되거나 공유 목록에 안 보여요</summary>
         <p class="msg">지금 주소가 <b>http</b>라서 그래요. 폰 브라우저는 앱 설치·공유 받기·말하기를 https(또는 예외로 등록한 주소)에서만 허용해요. 둘 중 하나로 풀려요.</p>

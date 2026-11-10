@@ -50,6 +50,24 @@ def family_code() -> str:
     return os.environ.get("MALHAN_FAMILY_CODE", "")
 
 
+def set_env_value(key: str, value: str) -> None:
+    """.env의 한 줄을 바꾸거나 더한다(다른 줄은 그대로). 지금 켜진 서버에도 바로 반영."""
+    env = ROOT / ".env"
+    lines = env.read_text(encoding="utf-8-sig").splitlines() if env.exists() else []
+    out, done = [], False
+    for line in lines:
+        if line.split("=", 1)[0].strip() == key and not line.lstrip().startswith("#"):
+            if not done:
+                out.append(f"{key}={value}")
+                done = True
+        else:
+            out.append(line)
+    if not done:
+        out.insert(0, f"{key}={value}")
+    env.write_text("\n".join(out) + "\n", encoding="utf-8")
+    os.environ[key] = value
+
+
 def current_user(mh_token: str | None = Cookie(default=None)):
     if not mh_token:
         raise HTTPException(401, "먼저 들어와 주세요.")
@@ -210,6 +228,20 @@ def _diary_on(user_id: int) -> bool:
     with db.session() as con:
         r = con.execute("SELECT enabled FROM addon_settings WHERE user_id = ? AND addon = 'diary'", (user_id,)).fetchone()
     return bool(r and r["enabled"])
+
+
+class CodeChange(BaseModel):
+    code: str
+
+
+@app.post("/api/settings/code")
+def change_code(body: CodeChange, user=Depends(current_user)):
+    """들어올 때 쓰는 코드를 바꾼다. 이미 들어와 있는 폰은 그대로, 새로 들어오는 기기부터 새 코드."""
+    code = body.code.strip()
+    if not (2 <= len(code) <= 32):
+        raise HTTPException(400, "코드는 2~32자로 정해 주세요.")
+    set_env_value("MALHAN_FAMILY_CODE", code)
+    return {"ok": True}
 
 
 class DiaryToggle(BaseModel):

@@ -454,3 +454,17 @@ def test_help_prompts_fill_in_this_pc(monkeypatch):
     t = client.get("/api/help/tailscale").json()["text"]
     assert "http://10.0.0.5:8000" in t and "winget install --id Tailscale.Tailscale" in t
     assert client.get("/api/help/없음").status_code == 404
+
+
+def test_change_family_code_updates_env_and_live(monkeypatch, tmp_path):
+    from server import app as appmod
+    env = tmp_path / ".env"; env.write_text("MALHAN_FAMILY_CODE=우리집\n# 설명\nMALHAN_LABEL=집\n", encoding="utf-8")
+    monkeypatch.setattr(appmod, "ROOT", tmp_path)
+    monkeypatch.setenv("MALHAN_FAMILY_CODE", "우리집")   # 시험 뒤 원래대로 돌아가게
+    join("코드")
+    assert client.post("/api/settings/code", json={"code": "x"}).status_code == 400
+    assert client.post("/api/settings/code", json={"code": "새코드"}).json() == {"ok": True}
+    assert env.read_text(encoding="utf-8") == "MALHAN_FAMILY_CODE=새코드\n# 설명\nMALHAN_LABEL=집\n"
+    assert client.get("/api/me").status_code == 200                                 # 이미 들어온 쪽은 그대로
+    assert client.post("/api/join", json={"name": "새사람", "code": "우리집"}).status_code != 200
+    assert client.post("/api/join", json={"name": "새사람", "code": "새코드"}).status_code == 200
