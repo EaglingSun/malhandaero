@@ -292,6 +292,15 @@
     $("s-done").hidden = !d.done.length; fill("l-done", "c-done", d.done, "done");
     $("sum-text").textContent = d.summary || (isToday ? "오늘 할 일을 마쳤으면 누르세요. 한 일과 남은 일을 정리해 둘게요. 남은 일은 내일로 넘어가요." : past ? "이날의 마무리가 없어요." : "");
     $("btn-sum").hidden = d.date > d.today;
+    var diaryOn = !!(state.me && state.me.diary);
+    $("diary").hidden = !diaryOn || d.date > d.today;
+    $("btn-diary").textContent = diaryOn ? "한 줄 끄기" : "오늘 한 줄도 남길래요";
+    if (diaryOn) {
+      $("note").value = d.note || "";
+      state.mood = d.mood || "";
+      paintMood();
+      say("note-msg", "");
+    }
     $("btn-sum").textContent = d.summary ? "마무리 다시 쓰기" : "오늘은 여기까지";
     renderNeedMe(d.need_me || []);
     renderBriefs(d.briefs || []);
@@ -353,6 +362,32 @@
     var t = $("add-text").value.trim(); if (!t) return;
     api("/api/items", { method: "POST", json: { text: t, plan_date: state.date } }).then(function () { $("add-text").value = ""; sheet(false); refresh(); }).catch(fail("in-msg"));
   });
+  $("btn-diary").addEventListener("click", function () {
+    var on = !(state.me && state.me.diary);
+    api("/api/settings/diary", { method: "POST", json: { enabled: on } }).then(function () { state.me.diary = on; refresh(); if (on) setTimeout(function () { $("note").focus(); }, 50); }).catch(fail("in-msg"));
+  });
+  function paintMood() {
+    Array.prototype.forEach.call(document.querySelectorAll("#moods button"), function (b) { b.classList.toggle("on", b.dataset.mood === state.mood); b.setAttribute("aria-checked", b.dataset.mood === state.mood ? "true" : "false"); });
+  }
+  function saveNote() {
+    var v = $("note").value.trim();
+    api("/api/day/note?date=" + state.date, { method: "POST", json: { note: v, mood: state.mood || "" } })
+      .then(function () { say("note-msg", (v || state.mood) ? "남겨 뒀어요." : ""); })
+      .catch(function (e) { say("note-msg", e.message, true); });
+  }
+  $("moods").addEventListener("click", function (e) {
+    var b = e.target.closest("button[data-mood]"); if (!b) return;
+    state.mood = state.mood === b.dataset.mood ? "" : b.dataset.mood;   // 다시 누르면 해제
+    paintMood(); saveNote();
+  });
+  $("note-chips").addEventListener("click", function (e) {
+    var b = e.target.closest("button"); if (!b) return;
+    var cur = $("note").value.trim();
+    $("note").value = cur ? (cur.indexOf(b.textContent) >= 0 ? cur : cur + ", " + b.textContent) : b.textContent;
+    saveNote();
+  });
+  $("note").addEventListener("change", saveNote);
+  $("note").addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); $("note").blur(); } });
   $("btn-sum").addEventListener("click", function () {
     $("btn-sum").disabled = true; $("sum-text").textContent = "오늘 하루를 정리하고 있어요…";
     api("/api/day/close?date=" + state.date, { method: "POST" }).then(function (r) { $("sum-text").textContent = r.summary || r.note || ""; })

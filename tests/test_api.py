@@ -350,3 +350,23 @@ def test_stats_summarize_usage():
     assert st["seconds_to_list"]["median"] is not None and st["seconds_to_list"]["median"] >= 0
     assert st["items"]["manual"] == 1 and st["items"]["extracted_mine"] == 2 and st["items"]["skipped"] == 1 and st["items"]["skip_ratio"] == 0.5
     assert st["items"]["per_meeting"] == 2.0
+
+
+def test_daily_note_is_opt_in_and_feeds_the_wrap_up(monkeypatch):
+    from server import llm
+
+    join("한줄")
+    assert client.get("/api/me").json()["diary"] is False
+    assert client.post("/api/settings/diary", json={"enabled": True}).json()["diary"] is True and client.get("/api/me").json()["diary"] is True
+    r = client.post("/api/day/note", json={"note": "  저녁에 비가 와서 늦게 들어왔다  ", "mood": "😮‍💨"}).json()
+    assert r["note"] == "저녁에 비가 와서 늦게 들어왔다" and r["mood"] == "😮‍💨"
+    d0 = client.get("/api/day").json()
+    assert d0["note"] == "저녁에 비가 와서 늦게 들어왔다" and d0["mood"] == "😮‍💨"
+    seen = {}
+    monkeypatch.setattr(llm, "complete", lambda prompt, max_tokens=2000: seen.setdefault("p", prompt) and "비 오는 날 하루를 마쳤어요.")
+    client.post("/api/items", json={"text": "우산 사기"})
+    r = client.post("/api/day/close").json()
+    assert "오늘 한 줄:\n😮‍💨 저녁에 비가 와서 늦게 들어왔다" in seen["p"] and r["summary"].startswith("비 오는 날")
+    d = client.get("/api/day").json()
+    assert d["summary"] == "비 오는 날 하루를 마쳤어요." and d["note"] == "저녁에 비가 와서 늦게 들어왔다" and d["mood"] == "😮‍💨"   # 마무리를 써도 한 줄은 남는다
+    assert client.post("/api/day/note", json={"mood": "😊"}).json() == {"date": d["date"], "note": "", "mood": "😊"}   # 이모지만도 된다

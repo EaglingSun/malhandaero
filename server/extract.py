@@ -286,22 +286,27 @@ def extract(text: str, ctx: Context) -> tuple[str, list[Candidate], dict]:
     return "\n".join(summaries), dedupe(found, ctx.known), merge_minutes(minutes)
 
 
-def summary_prompt(today: date, done: list[str], left: list[str], later: list[str]) -> str:
+def summary_prompt(today: date, done: list[str], left: list[str], later: list[str], note: str = "") -> str:
     def lines(a: list[str]) -> str:
         return "\n".join(f"- {x}" for x in a) if a else "- 없음"
 
-    return "\n".join(
-        [
-            "한 사람의 하루 할 일 기록이다. 하루를 마무리하는 짧은 정리를 한국어 존댓말(해요체)로 써라.",
-            "규칙: 3~4문장. 목록에 있는 사실만 말한다. 평가하거나 훈계하지 않는다. 남은 일은 내일로 넘어간다고 알려 준다.",
-            "내일 먼저 챙기면 좋은 일이 있으면 하나만 짚는다. 머리말, 제목, 목록 기호는 쓰지 않는다.",
-            "",
-            f"날짜: {today.isoformat()} ({WEEKDAYS[today.weekday()]}요일)",
-            "한 일:\n" + lines(done),
-            "못 끝낸 일:\n" + lines(left),
-            "나중으로 미뤄 둔 일:\n" + lines(later),
-        ]
-    )
+    parts = [
+        "한 사람의 하루 할 일 기록이다. 하루를 마무리하는 짧은 정리를 한국어 존댓말(해요체)로 써라.",
+        "규칙: 3~4문장. 목록에 있는 사실만 말한다. 평가하거나 훈계하지 않는다. 남은 일은 내일로 넘어간다고 알려 준다.",
+        "내일 먼저 챙기면 좋은 일이 있으면 하나만 짚는다. 머리말, 제목, 목록 기호는 쓰지 않는다.",
+    ]
+    if note.strip():
+        parts.append("'오늘 한 줄'은 본인이 그날에 대해 남긴 기분 표시(이모지)나 짧은 말이다. 그 기분과 내용을 한 문장으로 자연스럽게 녹이되, 적힌 그대로 쓰고 해석이나 조언을 보태지 않는다. 이모지는 글에 그대로 넣지 않는다.")
+    parts += [
+        "",
+        f"날짜: {today.isoformat()} ({WEEKDAYS[today.weekday()]}요일)",
+        "한 일:\n" + lines(done),
+        "못 끝낸 일:\n" + lines(left),
+        "나중으로 미뤄 둔 일:\n" + lines(later),
+    ]
+    if note.strip():
+        parts.append("오늘 한 줄:\n" + note.strip())
+    return "\n".join(parts)
 
 
 def plain_summary(done: list[str], left: list[str]) -> str:

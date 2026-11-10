@@ -77,8 +77,30 @@
       <section aria-labelledby="h-sum">
         <h2 id="h-sum">하루 마무리</h2>
         <div class="card">
+          <div id="diary" hidden>
+            <div class="label">오늘 하루는</div>
+            <div class="moods" id="moods" role="radiogroup" aria-label="오늘 기분">
+              <button type="button" data-mood="😊" aria-label="좋았어요">😊</button>
+              <button type="button" data-mood="😌" aria-label="무난했어요">😌</button>
+              <button type="button" data-mood="😮‍💨" aria-label="지쳤어요">😮‍💨</button>
+              <button type="button" data-mood="😣" aria-label="힘들었어요">😣</button>
+              <button type="button" data-mood="🔥" aria-label="불태웠어요">🔥</button>
+            </div>
+            <div class="chips" id="note-chips">
+              <button type="button">잘 버텼다</button>
+              <button type="button">생각보다 괜찮았다</button>
+              <button type="button">회의가 많았다</button>
+              <button type="button">일찍 자야겠다</button>
+              <button type="button">내일은 좀 더 가볍게</button>
+            </div>
+            <input id="note" maxlength="200" placeholder="직접 써도 돼요. 한 줄이면 충분해요.">
+            <p class="msg" id="note-msg"></p>
+          </div>
           <p class="msg" id="sum-text" role="status" aria-live="polite"></p>
-          <button id="btn-sum" type="button">오늘은 여기까지</button>
+          <div class="row">
+            <button id="btn-sum" type="button">오늘은 여기까지</button>
+            <button class="link" id="btn-diary" type="button">오늘 한 줄도 남길래요</button>
+          </div>
         </div>
       </section>
     </div>

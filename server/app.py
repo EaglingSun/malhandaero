@@ -198,7 +198,47 @@ def me(user=Depends(current_user)):
         "ai": llm.mode(),
         "stt": stt.available(),
         "version": _version(),
+        "diary": _diary_on(user["id"]),
     }
+
+
+def _diary_on(user_id: int) -> bool:
+    with db.session() as con:
+        r = con.execute("SELECT enabled FROM addon_settings WHERE user_id = ? AND addon = 'diary'", (user_id,)).fetchone()
+    return bool(r and r["enabled"])
+
+
+class DiaryToggle(BaseModel):
+    enabled: bool
+
+
+@app.post("/api/settings/diary")
+def diary_toggle(body: DiaryToggle, user=Depends(current_user)):
+    """'오늘 한 줄'을 쓸지. 기본은 꺼짐, 쓰고 싶은 사람만 켠다."""
+    with db.session() as con:
+        con.execute("INSERT INTO addon_settings(user_id, addon, enabled) VALUES (?, 'diary', ?) ON CONFLICT(user_id, addon) DO UPDATE SET enabled = excluded.enabled",
+                    (user["id"], 1 if body.enabled else 0))
+    return {"diary": body.enabled}
+
+
+class DayNote(BaseModel):
+    note: str = ""
+    mood: str = ""
+
+
+@app.post("/api/day/note")
+def day_note(body: DayNote, date_: str | None = Query(None, alias="date"), user=Depends(current_user)):
+    """그날의 기분 이모지와 한 줄을 저장한다. 마무리 글이 없으면 빈 마무리로 자리를 만든다."""
+    ds = parse_date(date_).isoformat()
+    note = body.note.strip()[:200]
+    mood = body.mood.strip()[:8]
+    with db.session() as con:
+        con.execute(
+            "INSERT INTO day_logs(user_id, date, summary, note, mood) VALUES (?,?,'',?,?) "
+            "ON CONFLICT(user_id, date) DO UPDATE SET note = excluded.note, mood = excluded.mood",
+            (user["id"], ds, note, mood),
+        )
+    return {"date": ds, "note": note, "mood": mood}
 
 
 # ---------- 업데이트 ----------
@@ -563,7 +603,7 @@ def day(date_: str | None = Query(None, alias="date"), user=Depends(current_user
             new = []
         done = q("SELECT * FROM items WHERE user_id = ? AND status = 'done' AND done_at = ? ORDER BY updated_at", uid, ds)
         due = q("SELECT * FROM items WHERE user_id = ? AND status IN ('new','later') AND due_date = ? ORDER BY id", uid, ds)
-        log = con.execute("SELECT summary FROM day_logs WHERE user_id = ? AND date = ?", (uid, ds)).fetchone()
+        log = con.execute("SELECT summary, note, mood FROM day_logs WHERE user_id = ? AND date = ?", (uid, ds)).fetchone()
         pending_rows = con.execute(
             "SELECT id, title, kind, status, length(transcript) AS chars, created_at FROM inputs WHERE user_id = ? AND status IN ('received','transcribing','ready','extracting') ORDER BY id",
             (uid,),
@@ -587,6 +627,8 @@ def day(date_: str | None = Query(None, alias="date"), user=Depends(current_user
         "done": [item_dict(r) for r in done],
         "due": [item_dict(r) for r in due],
         "summary": log["summary"] if log else "",
+        "note": log["note"] if log else "",
+        "mood": log["mood"] if log else "",
         "pending_inputs": pending,
         "pending": [{"id": r["id"], "title": r["title"], "kind": r["kind"], "status": r["status"], "long": (r["chars"] or 0) > 10000} for r in pending_rows],
         "need_me": [{"id": r["id"], "title": r["title"], "kind": r["kind"], "speakers": json.loads(r["speakers"])} for r in need_me],
@@ -1100,16 +1142,18 @@ def close_day(date_: str | None = Query(None, alias="date"), user=Depends(curren
         op = "<=" if d == t else "="
         left = [r["text"] for r in con.execute(f"SELECT text FROM items WHERE user_id = ? AND status = 'todo' AND plan_date {op} ?", (uid, ds))]
         later = [r["text"] for r in con.execute("SELECT text FROM items WHERE user_id = ? AND status = 'later' LIMIT 20", (uid,))]
-    if not done and not left:
+        log = con.execute("SELECT note, mood FROM day_logs WHERE user_id = ? AND date = ?", (uid, ds)).fetchone()
+    day_note_ = " ".join(x for x in [(log["mood"] if log else ""), (log["note"] if log else "")] if x).strip()
+    if not done and not left and not day_note_:
         return {"summary": "", "note": "이날 고른 일이 없어요."}
     try:
-        summary = llm.complete(extract.summary_prompt(d, done, left, later), max_tokens=400).strip()
+        summary = llm.complete(extract.summary_prompt(d, done, left, later, day_note_), max_tokens=400).strip()
     except Exception:
         summary = ""
     summary = summary or extract.plain_summary(done, left)
     with db.session() as con:
         con.execute(
-            "INSERT INTO day_logs(user_id, date, summary) VALUES (?,?,?) ON CONFLICT(user_id, date) DO UPDATE SET summary = excluded.summary, created_at = datetime('now')",
+            "INSERT INTO day_logs(user_id, date, summary) VALUES (?,?,?) ON CONFLICT(user_id, date) DO UPDATE SET summary = excluded.summary, created_at = datetime('now')",  # note/mood는 그대로
             (uid, ds, summary),
         )
     return {"summary": summary}

@@ -194,3 +194,14 @@ ul.details { margin: 0; padding: 0 0 0 18px; font-size: 14px; color: var(--muted
 .item.ev .what { display: flex; flex-direction: column; gap: 3px; font-weight: 400; }
 .item.ev .txt { font-weight: 700; font-size: 16px; }
 .tag.cal { background: #e6f0ff; color: #2b5fb0; }
+
+
+/* 오늘 한 줄 */
+#diary { margin-bottom: 10px; }
+#diary .label { font-size: 13px; color: var(--muted, #6b7280); margin-bottom: 6px; }
+.moods { display: flex; gap: 6px; margin-bottom: 8px; }
+.moods button { font-size: 22px; line-height: 1; padding: 6px 8px; border-radius: 12px; border: 1px solid var(--line, #e5e7eb); background: transparent; opacity: .55; }
+.moods button.on { opacity: 1; border-color: var(--accent, #2563eb); background: var(--accent-soft, #eff6ff); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+.chips button { font-size: 13px; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line, #e5e7eb); background: transparent; color: inherit; }
+.chips button:active { background: var(--accent-soft, #eff6ff); }

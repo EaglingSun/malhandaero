@@ -57,6 +57,8 @@ CREATE TABLE IF NOT EXISTS day_logs (
     user_id     INTEGER NOT NULL REFERENCES users(id),
     date        TEXT NOT NULL,
     summary     TEXT NOT NULL,
+    note        TEXT NOT NULL DEFAULT '',   -- 오늘 한 줄 (쓰고 싶은 사람만)
+    mood        TEXT NOT NULL DEFAULT '',   -- 오늘 기분 이모지
     created_at  TEXT NOT NULL DEFAULT (datetime('now')),
     PRIMARY KEY (user_id, date)
 );
@@ -127,6 +129,8 @@ MIGRATIONS = [
     ("inputs", "minutes", "TEXT NOT NULL DEFAULT ''"),
     ("items", "details", "TEXT NOT NULL DEFAULT '[]'"),
     ("inputs", "done_at", "TEXT"),
+    ("day_logs", "note", "TEXT NOT NULL DEFAULT ''"),
+    ("day_logs", "mood", "TEXT NOT NULL DEFAULT ''"),
 ]
 
 

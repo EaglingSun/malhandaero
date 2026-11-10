@@ -67,3 +67,10 @@ def test_meeting_prompt_asks_for_grouping_and_minutes():
 def test_audio_prompt_explains_missing_speakers():
     p = extract.build_prompt("제가 금요일까지 보낼게요. 자료는 보내 주세요.", extract.Context(today=date(2026, 11, 10), kind="call", from_audio=True))
     assert "누가 말했는지 표시가 없고" in p and "1인칭" in p
+
+
+def test_summary_prompt_carries_note_only_when_given():
+    base = extract.summary_prompt(date(2026, 11, 10), ["a"], [], [])
+    assert "오늘 한 줄" not in base
+    with_note = extract.summary_prompt(date(2026, 11, 10), ["a"], [], [], "비가 왔다")
+    assert "오늘 한 줄:\n비가 왔다" in with_note and "해석이나 조언을 보태지 않는다" in with_note
