@@ -60,18 +60,24 @@ MIME = {".m4a": "audio/mp4", ".mp4": "audio/mp4", ".aac": "audio/aac", ".mp3": "
         ".ogg": "audio/ogg", ".oga": "audio/ogg", ".opus": "audio/ogg", ".webm": "audio/webm", ".flac": "audio/flac", ".amr": "audio/amr", ".3gp": "audio/3gpp"}
 
 
-def _gemini_call(url: str, body: bytes | None, headers: dict, method: str = "POST", timeout: int = 600):
+def _gemini_call(url: str, body: bytes | None, headers: dict, method: str = "POST", timeout: int = 900):
     import json
+    import time
     import urllib.error
     import urllib.request
 
     req = urllib.request.Request(url, data=body, method=method, headers=headers)
+    what = url.split("?")[0].rsplit("/", 1)[-1]
+    t0 = time.time()
     try:
         with urllib.request.urlopen(req, timeout=timeout) as r:
             raw = r.read()
+            if ":generateContent" in url:
+                print(f"[stt] Gemini {what} {len(body or b'') // 1024}KB → {time.time() - t0:.0f}초", flush=True)
             return (json.loads(raw.decode("utf-8")) if raw.strip() else {}), dict(r.headers)
     except urllib.error.HTTPError as e:
         detail = e.read().decode("utf-8", "replace")[:200]
+        print(f"[stt] Gemini {what} → HTTP {e.code} ({time.time() - t0:.0f}초): {detail[:120]}", flush=True)
         if e.code in (401, 403):
             raise SttUnavailable("Gemini 키가 틀리거나 권한이 없어요. .env의 GEMINI_API_KEY를 확인해 주세요.")
         if e.code == 429:
@@ -85,7 +91,8 @@ def _gemini_call(url: str, body: bytes | None, headers: dict, method: str = "POS
     except urllib.error.URLError as e:
         raise SttUnavailable(f"Gemini에 연결하지 못했어요: {e.reason}")
     except TimeoutError:
-        raise SttUnavailable("Gemini가 제때 답하지 않았어요. 잠시 뒤 '다시 뽑기'를 눌러 주세요.")
+        print(f"[stt] Gemini {what} → {timeout}초 안에 답 없음", flush=True)
+        raise SttUnavailable(f"Gemini가 {timeout // 60}분 안에 녹음을 다 듣지 못했어요. 잠시 뒤 '다시 뽑기'를 눌러 주세요.")
 
 
 def _gemini_upload(path: Path, mime: str, key: str) -> str:

@@ -31,7 +31,7 @@ def test_gemini_defaults_and_think_stripping(monkeypatch):
     assert llm.mode() == "gemini"
     assert llm.complete("녹음 내용: 우유 사야 해") == '[{"text": "우유 사기"}]'
     assert seen["url"].startswith("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions")
-    assert seen["auth"] == "Bearer g-key" and seen["body"]["model"] == "gemini-3.8-flash"
+    assert seen["auth"] == "Bearer g-key" and seen["body"]["model"] == "gemini-3.8-flash" and seen["body"]["reasoning_effort"] == "low"
 
 
 def test_gemini_key_autodetect(monkeypatch):
@@ -89,3 +89,15 @@ def test_retries_with_model_google_suggests(monkeypatch):
     monkeypatch.setattr(urllib.request, "urlopen", fake)
     assert llm.complete("x") == "ok" and models == ["gemini-old", "gemini-new"]
     assert llm.suggested_model("no hint here") == ""
+
+
+def test_drops_reasoning_effort_if_server_rejects_it(monkeypatch):
+    monkeypatch.setenv("MALHAN_AI", "gemini"); monkeypatch.setenv("GEMINI_API_KEY", "k")
+    bodies = []
+    def fake(req, timeout=0):
+        bodies.append(json.loads(req.data))
+        if "reasoning_effort" in bodies[-1]:
+            raise urllib.error.HTTPError(req.full_url, 400, "bad", {}, io.BytesIO(b'{"error":{"message":"Unknown name reasoning_effort"}}'))
+        return _answer("ok")
+    monkeypatch.setattr(urllib.request, "urlopen", fake)
+    assert llm.complete("x") == "ok" and len(bodies) == 2 and "reasoning_effort" not in bodies[1]

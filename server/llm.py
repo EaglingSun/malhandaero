@@ -29,6 +29,7 @@ import tempfile
 from pathlib import Path
 
 CLI_TIMEOUT = 240  # 초. Claude Code는 부를 때마다 새로 떠서 API보다 느리다
+HTTP_TIMEOUT = int(os.environ.get("MALHAN_HTTP_TIMEOUT", "600"))  # 초. Gemini 등 바깥 API. 긴 회의록은 1~3분 걸릴 수 있다
 
 
 class LlmUnavailable(RuntimeError):
@@ -83,8 +84,10 @@ def suggested_model(detail: str) -> str:
     return m.group(1) if m else ""
 
 
-def _run_openai(m: str, content, max_tokens: int, model_override: str = "") -> str:
-    """OpenAI 호환 chat/completions 한 번. 표준 라이브러리만 쓴다(설치 없음)."""
+def _run_openai(m: str, content, max_tokens: int, model_override: str = "", plain: bool = False) -> str:
+    """OpenAI 호환 chat/completions 한 번. 표준 라이브러리만 쓴다(설치 없음).
+    Gemini는 '생각' 수준을 낮춰(reasoning_effort) 빨리 답하게 한다. 그 옵션을 거부하면 빼고 한 번 더."""
+    import time
     import urllib.error
     import urllib.request
 
@@ -94,15 +97,23 @@ def _run_openai(m: str, content, max_tokens: int, model_override: str = "") -> s
         raise LlmUnavailable(f"{name} 주소나 모델이 비어 있어요. .env의 MALHAN_OPENAI_BASE_URL · MALHAN_OPENAI_MODEL을 채워 주세요.")
     if m == "gemini" and not key:
         raise LlmUnavailable("Gemini 키가 없어요. .env에 GEMINI_API_KEY를 넣어 주세요 (aistudio.google.com에서 무료 발급).")
-    body = json.dumps({"model": model, "max_tokens": max_tokens, "temperature": 0.2,
-                       "messages": [{"role": "user", "content": content}]}).encode()
+    payload = {"model": model, "max_tokens": max_tokens, "temperature": 0.2, "messages": [{"role": "user", "content": content}]}
+    if m == "gemini" and not plain:
+        payload["reasoning_effort"] = os.environ.get("MALHAN_GEMINI_EFFORT", "low")
+    body = json.dumps(payload).encode()
     req = urllib.request.Request(base + "/chat/completions", data=body, method="POST",
                                  headers={"Content-Type": "application/json", "Authorization": f"Bearer {key or 'none'}"})
+    size = len(content) if isinstance(content, str) else sum(len(p.get("text", "")) for p in content)
+    t0 = time.time()
     try:
-        with urllib.request.urlopen(req, timeout=CLI_TIMEOUT) as r:
+        with urllib.request.urlopen(req, timeout=HTTP_TIMEOUT) as r:
             data = json.loads(r.read().decode("utf-8"))
+        print(f"[llm] {name} {model} {size}자 → {time.time() - t0:.0f}초", flush=True)
     except urllib.error.HTTPError as e:
         detail = e.read().decode("utf-8", "replace")[:200]
+        print(f"[llm] {name} {model} {size}자 → HTTP {e.code} ({time.time() - t0:.0f}초): {detail[:120]}", flush=True)
+        if e.code == 400 and "reasoning" in detail and not plain:
+            return _run_openai(m, content, max_tokens, model_override, plain=True)
         if e.code in (401, 403):
             raise LlmUnavailable(f"{name} 키가 틀리거나 권한이 없어요.")
         if e.code == 429:
@@ -117,11 +128,15 @@ def _run_openai(m: str, content, max_tokens: int, model_override: str = "") -> s
             raise LlmUnavailable(f"{name}에 '{model}' 모델이 없어요. .env의 모델 이름을 확인해 주세요.")
         raise LlmUnavailable(f"{name}가 답을 주지 못했어요 ({e.code}): {detail}")
     except urllib.error.URLError as e:
+        print(f"[llm] {name} {model} → 연결 실패 ({time.time() - t0:.0f}초): {e.reason}", flush=True)
         if m == "ollama":
             raise LlmUnavailable("Ollama가 켜져 있지 않아요. 'ollama serve'를 실행해 주세요.")
+        if "timed out" in str(e.reason):
+            raise LlmUnavailable(f"{name}가 {HTTP_TIMEOUT // 60}분 안에 답하지 않았어요. 잠시 뒤 '다시 뽑기'를 눌러 주세요.")
         raise LlmUnavailable(f"{name}에 연결하지 못했어요: {e.reason}")
     except TimeoutError:
-        raise LlmUnavailable(f"{name}가 제때 답하지 않았어요. 잠시 뒤 '다시 뽑기'를 눌러 주세요.")
+        print(f"[llm] {name} {model} {size}자 → {HTTP_TIMEOUT}초 안에 답 없음", flush=True)
+        raise LlmUnavailable(f"{name}가 {HTTP_TIMEOUT // 60}분 안에 답하지 않았어요. 잠시 뒤 '다시 뽑기'를 눌러 주세요.")
     try:
         text = data["choices"][0]["message"]["content"] or ""
     except (KeyError, IndexError, TypeError):
