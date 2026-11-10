@@ -40,5 +40,13 @@ def transcribe(path: Path) -> str:
         raise SttUnavailable(
             "이 PC에 음성 인식이 아직 없어요. 설치(install)를 한 번 더 실행하면 들어가요. 그동안은 녹음 앱에서 글로 바꾼 뒤 공유해 주세요."
         )
-    segments, _info = _model().transcribe(str(path), language="ko", vad_filter=True)
-    return "\n".join(s.text.strip() for s in segments if s.text.strip())
+    try:
+        model = _model()
+    except Exception as e:  # 모델 내려받기 실패 등
+        _model.cache_clear()
+        raise SttUnavailable(f"음성 인식 모델을 준비하지 못했어요. 인터넷을 확인하고 다시 넣어 주세요. [{type(e).__name__}]")
+    try:
+        segments, _info = model.transcribe(str(path), language="ko", vad_filter=True)
+        return "\n".join(s.text.strip() for s in segments if s.text.strip())
+    except Exception as e:
+        raise SttUnavailable(f"이 녹음 파일은 읽지 못했어요. m4a·mp3·wav인지 확인해 주세요. [{type(e).__name__}]")
