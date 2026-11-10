@@ -118,10 +118,11 @@ def main() -> None:
     if llm.mode() == "none":
         print("  ! AI 없이 켜졌어요. 직접 적기·캘린더는 되고, 녹음·글에서 뽑기는 AI를 연결해야 해요 (Claude Code/Codex 로그인 또는 .env 키).")
     if best:
+        print("\n  휴대폰에서: Chrome을 열고 주소창에  " + best + "  를 입력 → 이름과 가족 코드로 들어가요.")
+        print("  (카메라로 아래 QR을 찍어도 돼요. 삼성 인터넷으로 열리면 화면 아래 「Chrome으로 열기」를 누르세요)")
         try:
             import segno
 
-            print("\n  휴대폰 카메라로 찍으면 열려요: " + best)
             segno.make(best, error="m").terminal(compact=True, border=1)
         except Exception:
             pass
