@@ -103,7 +103,8 @@ def test_text_file_upload_and_share_target():
 def test_audio_without_stt_fails_with_reason(monkeypatch):
     from server import stt
 
-    monkeypatch.setattr(stt, "available", lambda: False)
+    # transcribe()는 engine()을 직접 본다. 이 PC에 whisper나 Gemini 키가 있어도 '없음'으로 돌게 한다
+    monkeypatch.setattr(stt, "engine", lambda: "none")
     join("음성")
     r = client.post("/api/inputs", data={"kind": "memo"}, files={"file": ("memo.m4a", b"\x00\x01fake", "audio/mp4")})
     inp = client.get(f"/api/inputs/{r.json()['id']}").json()

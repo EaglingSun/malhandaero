@@ -35,8 +35,10 @@ def test_gemini_defaults_and_think_stripping(monkeypatch):
 
 
 def test_gemini_key_autodetect(monkeypatch):
-    monkeypatch.delenv("MALHAN_AI", raising=False); monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False); monkeypatch.delenv("MALHAN_FAKE_LLM", raising=False)
-    monkeypatch.setattr(llm, "_claude_bin", lambda: None)
+    # 이 PC에 깔린 CLI·키에 기대지 않게 자동 감지 순서의 앞 단계를 모두 막는다
+    for k in ("MALHAN_AI", "MALHAN_FAKE_LLM", "ANTHROPIC_API_KEY", "OPENAI_API_KEY", "GEMINI_API_KEY"):
+        monkeypatch.delenv(k, raising=False)
+    monkeypatch.setattr(llm, "_claude_bin", lambda: None); monkeypatch.setattr(llm, "_codex_bin", lambda: None)
     monkeypatch.setenv("GEMINI_API_KEY", "x")
     assert llm.mode() == "gemini"
     monkeypatch.delenv("GEMINI_API_KEY")
