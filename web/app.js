@@ -442,16 +442,22 @@
     send(fd, "들었어요. 적어 두는 중이에요.");
   }
   function micStartSpeech() {
-    var r = new SR(); r.lang = "ko-KR"; r.continuous = true; r.interimResults = true; mic.text = ""; mic.rec = r;
+    var r = new SR(); r.lang = "ko-KR"; r.continuous = true; r.interimResults = true; mic.text = ""; mic.live = ""; mic.rec = r;
+    $("paste-form").hidden = true;
     r.onresult = function (e) {
-      var live = "";
-      for (var i = e.resultIndex; i < e.results.length; i++) {
-        if (e.results[i].isFinal) mic.text += e.results[i][0].transcript + " "; else live += e.results[i][0].transcript;
+      // 안드로이드 Chrome은 매번 전체 결과를 다시 주고(resultIndex 0), 중간 결과가 조금씩 자라며 반복된다.
+      // 그래서 덧붙이지 않고 매번 처음부터 다시 만든다: 확정된 것은 모두, 중간 것은 마지막 하나만.
+      var fin = [], live = "";
+      for (var i = 0; i < e.results.length; i++) {
+        var t = e.results[i][0].transcript.trim();
+        if (!t) continue;
+        if (e.results[i].isFinal) { if (fin[fin.length - 1] !== t) fin.push(t); } else live = t;
       }
-      say("mic-msg", (mic.text + live).trim() || "듣고 있어요…");
+      mic.text = fin.join(" "); mic.live = live;
+      say("mic-msg", (mic.text + " " + live).trim() || "듣고 있어요…");
     };
     r.onerror = function (e) { if (e.error === "not-allowed") say("mic-msg", "마이크를 쓸 수 있게 허용해 주세요.", true); };
-    r.onend = function () { if (mic.on) micDone(mic.text); };
+    r.onend = function () { if (mic.on) micDone((mic.text + " " + (mic.live || "")).trim()); };
     r.start();
   }
   function micStartRecord() {
