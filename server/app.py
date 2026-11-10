@@ -483,13 +483,19 @@ class InputPatch(BaseModel):
     kind: str | None = None
     title: str | None = None
     reextract: bool = False
+    reset: bool = False   # 이 녹음에서 나온 할 일을 상태와 관계없이 모두 지우고 처음부터 다시 뽑는다
 
 
 @app.patch("/api/inputs/{input_id}")
 def patch_input(input_id: int, body: InputPatch, bg: BackgroundTasks, user=Depends(current_user)):
     with db.session() as con:
         row = _own_input(con, input_id, user["id"])
-        again = body.reextract
+        again = body.reextract or body.reset
+        if body.reset:
+            refs = [r["cal_ref"] for r in con.execute("SELECT cal_ref FROM items WHERE input_id = ? AND cal_ref IS NOT NULL", (input_id,))]
+            con.execute("DELETE FROM items WHERE input_id = ?", (input_id,))
+            for ref in refs:  # 캘린더에 들어간 것도 빼 준다
+                bg.add_task(calsync.sync_item, user["id"], 0, ref)
         if body.me_speaker is not None:
             names = json.loads(row["speakers"] or "[]")
             if body.me_speaker and body.me_speaker not in names:

@@ -481,12 +481,17 @@
       box.appendChild(el("pre", "transcript", inp.transcript || "(아직 글이 없어요)"));
       var act = el("div", "row");
       act.appendChild(btn("다시 뽑기", "", function () { api("/api/inputs/" + id, { method: "PATCH", json: { reextract: true } }).then(function () { setTimeout(function () { openInput(id); }, 1500); }); }));
+      var reset = btn("처음부터 다시 뽑기", "", function () {
+        if (!reset.dataset.sure) { reset.dataset.sure = "1"; reset.textContent = "고른 것까지 지우고 다시 뽑아요. 한 번 더"; return; }
+        api("/api/inputs/" + id, { method: "PATCH", json: { reset: true } }).then(function () { setTimeout(function () { openInput(id); }, 1500); }).catch(fail("in-msg"));
+      });
+      act.appendChild(reset);
       var del = btn("이 녹음 지우기", "danger", function () {
         if (del.dataset.sure) { api("/api/inputs/" + id, { method: "DELETE" }).then(loadInputs); return; }
         del.dataset.sure = "1"; del.textContent = "한 번 더 누르면 지워요";
       });
       act.appendChild(del); box.appendChild(act);
-      box.appendChild(el("p", "msg", "녹음을 지워도 이미 고른 일은 남아요."));
+      box.appendChild(el("p", "msg", "다시 뽑기: 아직 고르지 않은 것만 새로 만들어요(안 함으로 넘긴 건 다시 안 나와요). 처음부터 다시 뽑기: 이 녹음의 할 일을 모두 지우고 새로 만들어요. 녹음을 지워도 이미 고른 일은 남아요."));
     }).catch(fail("in-msg"));
   }
 

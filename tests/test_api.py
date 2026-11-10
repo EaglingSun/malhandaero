@@ -70,6 +70,10 @@ def test_reextract_keeps_chosen_items_and_skips_duplicates():
     # 같은 내용을 한 번 더 넣어도 열려 있는 일과 겹치면 새로 만들지 않는다
     client.post("/api/inputs", data={"kind": "memo", "text": "우유 사야 해."})
     assert len(client.get("/api/day").json()["new"]) == 1
+    # 처음부터 다시 뽑기: 고른 것(todo)까지 지우고 새로 만든다
+    client.patch(f"/api/inputs/{iid}", json={"reset": True})
+    items = client.get(f"/api/inputs/{iid}").json()["items"]
+    assert len(items) == 2 and all(i["status"] == "new" for i in items)
 
 
 def test_speakers_detected_and_me_can_be_set():
