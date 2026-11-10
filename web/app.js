@@ -580,6 +580,12 @@
       : "연결하면 날짜를 정한 일이 캘린더에 자동으로 들어가요. 하나만 골라 연결해 주세요.";
     $("cal-err").textContent = c.status || "";
     $("cal-mode").value = c.mode || "timed";
+    var src = $("cal-source"), rs = c.read_source || {};
+    if (rs.id && !Array.prototype.some.call(src.options, function (o) { return o.value === rs.id; })) {
+      var o = document.createElement("option"); o.value = rs.id; o.textContent = rs.name || rs.id; src.appendChild(o);
+    }
+    src.value = rs.id || "";
+    say("cal-source-msg", rs.id ? "지금은 \"" + (rs.name || rs.id) + "\"에서 일정을 가져와요." : "지금은 올리는 캘린더에서 일정을 가져와요. 공유 캘린더에서 가져오려면 목록을 불러와 고르세요.");
     $("google-go").hidden = !c.google_ready;
     $("google-hint").textContent = c.google_ready
       ? "구글 로그인 화면으로 이동해요. 캘린더 일정을 넣고 고치는 권한만 요청해요."
@@ -597,6 +603,19 @@
   });
   $("cal-mode").addEventListener("change", function () {
     api("/api/calendar/mode", { method: "POST", json: { mode: $("cal-mode").value } }).then(renderCal).catch(function (e) { $("cal-err").textContent = e.message; });
+  });
+  $("cal-source-load").addEventListener("click", function () {
+    say("cal-source-msg", "캘린더 목록을 읽고 있어요…");
+    api("/api/calendar/sources").then(function (r) {
+      var src = $("cal-source"), keep = src.value; src.textContent = "";
+      var o0 = document.createElement("option"); o0.value = ""; o0.textContent = "올리는 캘린더와 같게"; src.appendChild(o0);
+      r.sources.forEach(function (c) { var o = document.createElement("option"); o.value = c.id; o.textContent = c.name + (c.primary ? " (올리는 캘린더)" : ""); src.appendChild(o); });
+      src.value = keep; say("cal-source-msg", r.sources.length + "개 캘린더를 찾았어요. 골라 주세요.");
+    }).catch(function (e) { say("cal-source-msg", e.message, true); });
+  });
+  $("cal-source").addEventListener("change", function () {
+    var src = $("cal-source"), name = src.options[src.selectedIndex] ? src.options[src.selectedIndex].textContent.replace(" (올리는 캘린더)", "") : "";
+    api("/api/calendar/source", { method: "POST", json: { id: src.value, name: src.value ? name : "" } }).then(function (c) { renderCal(c); refresh(); }).catch(function (e) { say("cal-source-msg", e.message, true); });
   });
   $("cal-unlink").addEventListener("click", function () {
     api("/api/calendar", { method: "DELETE" }).then(renderCal).catch(function (e) { $("cal-err").textContent = e.message; });

@@ -847,8 +847,10 @@ def _calendar_state(user_id: int) -> dict:
     link = calsync.get_link(user_id)
     out = {"provider": "", "mode": "timed", "status": "", "label": "", "google_ready": calsync.google_client() is not None}
     if link:
+        cfg = link["config"]
         out.update(provider=link["provider"], mode=link["mode"], status=link["status"],
-                   label=link["config"].get("calendar_name") or link["config"].get("user") or "")
+                   label=cfg.get("calendar_name") or cfg.get("user") or "",
+                   read_source={"id": cfg.get("read_calendar_id") or cfg.get("read_calendar_url") or "", "name": cfg.get("read_calendar_name") or ""})
     return out
 
 
@@ -932,6 +934,42 @@ def calendar_events(date_: str | None = Query(None, alias="date"), user=Depends(
     for e in evs:
         e["item_id"] = have.get(e["ref"])
     return {"linked": True, "events": evs}
+
+
+@app.get("/api/calendar/sources")
+def calendar_sources(user=Depends(current_user)):
+    """일정을 읽어 올 수 있는 캘린더 목록 (공유 캘린더 포함)."""
+    link = calsync.get_link(user["id"])
+    if not link:
+        raise HTTPException(400, "먼저 캘린더를 연결해 주세요.")
+    cfg = link["config"]
+    try:
+        if link["provider"] == "naver":
+            cals = [{"id": c["url"], "name": c["name"] or "네이버 캘린더", "primary": c["url"] == cfg.get("calendar_url")} for c in calsync.Naver(cfg["user"], cfg["password"]).calendars()]
+        else:
+            cals = calsync.Google(cfg["refresh_token"]).calendars()
+    except calsync.CalendarError as e:
+        raise HTTPException(400, str(e))
+    return {"sources": cals}
+
+
+class ReadSource(BaseModel):
+    id: str = ""      # 구글: 캘린더 ID / 네이버: 캘린더 주소. 비우면 쓰는 캘린더와 같게
+    name: str = ""
+
+
+@app.post("/api/calendar/source")
+def calendar_set_source(body: ReadSource, user=Depends(current_user)):
+    """일정을 읽어 올 캘린더를 정한다. 올리는 캘린더는 그대로다."""
+    link = calsync.get_link(user["id"])
+    if not link:
+        raise HTTPException(400, "먼저 캘린더를 연결해 주세요.")
+    sid = body.id.strip()
+    if link["provider"] == "naver":
+        calsync.update_config(user["id"], read_calendar_url=sid or None, read_calendar_name=body.name.strip()[:60] if sid else "")
+    else:
+        calsync.update_config(user["id"], read_calendar_id=sid or None, read_calendar_name=body.name.strip()[:60] if sid else "")
+    return _calendar_state(user["id"])
 
 
 class ImportEvent(BaseModel):

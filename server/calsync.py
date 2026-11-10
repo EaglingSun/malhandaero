@@ -253,7 +253,7 @@ class Naver:
 
 
 # ---------- 구글 (OAuth + Calendar API) ----------
-GOOGLE_SCOPE = "https://www.googleapis.com/auth/calendar.events"
+GOOGLE_SCOPE = "https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.calendarlist.readonly"
 
 
 def google_client() -> tuple[str, str] | None:
@@ -315,12 +315,27 @@ class Google:
             b["end"] = {"date": (d + timedelta(days=1)).isoformat()}
         return b
 
-    def events(self, day: date) -> list[dict]:
-        """그날의 일정 (기본 캘린더)."""
+    def calendars(self) -> list[dict]:
+        """내가 볼 수 있는 캘린더 목록 (공유 캘린더 포함). 권한이 없으면 CalendarError('다시 연결')."""
+        code, out = _http("GET", f"{self.api}/users/me/calendarList?minAccessRole=reader&maxResults=100", self.h)
+        if code == 403:
+            raise CalendarError("캘린더 목록을 볼 권한이 아직 없어요. 캘린더 연결에서 구글을 한 번 다시 연결해 주세요.")
+        if code != 200:
+            raise CalendarError(f"구글 캘린더 목록을 읽지 못했어요 (응답 {code}).")
+        out_ = []
+        for c in json.loads(out).get("items", []):
+            if c.get("id"):
+                out_.append({"id": c["id"], "name": (c.get("summaryOverride") or c.get("summary") or c["id"])[:60], "primary": bool(c.get("primary"))})
+        return sorted(out_, key=lambda c: (not c["primary"], c["name"]))
+
+    def events(self, day: date, calendar_id: str = "primary") -> list[dict]:
+        """그날의 일정. calendar_id로 어느 캘린더에서 읽을지 고른다(기본은 내 기본 캘린더)."""
         start = datetime(day.year, day.month, day.day, tzinfo=tz())
         q = urllib.parse.urlencode({"timeMin": start.isoformat(), "timeMax": (start + timedelta(days=1)).isoformat(),
                                     "singleEvents": "true", "orderBy": "startTime", "maxResults": "50"})
-        code, out = _http("GET", f"{self.api}/calendars/primary/events?{q}", self.h)
+        code, out = _http("GET", f"{self.api}/calendars/{urllib.parse.quote(calendar_id, safe='')}/events?{q}", self.h)
+        if code == 404:
+            raise CalendarError("일정을 가져올 캘린더를 찾지 못했어요. 캘린더 연결에서 다시 골라 주세요.")
         if code != 200:
             raise CalendarError(f"구글 캘린더에서 일정을 읽지 못했어요 (응답 {code}).")
         res = []
@@ -367,6 +382,16 @@ def get_link(user_id: int) -> dict | None:
     return d
 
 
+def update_config(user_id: int, **fields) -> None:
+    """연결 정보의 일부만 바꾼다 (예: 일정을 읽어 올 캘린더)."""
+    link = get_link(user_id)
+    if not link:
+        return
+    cfg = {**link["config"], **fields}
+    with db.session() as con:
+        con.execute("UPDATE calendar_links SET config = ?, updated_at = datetime('now') WHERE user_id = ?", (json.dumps(cfg, ensure_ascii=False), user_id))
+
+
 def save_link(user_id: int, provider: str, config: dict, mode: str = "timed") -> None:
     with db.session() as con:
         con.execute(
@@ -391,11 +416,11 @@ OURS = "말한대로에서 보냄"
 
 def day_events(link: dict, day: date) -> list[dict]:
     """연결된 캘린더의 그날 일정. 말한대로가 넣은 일정은 뺀다."""
+    cfg = link["config"]
     if link["provider"] == "naver":
-        cfg = link["config"]
-        evs = Naver(cfg["user"], cfg["password"]).events(cfg["calendar_url"], day)
+        evs = Naver(cfg["user"], cfg["password"]).events(cfg.get("read_calendar_url") or cfg["calendar_url"], day)
     else:
-        evs = Google(link["config"]["refresh_token"]).events(day)
+        evs = Google(cfg["refresh_token"]).events(day, cfg.get("read_calendar_id") or "primary")
     return [e for e in evs if OURS not in (e.get("description") or "") and not (e.get("uid") or "").endswith("@malhandaero")]
 
 

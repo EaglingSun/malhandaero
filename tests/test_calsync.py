@@ -62,6 +62,10 @@ class FakeCalendars(BaseHTTPRequestHandler):
         self._send(207, ms.encode())
 
     def do_GET(self):
+        if self.path.startswith("/g/users/me/calendarList") and self.headers.get("Authorization") == "Bearer at":
+            return self._send(200, json.dumps({"items": [{"id": "primary-id", "summary": "Sun", "primary": True}, {"id": "team@group.calendar.google.com", "summary": "SQA 공유 일정"}]}).encode(), "application/json")
+        if self.path.startswith("/g/calendars/team%40group.calendar.google.com/events?") and self.headers.get("Authorization") == "Bearer at":
+            return self._send(200, json.dumps({"items": [{"id": "t1", "summary": "팀 주간 회의", "start": {"dateTime": "2099-05-05T14:00:00+09:00"}}]}).encode(), "application/json")
         if self.path.startswith("/g/calendars/primary/events?") and self.headers.get("Authorization") == "Bearer at":
             items = [{"id": "g1", "summary": "고객 미팅", "start": {"dateTime": "2099-05-05T10:00:00+09:00"}, "end": {"dateTime": "2099-05-05T11:00:00+09:00"}},
                      {"id": "g2", "summary": "휴가", "start": {"date": "2099-05-05"}},
@@ -263,3 +267,14 @@ def test_google_events_listing(fake, monkeypatch):
                       "google", {"refresh_token": "rt-1", "calendar_name": "구글 캘린더"})
     r = client.get("/api/calendar/events", params={"date": "2099-05-05"}).json()
     assert [(e["title"], e["time"]) for e in r["events"]] == [("고객 미팅", "10:00"), ("휴가", None)]   # 취소·말한대로 일정은 뺀다
+    # 읽어 올 캘린더를 공유 캘린더로 바꾼다. 올리는 캘린더(primary)는 그대로
+    srcs = client.get("/api/calendar/sources").json()["sources"]
+    assert [c["name"] for c in srcs] == ["Sun", "SQA 공유 일정"] and srcs[0]["primary"] is True
+    st = client.post("/api/calendar/source", json={"id": "team@group.calendar.google.com", "name": "SQA 공유 일정"}).json()
+    assert st["read_source"] == {"id": "team@group.calendar.google.com", "name": "SQA 공유 일정"}
+    assert [e["title"] for e in client.get("/api/calendar/events", params={"date": "2099-05-05"}).json()["events"]] == ["팀 주간 회의"]
+    FakeCalendars.events.clear()
+    it = client.post("/api/items", json={"text": "올리는 쪽 확인", "plan_date": "2099-05-06"}).json()
+    client.patch(f"/api/items/{it['id']}", json={"plan_time": "09:00"})
+    assert "ev1" in FakeCalendars.events                                                   # 쓰기는 여전히 primary로
+    assert client.post("/api/calendar/source", json={"id": ""}).json()["read_source"]["id"] == ""

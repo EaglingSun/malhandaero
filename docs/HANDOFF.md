@@ -106,7 +106,7 @@ chmod +x malhandaero/*.sh malhandaero/*.command
 ## 7. 사용 환경 메모
 
 - 서버: 집 Mac. `말한대로 켜기.command`로 실행. Tailscale 켜져 있으면 https 주소 자동. 덮개를 닫으면 끊김
-- 사용자 본인은 구글 캘린더, 남편은 네이버 캘린더로 연결하려 함
+- 사용자 본인은 구글 캘린더(올리기: Sun 기본 캘린더, 읽기: 'SQA 공유 일정' 공유 캘린더), 남편은 네이버 캘린더로 연결하려 함
 - 구글 OAuth 클라이언트는 사용자가 만들어 `.env`에 넣어 둠. 리디렉션 주소에 Tailscale 주소가 들어 있으므로 기기 이름을 바꾸면 구글 쪽도 고쳐야 함
 - 판을 바꿀 때(7판부터): 그냥 켜면 된다. 켜기가 새 판을 받고 requirements가 바뀌었으면 설치도 다시 한다
 - 집 Mac: 지금 도는 것은 `~/Downloads/malhandaero-main`(7판, 저장소 연결됨, data/·.env 옮김). `~/Downloads/malhandaero 6` 이하 예전 폴더들은 더 안 쓴다(지워도 됨)
@@ -122,6 +122,7 @@ chmod +x malhandaero/*.sh malhandaero/*.command
 | 4 | 더블클릭 실행(.command), Tailscale 자동, QR 연결(내 기기 / 가족 초대) |
 | 5 | 목록 중심 화면(+ 버튼 뒤에 넣기), https 인증서 묶음, 연결 실패 사유 표시 |
 | 6 | 공유로 받는 파일 종류 확대 |
+| 21 | 읽는 캘린더 선택: 「캘린더 연결」에 "일정을 가져올 캘린더" 목록(구글 calendarList, 네이버 캘린더 목록). 올리는 캘린더는 그대로. 구글은 `calendarlist.readonly` 권한이 추가돼 **기존 연결은 구글을 한 번 다시 연결해야 목록이 보임** (`/api/calendar/sources`, `/api/calendar/source`) |
 | 20 | 캘린더 → 할 일: 연결된 캘린더의 그날 일정을 「캘린더 일정」으로 보여 주고 「할 일로」 한 번에 가져옴(`GET /api/calendar/events`, `POST /api/calendar/events/import`). 가져온 할 일은 `addon='calendar'`+`cal_ref`로 원본 일정을 가리키되 **캘린더 쪽은 건드리지 않음**(고쳐도·지워도). 말한대로가 넣은 일정·취소 일정은 목록에서 제외. 네이버 REPORT, 구글 events.list. 실제 서버 미확인 |
 | 19 | 수치 집계 `GET /api/stats?days=30`(넣은 것 수·종류, 넣고 목록까지 중앙값 초, 뽑힌 내 일·안 함 비율·맡긴 일·직접 적음·회의당 내 일). 넣은 것 탭 맨 아래 한 줄. `inputs.done_at` 칸 추가 — 공모 글 수치(DESIGN 10장)는 여기서 뽑는다 |
 | 18 | 음성 파일 입력은 화자 분리가 없음을 전제로: 지시문에 1인칭 다짐만 me, 부탁·지시는 other. 넣은 것 상세에 안내 한 줄. 회의는 녹음 앱 텍스트 공유 권장. 화자 분리(diarization)는 로드맵 |
