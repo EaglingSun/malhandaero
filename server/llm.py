@@ -3,6 +3,9 @@
 연결 방식 (MALHAN_AI로 고정하거나, 비워 두면 위에서부터 되는 것을 고른다)
   api    : ANTHROPIC_API_KEY가 있으면 Anthropic API (쓴 만큼 과금)
   claude : 이 PC에 설치·로그인된 Claude Code를 `claude -p`로 부른다 (본인 구독 사용, API 결제 없음)
+  gemini : 구글 Gemini API (무료 티어 있음). GEMINI_API_KEY 필요
+  ollama : 이 PC의 Ollama (완전 무료·오프라인, 작은 모델은 회의록 품질이 떨어짐)
+  openai : 그 밖의 OpenAI 호환 서버 (MALHAN_OPENAI_BASE_URL · MALHAN_OPENAI_API_KEY · MALHAN_OPENAI_MODEL)
   fake   : 키도 로그인도 없이 화면만 확인하는 규칙 기반 흉내 (정확도 낮음)
 
 그 밖의 환경 변수
@@ -12,6 +15,8 @@
   MALHAN_LONG_CHARS         : 이 글자 수를 넘는 지시문이면 '긴 글'로 본다 (기본 10000)
   MALHAN_CLAUDE_BIN         : claude 실행 파일 위치 (기본: PATH에서 찾음)
   MALHAN_FAKE_LLM=1         : MALHAN_AI=fake와 같다
+  MALHAN_GEMINI_MODEL       : gemini 방식의 모델 (기본 gemini-2.5-flash)
+  MALHAN_OLLAMA_MODEL       : ollama 방식의 모델 (기본 qwen3:8b), MALHAN_OLLAMA_URL (기본 http://localhost:11434)
 """
 from __future__ import annotations
 
@@ -34,9 +39,12 @@ def _claude_bin() -> str | None:
     return os.environ.get("MALHAN_CLAUDE_BIN") or shutil.which("claude")
 
 
+OPENAI_LIKE = ("openai", "gemini", "ollama")
+
+
 def mode() -> str:
     forced = os.environ.get("MALHAN_AI", "").strip().lower()
-    if forced in ("api", "claude", "fake"):
+    if forced in ("api", "claude", "fake") + OPENAI_LIKE:
         return {"api": "anthropic"}.get(forced, forced)
     if os.environ.get("MALHAN_FAKE_LLM") == "1":
         return "fake"
@@ -44,10 +52,66 @@ def mode() -> str:
         return "anthropic"
     if _claude_bin():
         return "claude"
+    if os.environ.get("GEMINI_API_KEY"):
+        return "gemini"
     return "none"
 
 
-NO_AI = "AI가 연결되지 않았어요. 이 PC에 Claude Code를 설치해 로그인하거나, .env에 ANTHROPIC_API_KEY를 넣어 주세요."
+NO_AI = ("AI가 연결되지 않았어요. 이 PC에 Claude Code를 설치해 로그인하거나, .env에 ANTHROPIC_API_KEY 또는 GEMINI_API_KEY를 넣어 주세요. "
+         "Ollama를 쓰려면 MALHAN_AI=ollama.")
+
+
+def openai_config(m: str) -> tuple[str, str, str, str]:
+    """OpenAI 호환 방식의 (base_url, api_key, model, 이름). gemini/ollama는 기본값을 채워 둔다."""
+    if m == "gemini":
+        return (os.environ.get("MALHAN_OPENAI_BASE_URL") or "https://generativelanguage.googleapis.com/v1beta/openai",
+                os.environ.get("GEMINI_API_KEY") or os.environ.get("MALHAN_OPENAI_API_KEY", ""),
+                os.environ.get("MALHAN_GEMINI_MODEL") or os.environ.get("MALHAN_OPENAI_MODEL") or "gemini-2.5-flash", "Gemini")
+    if m == "ollama":
+        return ((os.environ.get("MALHAN_OLLAMA_URL") or "http://localhost:11434").rstrip("/") + "/v1", "ollama",
+                os.environ.get("MALHAN_OLLAMA_MODEL") or os.environ.get("MALHAN_OPENAI_MODEL") or "qwen3:8b", "Ollama")
+    return (os.environ.get("MALHAN_OPENAI_BASE_URL", "").rstrip("/"), os.environ.get("MALHAN_OPENAI_API_KEY", ""),
+            os.environ.get("MALHAN_OPENAI_MODEL", ""), "AI 서버")
+
+
+def _run_openai(m: str, content, max_tokens: int) -> str:
+    """OpenAI 호환 chat/completions 한 번. 표준 라이브러리만 쓴다(설치 없음)."""
+    import urllib.error
+    import urllib.request
+
+    base, key, model, name = openai_config(m)
+    if not base or not model:
+        raise LlmUnavailable(f"{name} 주소나 모델이 비어 있어요. .env의 MALHAN_OPENAI_BASE_URL · MALHAN_OPENAI_MODEL을 채워 주세요.")
+    if m == "gemini" and not key:
+        raise LlmUnavailable("Gemini 키가 없어요. .env에 GEMINI_API_KEY를 넣어 주세요 (aistudio.google.com에서 무료 발급).")
+    body = json.dumps({"model": model, "max_tokens": max_tokens, "temperature": 0.2,
+                       "messages": [{"role": "user", "content": content}]}).encode()
+    req = urllib.request.Request(base + "/chat/completions", data=body, method="POST",
+                                 headers={"Content-Type": "application/json", "Authorization": f"Bearer {key or 'none'}"})
+    try:
+        with urllib.request.urlopen(req, timeout=CLI_TIMEOUT) as r:
+            data = json.loads(r.read().decode("utf-8"))
+    except urllib.error.HTTPError as e:
+        detail = e.read().decode("utf-8", "replace")[:200]
+        if e.code in (401, 403):
+            raise LlmUnavailable(f"{name} 키가 틀리거나 권한이 없어요.")
+        if e.code == 429:
+            raise LlmUnavailable(f"{name} 사용량 한도예요. 잠시 뒤 '다시 뽑기'를 눌러 주세요.")
+        if e.code == 404 and m == "ollama":
+            raise LlmUnavailable(f"Ollama에 '{model}' 모델이 없어요. 터미널에서 'ollama pull {model}'을 해 주세요.")
+        raise LlmUnavailable(f"{name}가 답을 주지 못했어요 ({e.code}): {detail}")
+    except urllib.error.URLError as e:
+        if m == "ollama":
+            raise LlmUnavailable("Ollama가 켜져 있지 않아요. 'ollama serve'를 실행해 주세요.")
+        raise LlmUnavailable(f"{name}에 연결하지 못했어요: {e.reason}")
+    except TimeoutError:
+        raise LlmUnavailable(f"{name}가 제때 답하지 않았어요. 잠시 뒤 '다시 뽑기'를 눌러 주세요.")
+    try:
+        text = data["choices"][0]["message"]["content"] or ""
+    except (KeyError, IndexError, TypeError):
+        raise LlmUnavailable(f"{name} 응답 형식을 읽지 못했어요.")
+    # 생각 과정을 함께 내놓는 모델(qwen3 등)의 <think>…</think>는 걷어낸다
+    return re.sub(r"<think>.*?</think>", "", text, flags=re.S).strip()
 
 
 def claude_model_for(prompt: str) -> str:
@@ -97,6 +161,8 @@ def complete(prompt: str, max_tokens: int = 2000) -> str:
         return _fake(prompt)
     if m == "claude":
         return _run_claude(prompt)
+    if m in OPENAI_LIKE:
+        return _run_openai(m, prompt, max_tokens)
     if m == "none":
         raise LlmUnavailable(NO_AI)
     import anthropic  # 늦은 가져오기: 키 없이 시험할 때 필요 없게
@@ -170,6 +236,11 @@ def read_image(path) -> str:
             (Path(tmp) / "photo.jpg").write_bytes(data)
             return _run_claude("이 폴더의 photo.jpg 파일을 Read 도구로 열어 본 뒤 답하라.\n\n" + READ_IMAGE_PROMPT,
                                workdir=Path(tmp), allow_read=True).strip()
+    if m in OPENAI_LIKE:
+        import base64
+
+        url = f"data:{media_type};base64," + base64.b64encode(data).decode()
+        return _run_openai(m, [{"type": "image_url", "image_url": {"url": url}}, {"type": "text", "text": READ_IMAGE_PROMPT}], 2000)
     if m == "none":
         raise LlmUnavailable(NO_AI)
     import base64

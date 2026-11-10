@@ -12,6 +12,16 @@ API 결제 없이, PC에 로그인되어 있는 Claude Code를 그대로 씁니�
 
 Claude Code가 없으면 `.env`에 `ANTHROPIC_API_KEY`를 넣어 API 키로 쓸 수 있습니다.
 
+### Claude 구독이 없다면
+
+| 방법 | 비용 | 설정 | 품질 |
+|---|---|---|---|
+| **구글 Gemini** | 무료 티어로 충분 (aistudio.google.com 에서 키 발급, 카드 없음) | `.env`에 `GEMINI_API_KEY=…` 한 줄 | 메모·회의록 모두 양호 |
+| **Ollama** (이 PC에서 모델 실행) | 0원·오프라인 | ollama.com 설치 → `ollama pull qwen3:8b` → `.env`에 `MALHAN_AI=ollama` | 짧은 메모는 괜찮음. 1시간 넘는 회의록은 빠뜨리거나 형식이 깨질 수 있음 (16GB 메모리 이상 권장) |
+| Anthropic API 키 | 쓴 만큼 (메모 1건 1원 미만, 1시간 반 회의록 100~200원) | `ANTHROPIC_API_KEY=…` | Claude Code와 같음 |
+
+우선순위: `MALHAN_AI`로 고정하지 않으면 Anthropic 키 → Claude Code → Gemini 키 순으로 있는 것을 씁니다.
+
 ## 설치 (한 번만)
 
 가장 쉬운 길 (Mac): 저장소의 `말한대로 처음 설치.command` 파일 하나만 내려받아 더블클릭합니다.

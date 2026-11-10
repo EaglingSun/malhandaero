@@ -68,7 +68,7 @@ def main() -> None:
         sys.exit(1)
     from server import llm, stt  # .env를 읽은 뒤의 상태
 
-    names = {"claude": "이 PC의 Claude Code (API 결제 없음)", "anthropic": "API 키", "fake": "흉내 모드 (화면 확인용, 부정확)", "none": "연결 안 됨"}
+    names = {"claude": "이 PC의 Claude Code (API 결제 없음)", "anthropic": "API 키", "fake": "흉내 모드 (화면 확인용, 부정확)", "none": "연결 안 됨", "gemini": "구글 Gemini (무료 티어)", "ollama": "이 PC의 Ollama (오프라인)", "openai": "OpenAI 호환 서버"}
     print("\n말한대로를 켭니다.")
     print(f"  이 PC에서        http://localhost:{PORT}")
     ip = lan_ip()
@@ -101,11 +101,14 @@ def main() -> None:
     if llm.mode() == "claude":
         short, long_ = llm.claude_model_for(""), llm.claude_model_for("x" * 10 ** 6)
         print(f"  모델             짧은 글 {short or 'Claude Code 기본'} · 긴 글(회의록) {long_ or 'Claude Code 기본'}")
+    if llm.mode() in llm.OPENAI_LIKE:
+        base, _, model, _ = llm.openai_config(llm.mode())
+        print(f"  모델             {model}   ({base})")
     print(f"  녹음 파일 변환    {'켜짐 (모델 ' + os.environ.get('MALHAN_WHISPER_MODEL', 'small') + ')' if stt.available() else '꺼짐 — 설치를 한 번 더 실행하면 켜져요 (글·사진·말하기는 됩니다)'}")
     if not os.environ.get("MALHAN_FAMILY_CODE"):
         print("  ! 가족 코드가 없어요. 설치를 다시 실행하거나 .env에 MALHAN_FAMILY_CODE를 넣어 주세요.")
     if llm.mode() == "none":
-        print("  ! AI가 연결되지 않았어요. Claude Code에 로그인하거나 .env에 키를 넣어 주세요.")
+        print("  ! AI가 연결되지 않았어요. Claude Code에 로그인하거나 .env에 ANTHROPIC_API_KEY / GEMINI_API_KEY를 넣어 주세요.")
     if best:
         try:
             import segno
