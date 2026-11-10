@@ -142,6 +142,7 @@
     li.appendChild(head);
     if (kind === "done") { more.appendChild(el("p", "msg", "동그라미를 다시 누르면 끝냄을 취소해요.")); li.appendChild(more); return li; }
 
+    if (it.details && it.details.length) { var dl = el("ul", "details"); it.details.forEach(function (d) { dl.appendChild(el("li", "", d)); }); more.appendChild(dl); }
     if (kind === "new" && it.quote) more.appendChild(el("p", "quote", it.quote));
     var row = el("div", "row");
     if (kind === "new" || kind === "due") {
@@ -219,11 +220,41 @@
       what.appendChild(el("span", "txt", b.title || KIND[b.kind]));
       var m = el("div", "meta"); m.appendChild(el("span", "tag", KIND[b.kind] || b.kind)); what.appendChild(m);
       head.appendChild(what); li.appendChild(head);
-      more.appendChild(bullets(b.summary));
+      if (b.summary) more.appendChild(bullets(b.summary));
+      var box = el("div"); more.appendChild(box);
+      var loaded = false;
+      what.addEventListener("click", function () {
+        if (loaded || more.hidden) return; loaded = true;
+        api("/api/inputs/" + b.id).then(function (inp) { box.appendChild(minutesView(inp)); }).catch(function () {});
+      });
       var row = el("div", "row");
       row.appendChild(btn("넣은 것에서 보기", "", function () { document.querySelector('.tabs button[data-tab="inputs"]').click(); openInput(b.id); }));
       more.appendChild(row); li.appendChild(more); ul.appendChild(li);
     });
+  }
+  function minutesView(inp) {
+    /* 회의록: 주제별 논의·결정, 확인할 것, 내 일·맡긴 일. 복사하거나 파일로 받을 수 있다 */
+    var wrap = el("div", "minutes"), m = inp.minutes || {};
+    (m.topics || []).forEach(function (t) {
+      var sec = el("div", "topic"); sec.appendChild(el("strong", "", t.topic));
+      var ul = el("ul", "bullets plain"); (t.points || []).forEach(function (x) { ul.appendChild(el("li", "", x)); }); if (t.points && t.points.length) sec.appendChild(ul);
+      if (t.decisions && t.decisions.length) { var d = el("ul", "bullets decided"); t.decisions.forEach(function (x) { d.appendChild(el("li", "", x)); }); sec.appendChild(d); }
+      wrap.appendChild(sec);
+    });
+    if (m.questions && m.questions.length) { var q = el("div", "topic"); q.appendChild(el("strong", "", "확인할 것")); var ql = el("ul", "bullets plain"); m.questions.forEach(function (x) { ql.appendChild(el("li", "", x)); }); q.appendChild(ql); wrap.appendChild(q); }
+    var others = (inp.items || []).filter(function (i) { return i.status === "other"; });
+    if (others.length) { var o = el("div", "topic"); o.appendChild(el("strong", "", "맡긴 일")); var ol = el("ul", "bullets plain"); others.forEach(function (i) { ol.appendChild(el("li", "", i.text + (i.who ? " · " + i.who : "") + (i.due_text ? " · " + i.due_text : ""))); }); o.appendChild(ol); wrap.appendChild(o); }
+    if (inp.has_minutes || others.length) {
+      var row = el("div", "row"), msg = el("span", "msg");
+      row.appendChild(btn("회의록 복사", "", function () {
+        fetch("/api/inputs/" + inp.id + "/minutes.md", { credentials: "same-origin" }).then(function (r) { return r.text(); }).then(function (t) {
+          return navigator.clipboard.writeText(t);
+        }).then(function () { msg.textContent = "복사했어요. 메모 앱이나 회의록에 붙여 넣으세요."; }).catch(function () { msg.textContent = "복사하지 못했어요. '파일로 받기'를 써 주세요."; });
+      }));
+      var a = el("a", "filebtn", "파일로 받기"); a.href = "/api/inputs/" + inp.id + "/minutes.md"; row.appendChild(a);
+      wrap.appendChild(row); wrap.appendChild(msg);
+    }
+    return wrap;
   }
   function renderDay(d) {
     state.today = d.today;
@@ -253,6 +284,12 @@
     return Promise.all([api("/api/day?date=" + state.date), api("/api/week?date=" + state.date)])
       .then(function (r) { renderDay(r[0]); renderWeek(r[1]); }).catch(fail("in-msg"));
   }
+  $("btn-skip-all").addEventListener("click", function () {
+    var b = $("btn-skip-all");
+    if (!b.dataset.sure) { b.dataset.sure = "1"; b.textContent = "한 번 더 누르면 모두 안 함"; setTimeout(function () { delete b.dataset.sure; b.textContent = "모두 안 함"; }, 4000); return; }
+    delete b.dataset.sure; b.textContent = "모두 안 함";
+    api("/api/items/skip-all", { method: "POST", json: {} }).then(function (r) { say("in-msg", r.skipped + "건을 안 함으로 넘겼어요. 넣은 것에서 '다시 내 일로' 할 수 있어요."); refresh(); }).catch(fail("in-msg"));
+  });
   $("btn-bulk").addEventListener("click", function () {
     api("/api/items/accept-all", { method: "POST", json: {} }).then(function (r) { say("in-msg", r.moved + "건을 넣었어요."); refresh(); }).catch(fail("in-msg"));
   });
@@ -398,6 +435,7 @@
         n.appendChild(row); box.appendChild(n);
       }
       if (inp.summary) { box.appendChild(el("h2", "", "요약")); var sb = el("div", "summary"); sb.appendChild(bullets(inp.summary)); box.appendChild(sb); }
+      if (inp.has_minutes) { box.appendChild(el("h2", "", "회의록")); box.appendChild(minutesView(inp)); }
       var mine = inp.items.filter(function (it) { return it.status !== "other"; });
       var others = inp.items.filter(function (it) { return it.status === "other"; });
       var LABEL = { "new": "고르기 전", todo: "하기로 함", later: "나중", skipped: "안 함", done: "끝냄" };

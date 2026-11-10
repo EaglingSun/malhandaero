@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 from dataclasses import dataclass, field
 from datetime import date
@@ -30,6 +31,7 @@ class Candidate:
     owner: str = "me"   # me | unclear | other
     who: str = ""
     time: str | None = None  # HH:MM
+    details: list[str] = field(default_factory=list)  # 상위 할 일 아래 묶인 세부 항목
 
 
 @dataclass
@@ -51,19 +53,25 @@ def build_prompt(text: str, ctx: Context) -> str:
     else:
         who = ("- 누가 본인인지 모른다. 말한 사람이 스스로 하겠다고 한 일은 owner \"me\"로 두되, "
                "이름이 불린 다른 사람이 맡은 일은 \"other\", 누가 맡았는지 분명하지 않은 일은 \"unclear\"로 한다.")
+    long_form = ctx.kind in ("meeting", "call", "file")  # 회의·통화: 회의록(minutes)까지 만든다
     parts = [
         "아래는 한 사람이 휴대폰으로 남긴 녹음이나 사진을 글로 바꾼 내용이다. " + KIND_NOTE.get(ctx.kind, KIND_NOTE["file"]),
-        "두 가지를 만들어라: (1) 내용 요약, (2) 앞으로 해야 할 일 목록.",
+        "만들 것: (1) summary 요약, (2) items 할 일 목록" + (", (3) minutes 회의록." if long_form else "."),
         "",
-        "요약 규칙:",
+        "요약(summary) 규칙:",
         "- 결정된 것과 중요한 내용을 2~4개의 짧은 항목으로 쓴다. 항목마다 줄을 바꾸고 '- '로 시작하며, 한 항목은 한 문장(해요체)을 넘기지 않는다.",
         "- 녹음에 없는 내용을 보태지 않는다. 할 일로 뽑은 것은 요약에 다시 쓰지 않는다.",
         "- 내용이 아주 짧거나 할 일을 불러 준 메모뿐이면 빈 문자열로 둔다.",
         "",
-        "할 일 규칙:",
-        "- 앞으로 누군가 해야 하는 일을 모두 뽑는다. 이미 끝난 일, 단순한 감상이나 잡담은 뽑지 않는다.",
+        "할 일(items) 규칙:",
+        "- 앞으로 누군가 해야 하는 일을 뽑는다. 이미 끝난 일, 단순한 감상이나 잡담은 뽑지 않는다.",
         who,
+        "- 이름이나 화자 표기로 담당자가 불린 일은 반드시 owner \"other\"다. \"unclear\"는 담당자를 아무도 말하지 않은 일에만 쓴다.",
+        "- 본인이 다른 사람에게 \"~해 주세요\", \"~해 줘\"라고 시킨 일은 owner \"other\"다.",
         "- who에는 owner가 other나 unclear일 때 녹음에 나온 담당자 이름이나 화자 표기를 적는다. 없으면 빈 문자열.",
+        "- 묶어서 뽑는다: 같은 주제·같은 담당자의 잔일은 하나의 상위 할 일로 합치고, 잔일은 details 배열에 짧게 적는다(각 20자 안팎). "
+        "상위 할 일 text는 결과가 무엇인지 알 수 있게 쓴다(예: 'LCT 테스트 계획을 개발팀과 확정하기').",
+        "- owner가 me인 상위 할 일은 많아도 5개를 넘기지 않는다. 더 있으면 더 크게 묶는다. 작은 일이라도 빠뜨리지 말고 details에 넣거나, 할 일이 아니면 minutes에 남긴다.",
         "- 같은 일은 한 번만 뽑는다. 아래 '이미 적어 둔 일'과 겹치면 뽑지 않는다.",
         "- text는 무엇을 하는지 알 수 있는 한국어 한 줄, '~하기' 꼴로 쓴다. 대상과 내용을 빼먹지 않는다. 녹음에 없는 내용을 보태지 않는다.",
         "- due는 녹음에 나온 기한 표현 그대로(예: 금요일까지, 14일). 없으면 빈 문자열.",
@@ -72,8 +80,20 @@ def build_prompt(text: str, ctx: Context) -> str:
         '- scope는 회사 일이면 "회사", 집안일·가족·개인 일이면 "개인".',
         "- quote는 근거가 된 원문 한 문장을 그대로 옮긴다.",
         "",
+    ]
+    if long_form:
+        parts += [
+            "회의록(minutes) 규칙:",
+            "- topics: 이야기한 주제마다 하나. topic은 짧은 제목, points는 논의 요점(각 한 문장, 해요체), decisions는 그 주제에서 정해진 것.",
+            "- questions: 결론이 나지 않아 확인이 필요한 것.",
+            "- 할 일로 뽑지 않은 작은 언급도 points에 남겨 빠지는 내용이 없게 한다. 녹음에 없는 내용은 쓰지 않는다. 내용이 짧은 메모·통화면 topics를 비워도 된다.",
+            "",
+        ]
+    fmt_items = '"items":[{"text":"","owner":"me","who":"","due":"","dueDate":null,"time":null,"scope":"개인","quote":"","details":[]}]'
+    fmt_minutes = ',"minutes":{"topics":[{"topic":"","points":[],"decisions":[]}],"questions":[]}' if long_form else ""
+    parts += [
         "출력: JSON 객체 하나만. 다른 글은 쓰지 않는다.",
-        '형식: {"summary":"","items":[{"text":"","owner":"me","who":"","due":"","dueDate":null,"time":null,"scope":"개인","quote":""}]}',
+        '형식: {"summary":"",' + fmt_items + fmt_minutes + "}",
         "",
     ]
     if ctx.skipped:
@@ -106,8 +126,29 @@ def _json_part(raw: str):
     return None
 
 
-def parse_result(raw: str) -> tuple[str, list[Candidate]]:
-    """AI 응답 → (요약, 후보 목록). 형식이 어긋난 원소는 버린다. 예전 꼴(배열만)도 받는다."""
+def _strs(v, limit: int = 300, n: int = 40) -> list[str]:
+    return [str(x).strip()[:limit] for x in v if isinstance(x, (str, int, float)) and str(x).strip()][:n] if isinstance(v, list) else []
+
+
+def parse_minutes(data) -> dict:
+    """회의록 부분만 정리한다. 없거나 깨졌으면 빈 회의록."""
+    m = data.get("minutes") if isinstance(data, dict) else None
+    out: dict = {"topics": [], "questions": []}
+    if not isinstance(m, dict):
+        return out
+    for t in (m.get("topics") if isinstance(m.get("topics"), list) else [])[:30]:
+        if not isinstance(t, dict):
+            continue
+        topic = str(t.get("topic") or "").strip()[:80]
+        points, decisions = _strs(t.get("points")), _strs(t.get("decisions"))
+        if topic or points or decisions:
+            out["topics"].append({"topic": topic or "기타", "points": points, "decisions": decisions})
+    out["questions"] = _strs(m.get("questions"))
+    return out
+
+
+def parse_result(raw: str) -> tuple[str, list[Candidate], dict]:
+    """AI 응답 → (요약, 후보 목록, 회의록). 형식이 어긋난 원소는 버린다. 예전 꼴(배열만)도 받는다."""
     data = _json_part(raw)
     summary, arr = "", []
     if isinstance(data, dict):
@@ -133,13 +174,58 @@ def parse_result(raw: str) -> tuple[str, list[Candidate]]:
                 owner=r.get("owner") if r.get("owner") in ("me", "unclear", "other") else "me",
                 who=str(r.get("who") or "")[:30],
                 time=tm.zfill(5) if isinstance(tm, str) and _TIME.match(tm) else None,
+                details=_strs(r.get("details"), limit=80, n=12),
             )
         )
-    return summary, out
+    return summary, out, parse_minutes(data)
 
 
 def parse_candidates(raw: str) -> list[Candidate]:
     return parse_result(raw)[1]
+
+
+def merge_minutes(parts: list[dict]) -> dict:
+    out: dict = {"topics": [], "questions": []}
+    for m in parts:
+        out["topics"] += m.get("topics", [])
+        out["questions"] += [q for q in m.get("questions", []) if q not in out["questions"]]
+    return out
+
+
+def minutes_markdown(title: str, date_: str, summary: str, minutes: dict, items: list[dict]) -> str:
+    """회의록을 Markdown으로. 복사하거나 파일로 받아 다른 곳에 붙인다."""
+    L = [f"# {title or '회의'}", "", f"날짜: {date_}", ""]
+    if summary:
+        L += ["## 요약"] + [("- " + x.lstrip("-•· ").strip()) for x in summary.splitlines() if x.strip()] + [""]
+    if minutes.get("topics"):
+        L += ["## 논의"]
+        for t in minutes["topics"]:
+            L.append(f"### {t.get('topic') or '기타'}")
+            L += [f"- {p}" for p in t.get("points", [])]
+            if t.get("decisions"):
+                L += ["", "결정:"] + [f"- {d}" for d in t["decisions"]]
+            L.append("")
+    if minutes.get("questions"):
+        L += ["## 확인할 것"] + [f"- {q}" for q in minutes["questions"]] + [""]
+    mine = [i for i in items if i.get("status") != "other"]
+    others = [i for i in items if i.get("status") == "other"]
+
+    def line(i):
+        tail = " · ".join(x for x in (i.get("who") or "", i.get("due_text") or "") if x)
+        s_ = f"- [ ] {i['text']}" + (f" ({tail})" if tail else "")
+        return [s_] + [f"    - {d}" for d in (i.get("details") or [])]
+
+    if mine:
+        L += ["## 내 할 일"]
+        for i in mine:
+            L += line(i)
+        L.append("")
+    if others:
+        L += ["## 맡긴 일"]
+        for i in others:
+            L += line(i)
+        L.append("")
+    return "\n".join(L).rstrip() + "\n"
 
 
 def _norm(s: str) -> str:
@@ -164,18 +250,24 @@ def dedupe(cands: list[Candidate], known: list[str]) -> list[Candidate]:
     return kept
 
 
-def extract(text: str, ctx: Context) -> tuple[str, list[Candidate]]:
-    """글 → (요약, 후보 목록). 길면 나눠서 뽑고 합친 뒤 겹침을 없앤다."""
+CHUNK = int(os.environ.get("MALHAN_CHUNK", "60000"))  # 글자. 회의 1~2시간(3~5만 자)은 한 번에 읽는다
+
+
+def extract(text: str, ctx: Context) -> tuple[str, list[Candidate], dict]:
+    """글 → (요약, 후보 목록, 회의록). 아주 길면 나눠서 뽑고 합친 뒤 겹침을 없앤다."""
     found: list[Candidate] = []
     summaries: list[str] = []
-    for part in transcript.chunks(text.strip()):
+    minutes: list[dict] = []
+    for part in transcript.chunks(text.strip(), size=CHUNK, overlap=min(1500, CHUNK // 10)):
         if not part.strip():
             continue
-        summary, cands = parse_result(llm.complete(build_prompt(part, ctx)))
+        summary, cands, m = parse_result(llm.complete(build_prompt(part, ctx), max_tokens=6000))
         found += cands
         if summary:
             summaries.append(summary)
-    return "\n".join(summaries), dedupe(found, ctx.known)
+        if m["topics"] or m["questions"]:
+            minutes.append(m)
+    return "\n".join(summaries), dedupe(found, ctx.known), merge_minutes(minutes)
 
 
 def summary_prompt(today: date, done: list[str], left: list[str], later: list[str]) -> str:

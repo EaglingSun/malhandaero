@@ -181,3 +181,12 @@ ul.bullets li { overflow-wrap: anywhere; }
 .summary ul.bullets { padding: 0 0 0 18px; background: none; }
 .muted { color: var(--muted); font-size: 12px; }
 #update-msg { text-align: center; font-size: 13px; }
+
+/* 회의록, 세부 항목 */
+.minutes { display: flex; flex-direction: column; gap: 10px; }
+.minutes .topic { display: flex; flex-direction: column; gap: 4px; }
+.minutes strong { font-size: 15px; }
+ul.bullets.plain { background: none; padding: 0 0 0 18px; }
+ul.bullets.decided { background: var(--mint-soft); }
+ul.bullets.decided li::before { content: "결정 · "; color: var(--mint); font-weight: 700; }
+ul.details { margin: 0; padding: 0 0 0 18px; font-size: 14px; color: var(--muted); display: flex; flex-direction: column; gap: 2px; }

@@ -59,8 +59,17 @@ def current_user(mh_token: str | None = Cookie(default=None)):
     return row
 
 
+def _json_list(v) -> list:
+    try:
+        x = json.loads(v or "[]")
+        return x if isinstance(x, list) else []
+    except ValueError:
+        return []
+
+
 def item_dict(r, t: date | None = None) -> dict:
     d = dict(r)
+    d["details"] = _json_list(d.get("details"))
     d["carried_days"] = 0
     if t and d["status"] == "todo" and d["plan_date"] and d["plan_date"] < t.isoformat():
         d["carried_days"] = (t - date.fromisoformat(d["plan_date"])).days
@@ -70,6 +79,11 @@ def item_dict(r, t: date | None = None) -> dict:
 def input_dict(r, with_text: bool = False) -> dict:
     d = dict(r)
     d["speakers"] = json.loads(d.get("speakers") or "[]")
+    try:
+        d["minutes"] = json.loads(d.get("minutes") or "") or {"topics": [], "questions": []}
+    except ValueError:
+        d["minutes"] = {"topics": [], "questions": []}
+    d["has_minutes"] = bool(d["minutes"].get("topics") or d["minutes"].get("questions"))
     d.pop("media_path", None)
     d.pop("user_id", None)
     if not with_text:
@@ -290,19 +304,20 @@ def process_input(input_id: int) -> None:
             today=date.fromisoformat(row["received_date"]),
             kind=row["kind"], me_speaker=me_spk, skipped=skipped, known=known,
         )
-        summary, cands = extract.extract(text, ctx)
+        summary, cands, minutes = extract.extract(text, ctx)
         with db.session() as con:
             # 다시 뽑을 때: 이 입력에서 나왔고 아직 고르지 않은 것(새로 적어 둔 것, 남의 일)만 갈아 끼운다
             con.execute("DELETE FROM items WHERE input_id = ? AND status IN ('new','other')", (input_id,))
             kept = [r["text"] for r in con.execute("SELECT text FROM items WHERE input_id = ?", (input_id,))]
             for c in extract.dedupe(cands, kept):
                 con.execute(
-                    "INSERT INTO items(user_id, input_id, text, quote, due_text, due_date, plan_time, scope, owner, who, status)"
-                    " VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+                    "INSERT INTO items(user_id, input_id, text, quote, due_text, due_date, plan_time, scope, owner, who, status, details)"
+                    " VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
                     (row["user_id"], input_id, c.text, c.quote, c.due_text, c.due_date, c.time, c.scope, c.owner, c.who,
-                     "other" if c.owner == "other" else "new"),
+                     "other" if c.owner == "other" else "new", json.dumps(c.details, ensure_ascii=False)),
                 )
-        _set_input(input_id, status="extracted", error="", summary=summary)
+        _set_input(input_id, status="extracted", error="", summary=summary,
+                   minutes=json.dumps(minutes, ensure_ascii=False) if (minutes.get("topics") or minutes.get("questions")) else "")
     except (llm.LlmUnavailable, stt.SttUnavailable) as e:
         _set_input(input_id, status="failed", error=str(e))
     except Exception as e:  # 뒤에서 도는 작업이라 사유를 남기고 끝낸다
@@ -503,6 +518,26 @@ def delete_input(input_id: int, user=Depends(current_user)):
     return {"ok": True}
 
 
+@app.get("/api/inputs/{input_id}/minutes.md")
+def minutes_md(input_id: int, user=Depends(current_user)):
+    """회의록을 Markdown 파일로. 복사하거나 다른 메모 앱에 붙인다."""
+    from fastapi.responses import Response
+
+    with db.session() as con:
+        row = _own_input(con, input_id, user["id"])
+        items = con.execute("SELECT * FROM items WHERE input_id = ? ORDER BY id", (input_id,)).fetchall()
+    d = input_dict(row)
+    md = extract.minutes_markdown(d["title"] or KIND_LABEL.get(d["kind"], "회의"), d["received_date"], d["summary"], d["minutes"],
+                                  [item_dict(i) for i in items])
+    name = (d["title"] or "회의록").rsplit(".", 1)[0][:40]
+    from urllib.parse import quote
+    return Response(md, media_type="text/markdown; charset=utf-8",
+                    headers={"Content-Disposition": f"attachment; filename*=UTF-8''{quote(name)}.md"})
+
+
+KIND_LABEL = {"call": "통화", "meeting": "회의", "memo": "내 메모", "file": "파일", "photo": "사진"}
+
+
 # ---------- 날짜별 화면 ----------
 @app.get("/api/day")
 def day(date_: str | None = Query(None, alias="date"), user=Depends(current_user)):
@@ -528,7 +563,7 @@ def day(date_: str | None = Query(None, alias="date"), user=Depends(current_user
         ) if d == t else []
         # 이날 넣은 회의·통화의 요약. 첫 화면에 접힌 한 줄로 보여 준다
         briefs = q(
-            "SELECT id, title, kind, summary FROM inputs WHERE user_id = ? AND received_date = ? AND summary != '' ORDER BY id DESC LIMIT 10",
+            "SELECT id, title, kind, summary, (minutes != '') AS has_minutes FROM inputs WHERE user_id = ? AND received_date = ? AND (summary != '' OR minutes != '') ORDER BY id DESC LIMIT 10",
             uid, ds,
         )
     return {
@@ -627,6 +662,22 @@ def accept_all(body: AcceptAll, bg: BackgroundTasks, user=Depends(current_user))
             bg.add_task(calsync.sync_item, user["id"], r["id"])
             n += 1
     return {"moved": n}
+
+
+class SkipAll(BaseModel):
+    input_id: int | None = None
+
+
+@app.post("/api/items/skip-all")
+def skip_all(body: SkipAll, user=Depends(current_user)):
+    """새로 적어 둔 것을 한 번에 '안 함'으로. input_id를 주면 그 녹음에서 나온 것만."""
+    with db.session() as con:
+        if body.input_id is not None:
+            cur = con.execute("UPDATE items SET status = 'skipped', updated_at = datetime('now') WHERE user_id = ? AND status = 'new' AND input_id = ?",
+                              (user["id"], body.input_id))
+        else:
+            cur = con.execute("UPDATE items SET status = 'skipped', updated_at = datetime('now') WHERE user_id = ? AND status = 'new'", (user["id"],))
+    return {"skipped": cur.rowcount}
 
 
 @app.patch("/api/items/{item_id}")

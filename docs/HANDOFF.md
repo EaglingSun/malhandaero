@@ -20,7 +20,7 @@
 
 ### 코드 받는 법
 
-`git clone https://github.com/EaglingSun/malhandaero.git` 한 줄이면 된다. 풀고 나서 `python -m pytest -q`가 41개 통과하면 온전한 것이다.
+`git clone https://github.com/EaglingSun/malhandaero.git` 한 줄이면 된다. 풀고 나서 `python -m pytest -q`가 46개 통과하면 온전한 것이다.
 
 아래는 저장소가 없던 때 쓰던 소스 묶음 푸는 법이다(참고용).
 프로젝트 문서 `claude/malhandaero-src-01.txt` ~ `-07.txt` 일곱 개를 한 폴더에 내려받은 뒤 그 폴더에서 실행한다.
@@ -51,7 +51,7 @@ chmod +x malhandaero/*.sh malhandaero/*.command
 - `web/` 빌드 없는 화면(PWA, 공유 받기) · `tools/install.py`, `tools/run.py` 설치와 실행
 - `server/updater.py`(+ 얇은 `tools/update.py`) 자동 업데이트: `.git`이 없는 폴더면 먼저 저장소에 연결(adopt: init → fetch → checkout -f; data/·.env는 그대로) → `git fetch` → fast-forward만 → requirements 바뀌면 재설치 → manifest 바뀌면 폰 앱 재설치 안내. 실패해도 켜기는 막지 않는다. 세 곳에서 부른다: ① 켜기 전(`run.sh`/`run.bat`/`켜기.command`) ② 화면 맨 아래 「업데이트」(`POST /api/update`) ③ 매일 04시 자동. ②③은 받은 뒤 서버를 `RESTART_CODE(3)`로 끝내고 `tools/run.py`의 감시 루프가 새 코드로 다시 켠다. 자료·설정은 그대로
 - `말한대로 처음 설치.command` 파일 하나로 clone → 설치 → 켜기 (Mac)
-- 시험: `python -m pytest -q` → 41개 통과. AI·네이버·구글은 흉내 서버로, 업데이트는 임시 git 저장소로 시험한다
+- 시험: `python -m pytest -q` → 46개 통과. AI·네이버·구글은 흉내 서버로, 업데이트는 임시 git 저장소로 시험한다
 
 지키는 규칙
 
@@ -84,6 +84,7 @@ chmod +x malhandaero/*.sh malhandaero/*.command
 ## 5. 다음 할 일 (순서대로)
 
 1. 사용자의 11/10 실사용 의견 받기 → 고치기. 새 기능보다 우선 (08:40 배치·요약 목록 의견 반영 끝)
+1-2. 13판 회의록·묶음 추출을 실제 회의록(입력 12, 37k자)으로 다시 뽑아 품질 보기 → 묶음 수·회의록 충실도 의견 반영
 1-1. **faster-whisper 설치를 설치 과정에 넣기**(선택 단계 또는 기본). 통화 녹음 m4a를 바로 공유하는 흐름이 실제 사용 패턴
 2. ~~녹음 앱 공유~~ 11/10 확인 끝: 공유 → 넣기 → 뽑기까지 됨
 3. ~~첫 화면 회의 요약~~ 8판 → 10판에서 의견 반영(목록형 요약, 할 일 아래 제목만). 폰에서 다시 보기
@@ -120,6 +121,7 @@ chmod +x malhandaero/*.sh malhandaero/*.command
 | 4 | 더블클릭 실행(.command), Tailscale 자동, QR 연결(내 기기 / 가족 초대) |
 | 5 | 목록 중심 화면(+ 버튼 뒤에 넣기), https 인증서 묶음, 연결 실패 사유 표시 |
 | 6 | 공유로 받는 파일 종류 확대 |
+| 13 | 회의록 구조화: 추출이 `minutes`(주제별 논의·결정, 확인할 것)와 `details`(상위 할 일의 세부)를 함께 냄. 조각 12k→60k자(회의 1~2시간을 한 번에). 내 일 ≤5건 묶기, 이름 붙은 일은 `other`. 화면: 들은 이야기 ▸ 회의록·맡긴 일, 「회의록 복사 / 파일로 받기」(`/api/inputs/{id}/minutes.md`), 「모두 안 함」(`/api/items/skip-all`). DB 칸 inputs.minutes, items.details |
 | 12 | 업데이트 재시작이 처리 중 녹음을 끊던 문제: ① 켤 때 '처리 중'에 멈춘 입력을 처음부터 다시 돌림(`resume_pending`) ② 처리 중이면 업데이트 후 바로 끄지 않고 끝난 뒤 다시 켬(`_restart_when_idle`) |
 | 11 | 문구: '새 판' → '업데이트'/'버전' (사용자 의견: '새 판 확인'이 어색함) |
 | 10 | 사용자 의견: 요약을 줄글 → 항목 목록('- ' 줄, 예전 줄글은 화면에서 문장 단위로 나눔). 「들은 이야기」를 할 일 목록 아래·하루 정리 위로 옮기고 제목만 한 줄씩 |

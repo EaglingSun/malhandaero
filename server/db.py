@@ -27,6 +27,7 @@ CREATE TABLE IF NOT EXISTS inputs (
     status        TEXT NOT NULL DEFAULT 'received',
     error         TEXT NOT NULL DEFAULT '',
     summary       TEXT NOT NULL DEFAULT '',   -- 회의·통화 요약
+    minutes       TEXT NOT NULL DEFAULT '',   -- 회의록 JSON {topics, questions}
     created_at    TEXT NOT NULL DEFAULT (datetime('now'))
 );
 CREATE TABLE IF NOT EXISTS items (
@@ -47,6 +48,7 @@ CREATE TABLE IF NOT EXISTS items (
     addon       TEXT NOT NULL DEFAULT '',       -- 어느 더하기에서 왔는지 ('' = 본체)
     record_id   INTEGER,
     cal_ref     TEXT,
+    details     TEXT NOT NULL DEFAULT '[]',   -- 상위 할 일 아래 묶인 세부 항목 JSON
     created_at  TEXT NOT NULL DEFAULT (datetime('now')),
     updated_at  TEXT NOT NULL DEFAULT (datetime('now'))
 );
@@ -114,6 +116,8 @@ MIGRATIONS = [
     ("items", "addon", "TEXT NOT NULL DEFAULT ''"),
     ("items", "record_id", "INTEGER"),
     ("items", "cal_ref", "TEXT"),   # 바깥 캘린더에 넣은 일정의 주소나 번호
+    ("inputs", "minutes", "TEXT NOT NULL DEFAULT ''"),
+    ("items", "details", "TEXT NOT NULL DEFAULT '[]'"),
 ]
 
 

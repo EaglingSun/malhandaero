@@ -146,10 +146,11 @@ def test_calendar_export_all_day_and_timed():
 
 MEETING_REPLY = """{"summary": "출시 일정을 14일로 정했어요. 시험 결과는 금요일에 다시 봐요.",
  "items": [
-  {"text": "시험 결과서 검토 의견 보내기", "owner": "me", "due": "14일", "dueDate": "2099-11-14", "time": "15:00", "scope": "회사", "quote": "제가 14일 3시까지 보내겠습니다."},
+  {"text": "시험 결과서 검토 의견 보내기", "owner": "me", "due": "14일", "dueDate": "2099-11-14", "time": "15:00", "scope": "회사", "quote": "제가 14일 3시까지 보내겠습니다.", "details": ["커버리지 표 확인", "의견 문서로 정리"]},
   {"text": "회의실 예약하기", "owner": "other", "who": "민수", "scope": "회사"},
   {"text": "고객사에 일정 알리기", "owner": "unclear", "who": "", "scope": "회사"}
- ]}"""
+ ],
+ "minutes": {"topics": [{"topic": "출시 일정", "points": ["14일 출시로 정했어요."], "decisions": ["14일 출시"]}], "questions": ["고객사 통보 담당은 누구?"]}}"""
 
 
 def test_meeting_keeps_summary_and_other_peoples_items_recoverable(monkeypatch):
@@ -160,7 +161,11 @@ def test_meeting_keeps_summary_and_other_peoples_items_recoverable(monkeypatch):
     iid = client.post("/api/inputs", data={"kind": "meeting", "text": "화자 1: 제가 14일 3시까지 보내겠습니다.\n화자 2: 회의실은 민수 씨가요."}).json()["id"]
     inp = client.get(f"/api/inputs/{iid}").json()
     assert "출시 일정" in inp["summary"]
+    assert inp["has_minutes"] and inp["minutes"]["topics"][0]["topic"] == "출시 일정" and inp["minutes"]["questions"] == ["고객사 통보 담당은 누구?"]
     by = {i["text"]: i for i in inp["items"]}
+    assert by["시험 결과서 검토 의견 보내기"]["details"] == ["커버리지 표 확인", "의견 문서로 정리"]       # 세부는 상위 할 일 아래 묶인다
+    md = client.get(f"/api/inputs/{iid}/minutes.md")
+    assert md.status_code == 200 and "### 출시 일정" in md.text and "- [ ] 회의실 예약하기 (민수)" in md.text and "    - 커버리지 표 확인" in md.text
     assert by["회의실 예약하기"]["status"] == "other" and by["회의실 예약하기"]["who"] == "민수"
     assert by["고객사에 일정 알리기"]["status"] == "new" and by["고객사에 일정 알리기"]["owner"] == "unclear"
 
@@ -168,6 +173,7 @@ def test_meeting_keeps_summary_and_other_peoples_items_recoverable(monkeypatch):
     new = day["new"]
     assert sorted(i["text"] for i in new) == ["고객사에 일정 알리기", "시험 결과서 검토 의견 보내기"]  # 남의 일은 목록에 안 뜬다
     assert [b["id"] for b in day["briefs"]] == [iid] and "출시 일정" in day["briefs"][0]["summary"]   # 요약은 첫 화면에도 보인다
+    assert day["briefs"][0]["has_minutes"] == 1
     assert client.get("/api/day", params={"date": "2000-01-01"}).json()["briefs"] == []                # 그날 넣은 것만
     assert client.get("/api/inputs").json()[0]["item_count"] == 2
 
@@ -308,3 +314,14 @@ def test_update_waits_for_processing_inputs(monkeypatch):
     monkeypatch.setattr(updater, "main", lambda argv: updater.RESULT.update(updated=True, before="a", after="b", messages=["업데이트했어요"], log=[], changed=[]))
     r = client.post("/api/update").json()
     assert r["waiting"] == 1 and idle == [1] and calls == [] and "끝나면" in r["messages"][-1]   # 처리 중이면 바로 끄지 않는다
+
+
+def test_skip_all_clears_new_items_of_one_input():
+    join("치우기")
+    a = client.post("/api/inputs", data={"kind": "memo", "text": "우유 사야 해. 빵 사야 해."}).json()["id"]
+    b = client.post("/api/inputs", data={"kind": "memo", "text": "세탁소에서 옷 찾아 오는 거 잊지 말기."}).json()["id"]
+    assert len(client.get("/api/day").json()["new"]) == 3
+    assert client.post("/api/items/skip-all", json={"input_id": a}).json()["skipped"] == 2
+    left = client.get("/api/day").json()["new"]
+    assert len(left) == 1 and left[0]["input_id"] == b
+    assert client.post("/api/items/skip-all", json={}).json()["skipped"] == 1 and client.get("/api/day").json()["new"] == []
