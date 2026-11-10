@@ -244,6 +244,7 @@ a.like { display: block; text-align: center; margin-top: 8px; padding: 10px; bor
 .upbar .pick.small { padding: 6px 12px; font-size: 13px; text-decoration: none; display: inline-block; }
 #chromebar { bottom: calc(206px + env(safe-area-inset-bottom)); background: var(--mint); }
 
-details#http-help { background: #fff8d6; border: 1.5px solid var(--sun); border-radius: 14px; padding: 10px 12px; }
-details#http-help summary { cursor: pointer; font-weight: 700; }
+details#http-help, details#share-help { background: #fff8d6; border: 1.5px solid var(--sun); border-radius: 14px; padding: 10px 12px; }
+details#share-help { background: #f8fcff; border-color: var(--line); }
+details#http-help summary, details#share-help summary { cursor: pointer; font-weight: 700; }
 details#http-help code { background: #fff; border-radius: 6px; padding: 1px 6px; font-size: 13px; word-break: break-all; }
