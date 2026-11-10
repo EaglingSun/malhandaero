@@ -146,6 +146,14 @@
       <p class="msg" id="link-msg">QR을 휴대폰 카메라로 찍으면 주소나 코드를 치지 않고 바로 들어와요.</p>
       <div id="link-qr" class="qr" hidden></div>
       <p class="msg" id="link-url"></p>
+      <details id="http-help" hidden>
+        <summary>폰에서 「설치」가 안 되거나 공유 목록에 안 보여요</summary>
+        <p class="msg">지금 주소가 <b>http</b>라서 그래요. 폰 브라우저는 앱 설치·공유 받기·말하기를 https(또는 예외로 등록한 주소)에서만 허용해요. 둘 중 하나로 풀려요.</p>
+        <p class="msg"><b>① 폰 Chrome에 이 주소를 예외로 등록 (1분, Tailscale 없이)</b><br>
+        폰 Chrome 주소창에 <code>chrome://flags/#unsafely-treat-insecure-origin-as-secure</code> → 칸에 아래 주소를 넣고 <b>Enabled</b> → Chrome 다시 시작 → 다시 「홈 화면에 추가」.<br>
+        <code id="http-origin"></code> <button type="button" class="link" id="http-copy">복사</button></p>
+        <p class="msg"><b>② Tailscale로 https 주소 만들기</b> — 집 밖에서도 쓰려면 이쪽. PC와 폰에 Tailscale을 깔고 같은 계정으로 로그인한 뒤 PC를 다시 켜면 https 주소가 생겨요(INSTALL.md).</p>
+      </details>
     </section>
 
     <section id="cal-box" class="card" hidden aria-labelledby="h-cal">

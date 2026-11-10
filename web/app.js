@@ -691,6 +691,12 @@
   });
 
   /* ---------- 업데이트 ---------- */
+  (function () {
+    var insecure = !window.isSecureContext && location.hostname !== "localhost";
+    $("http-help").hidden = !insecure;
+    if (insecure) { $("http-origin").textContent = location.origin; $("http-help").open = true; }
+    $("http-copy").addEventListener("click", function () { navigator.clipboard && navigator.clipboard.writeText(location.origin).then(function () { $("http-copy").textContent = "복사됨"; }); });
+  })();
   $("upbar-go").addEventListener("click", function () { $("upbar").hidden = true; $("btn-update").click(); window.scrollTo(0, document.body.scrollHeight); });
   $("btn-update").addEventListener("click", function () {
     var b = $("btn-update"); b.disabled = true; say("update-msg", "업데이트가 있는지 보고 있어요…");

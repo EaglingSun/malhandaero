@@ -43,6 +43,12 @@ Mac은 `xcode-select --install`(git) 뒤 python.org에서 Python, App Store에�
 
 ---
 
+### Tailscale 없이 폰 앱으로 쓰려면 (회사에서 Tailscale을 못 깔 때)
+
+A만으로는 주소가 http라서 폰에 「설치」가 안 되고 공유 목록에도 안 떠요. 폰 Chrome에 주소 하나만 예외로 등록하면 돼요(1분).
+폰 Chrome 주소창에 `chrome://flags/#unsafely-treat-insecure-origin-as-secure` → 칸에 PC 주소(예: `http://10.10.111.97:8000`) 입력 → Enabled → Chrome 다시 시작 → 「홈 화면에 추가」.
+앱 안 「휴대폰 연결」에도 같은 안내와 복사 버튼이 있어요. 단 같은 와이파이에서만 되고, PC 주소가 바뀌면 다시 등록해요.
+
 ## B. 집 밖에서도 쓰기 (+ Tailscale) — 추가 5분
 
 폰이 집 와이파이를 벗어나도 같은 주소로 들어가게 합니다. 공유기 설정 없음, 내 기기끼리만 통합니다.
