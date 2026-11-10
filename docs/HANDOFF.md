@@ -16,7 +16,7 @@
 | 실행 중인 곳 | 사용자의 집 Mac(Tailscale https, 폰 2대) + 11/10부터 Windows 노트북(시험용, Gemini) |
 | 개발 계획 문서 | claude.ai 아티팩트 「말한대로 개발 계획」 https://claude.ai/artifact/9hymSQQhmXfwhpuEw14dua (11/9 밤 기준. 그 뒤 추가분 미반영) |
 | 홍보 페이지 | 아티팩트 「말한대로 소개 페이지」 https://claude.ai/artifact/CR8DdiWzVDDpbBLp258iqD (11/10 12:15 갱신: 하루 마무리·오늘 한 줄·달력·식물 카드, 캘린더 가져오기, 익명) |
-| 설계서, 설치 안내 | `docs/DESIGN.md`, `INSTALL.md`, **`docs/START.md`(배포용 한 장)**, `README.md`. 회의록 형식은 `docs/MINUTES_FORMAT.md`(지시문·내보내기·스킬의 기준) |
+| 설계서, 설치 안내 | `docs/DESIGN.md`, **`docs/START.md`(셋업 가이드 — INSTALL.md를 흡수, 44판)**, `README.md`. 회의록 형식은 `docs/MINUTES_FORMAT.md`(지시문·내보내기·스킬의 기준) |
 
 ### 코드 받는 법
 

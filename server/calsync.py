@@ -5,7 +5,7 @@
 - 무엇을 보낼지는 사람이 정한다: timed(시각을 정한 일만, 기본) | all(날짜가 정해진 모든 일).
 
 환경 변수
-  MALHAN_GOOGLE_CLIENT_ID / MALHAN_GOOGLE_CLIENT_SECRET : 구글 연결에 필요 (INSTALL.md 참고)
+  MALHAN_GOOGLE_CLIENT_ID / MALHAN_GOOGLE_CLIENT_SECRET : 본인 구글 클라이언트를 쓸 때 (docs/START.md 「캘린더 자세히」)
   MALHAN_NAVER_CALDAV : 네이버 CalDAV 주소 (기본 https://caldav.calendar.naver.com)
 """
 from __future__ import annotations

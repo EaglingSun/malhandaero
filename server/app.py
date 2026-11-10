@@ -1068,7 +1068,7 @@ def _is_local(request: Request) -> bool:
 @app.get("/api/calendar/google/start")
 def calendar_google_start(request: Request, user=Depends(current_user)):
     if not calsync.google_client():
-        raise HTTPException(503, "구글 연결 준비가 안 됐어요. INSTALL.md의 '구글 캘린더 연결 준비'를 먼저 해 주세요.")
+        raise HTTPException(503, "구글 연결 준비가 안 됐어요. 시작 안내의 「캘린더 자세히」를 먼저 해 주세요.")
     if calsync.google_builtin() and not _is_local(request):
         # 내장(데스크톱형) 클라이언트는 localhost 리디렉션만 받는다 → PC 브라우저에서 한 번 하라고 돌려보낸다
         return RedirectResponse("/?cal=local", status_code=303)

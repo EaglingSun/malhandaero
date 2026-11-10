@@ -632,7 +632,7 @@
       box.innerHTML = r.svg;                       /* 서버가 만든 QR 그림 */
       var svg = box.querySelector("svg"); if (svg) { svg.setAttribute("role", "img"); svg.setAttribute("aria-label", "연결용 QR"); }
       say("link-msg", (kind === "family" ? "찍으면 이름만 정하고 들어와요. " : "폰 카메라로 찍으면 바로 들어와요. ") + r.minutes + "분 안에 찍어 주세요.");
-      $("link-url").textContent = r.secure ? r.url + "\n상대 폰도 Tailscale에 들어와 있어야 열려요 (INSTALL.md)" : r.url + "\n같은 와이파이에서만 열려요";
+      $("link-url").textContent = r.secure ? r.url + "\n상대 폰도 Tailscale에 들어와 있어야 열려요 (시작 안내 「가족·팀원 폰 들이기」)" : r.url + "\n같은 와이파이에서만 열려요";
       $("link-lan").hidden = !(r.has_lan && kind === "family");
     }).catch(fail("link-msg"));
   }

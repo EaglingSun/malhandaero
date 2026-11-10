@@ -2,55 +2,39 @@
 
 > 말만 하세요. 기억은 제가 할게요.
 
-녹음·말·사진에서 **내가 챙길 일**을 뽑아 날짜별로 관리해 주는 개인 비서 앱입니다.
-내 PC에 켜 두고 폰으로 씁니다. AI는 내 PC의 Claude Code가 직접 부르고, 기록은 내 PC 밖으로 나가지 않아요.
+통화·회의 녹음, 말로 한 메모, 사진에서 **내가 챙길 일**을 뽑아 날짜별로 관리하는 개인 비서 앱.
+**PC**는 켜 두는 서버, **쓰는 건 폰**. AI는 내 PC에 로그인된 Claude Code를 그대로 쓰고(API 키 없음), 기록은 내 PC 밖으로 나가지 않아요.
 
 ## 설치 — 파일 하나만 받으세요
 
 | | 받을 파일 | 하면 |
 |---|---|---|
-| **Windows** | [setup-windows.bat](https://raw.githubusercontent.com/EaglingSun/malhandaero/main/setup-windows.bat) (링크 우클릭 → 다른 이름으로 저장) | 더블클릭 → `C:\Users\이름\malhandaero`에 설치, 바탕 화면에 「말한대로 켜기」 바로가기 |
-| **Mac** | [setup-mac.command](https://raw.githubusercontent.com/EaglingSun/malhandaero/main/setup-mac.command) (링크 우클릭 → 다른 이름으로 저장) | 우클릭 → 열기 → 설치 뒤엔 `start.command` |
+| **Windows** | [setup-windows.bat](https://github.com/EaglingSun/malhandaero/releases/download/v1.0.0/setup-windows.bat) | 더블클릭 → `C:\Users\이름\malhandaero`에 설치, 바탕 화면에 「말한대로 켜기」 |
+| **Mac** | [setup-mac.command](https://github.com/EaglingSun/malhandaero/releases/download/v1.0.0/setup-mac.command) | 우클릭 → 열기 → 설치 뒤엔 `start.command` |
 
-준비물은 Python·Git·**Claude 구독(Pro 이상)**. Claude Code는 설치 파일이 깔아 주고, 터미널에서 `claude` 한 번 실행해 로그인하면 돼요. 처음부터 끝까지는 **[docs/START.md](docs/START.md)** 한 장을 따라 하면 돼요(설치 10분 → 폰에 앱으로 넣기 3분).
-이 목록의 나머지 파일은 설치가 알아서 쓰는 것들이라 따로 받을 필요 없어요.
+그다음은 **[셋업 가이드](docs/START.md)** 5단계(15분): PC 설치 → 구글 캘린더 → 폰에 앱으로 설치 → 할 일 넣기 → (선택) 집 밖에서도. 막힐 때·가족·팀과 같이 쓸 때·캘린더 상세도 같은 문서 뒷부분에 있어요. 앱 안에서는 바닥의 「시작 안내」.
 
-**Claude 구독이 없어도** 설치하면 **할 일 관리 앱으로 그대로 써요** — 직접 적기, 오늘·나중·안 함, 캘린더 연결, 하루 마무리, 달력, 폰 앱 설치까지 전부. 녹음·글에서 AI가 대신 뽑아 주는 것만 쉬고, 나중에 Claude Code를 로그인하면 그때부터 바로 돼요.
-
-## 이렇게 써요
-
-- **PC**는 서버 겸 설정용 — 켜 두고, 구글 캘린더 연결도 여기서 한 번.
-- **쓰는 건 폰** — 녹음 공유, 말하기, 오늘·나중 고르기.
-- **새 버전은 바로바로** — 켤 때·새벽에 받고, 그 사이 나오면 화면의 「지금 적용」 한 번.
-- **근무 시간 밖에도** 쓰고 싶으면 집 PC나 서버에 설치하고 Tailscale을 더하면 돼요 (`INSTALL.md`).
+Claude 구독(Pro 이상)이 없어도 할 일 관리 앱으로 그대로 써요. 다양한 AI 연결(Codex·GPT·Gemini 등)은 다음 버전에서.
 
 ## 되는 것
 
-- **+ → 말하기**: 말한 것이 할 일로
-- 녹음 앱의 **텍스트 변환본을 「공유」** → 할 일 + **회의록**(주제별 논의·결정·확인할 것). 복사하거나 .md로 받기
-- 글 붙여넣기 · 텍스트 파일 · 사진으로 넣기, AI 없이 **직접 적기**
-- 뽑힌 할 일은 **오늘 · 나중 · 안 함** 하나만 누르면 끝. 못 끝낸 일은 다음 날로 넘어감
-- 하루 끝에 「오늘은 여기까지」 → 정리 글, 오늘 한 줄(기분·메모). **달력**에서 지난날 돌아보기
-- **캘린더 연결**(구글 버튼 하나 · 네이버): 날짜 정한 일은 올리고, 회의는 가져오기
-- 폰 홈 화면에 앱으로 설치, 공유 목록에 등장
-- **새 버전은 알아서**: 켤 때·새벽에 받고, 그 사이 나오면 화면에 「지금 적용」 띠. **필요한 업데이트가 있으면 게시글 댓글로 요청해 주세요** — 고쳐 올리면 모두에게 그대로 퍼져요
-
-## AI 연결
-
-이번 버전은 **이 PC의 Claude Code**(Pro 이상 구독)로 연결합니다. 각자 자기 PC에서 자기 로그인으로 쓰는 것이 전제이고, 한 사람의 로그인으로 여러 사람이 쓰는 공용 서버로 돌리지 마세요.
-Claude Code가 없으면 AI 없이 할 일 관리 앱으로 돌아가요. **다양한 AI 연결(Codex·GPT·Gemini·Ollama 등) 지원은 다음 버전에서 하겠습니다.** (코드에는 들어 있지만 아직 다듬는 중 — 써 보려면 `.env.example` 참고)
-
-## 더 알아보기
-
-- [docs/START.md](docs/START.md) — 5단계 시작 안내 (그림 포함 한 파일: `docs/START.html`, 앱 바닥 「시작 안내」)
-- [INSTALL.md](INSTALL.md) — 자세한 설치, 집 밖에서 쓰기(Tailscale), 가족·팀원 폰 들이기, 안 될 때
-- [docs/DESIGN.md](docs/DESIGN.md) — 설계 · [CLAUDE.md](CLAUDE.md) — Claude Code로 고치거나 더할 때
+- **+ → 말하기** · 녹음 앱의 **텍스트 변환본 공유** → 할 일 + 회의록(논의·결정·확인할 것)
+- 글 붙여넣기 · 텍스트 파일 · 사진 · AI 없이 직접 적기
+- **오늘 · 나중 · 안 함** 하나만 누르면 끝. 못 끝낸 일은 다음 날로
+- 하루 끝에 「오늘은 여기까지」 → 정리 글 · 오늘 한 줄 · **달력**
+- **구글·네이버 캘린더** 양방향 · 폰 홈 화면 앱 · 공유 목록 등장
+- 새 버전은 알아서. 필요한 기능은 게시글 댓글로
 
 ## 알아 둘 것
 
-- 녹음 글과 사진은 챙길 것을 뽑을 때 AI(기본은 내 PC의 Claude Code)로 보냅니다. 회사 회의는 회사 보안 규정을 따르세요.
-- 음성·사진 원본은 글로 바꾼 뒤 지웁니다. 글은 「넣은 것」에서 직접 지울 때까지 남습니다.
-- 자료는 `data/` 폴더의 SQLite 파일 하나. 이 폴더를 복사하면 백업, 지우면 초기화. 업데이트는 `data/`·`.env`를 건드리지 않아요.
+- 넣은 글과 사진은 챙길 것을 뽑을 때 AI(기본은 내 PC의 Claude Code)로 보내요. 회사 회의는 회사 보안 규정을 따르세요.
+- 한 사람의 Claude Code 로그인으로 여러 명이 쓰는 공용 서버로 돌리지 마세요. 각자 PC·각자 로그인이 전제예요.
+- 기록은 `data/` 폴더 하나(SQLite). 복사하면 백업, 지우면 초기화. 음성·사진 원본은 글로 바꾼 뒤 지워요.
+
+## 문서
+
+- [docs/START.md](docs/START.md) — 셋업 가이드 (그림 포함 한 파일: `docs/START.html`)
+- [docs/DESIGN.md](docs/DESIGN.md) — 설계 · [docs/MINUTES_FORMAT.md](docs/MINUTES_FORMAT.md) — 회의록 형식 · [CLAUDE.md](CLAUDE.md) — Claude Code로 고치거나 더할 때 · [docs/HANDOFF.md](docs/HANDOFF.md) — 작업 이력
 
 ## 개발
 
@@ -63,9 +47,9 @@ python -m pytest -q
 |---|---|
 | `server/app.py` | API와 날짜별 조회 규칙 |
 | `server/extract.py` | 추출 지시문, 응답 해석, 회의록 |
-| `server/llm.py` / `server/stt.py` | AI 호출 / 음성 인식 (바꿀 때 이 파일만) |
+| `server/llm.py` / `server/stt.py` | AI 호출 / 음성 인식 |
 | `server/calsync.py` | 네이버·구글 캘린더 |
 | `server/updater.py` | 자동 업데이트(git fast-forward → 필요 시 재설치) |
 | `web/` | 화면 (빌드 없음, PWA) |
-| `tools/` | 켜기·설치·자동 시작 |
-| `docs/MINUTES_FORMAT.md` | 회의록·할 일 형식 기준. `skills/meeting-minutes`는 같은 형식의 Claude Code 스킬 |
+| `tools/` | 켜기·설치·자동 시작·`build_start_html.py` |
+| `skills/meeting-minutes` | 회의록 형식의 Claude Code 스킬 |
