@@ -9,6 +9,9 @@ set REPO=https://github.com/EaglingSun/malhandaero.git
 cd /d "%~dp0"
 if exist .git\ if exist tools\run.py goto here
 if exist malhandaero\.git\ goto sub
+rem Install under the user profile (outside OneDrive-synced folders such as Desktop/Documents).
+set DEST=%USERPROFILE%\malhandaero
+if exist "%DEST%\.git\" goto dest
 
 where git >nul 2>nul
 if errorlevel 1 (
@@ -29,13 +32,16 @@ if errorlevel 1 (
   pause
   exit /b 1
 )
-echo Cloning %REPO% ...
-git clone %REPO% malhandaero
+echo Cloning %REPO% into %DEST% ...
+git clone %REPO% "%DEST%"
 if errorlevel 1 (
   echo Clone failed. Check that you are signed in to a GitHub account with access to the repo.
   pause
   exit /b 1
 )
+:dest
+cd /d "%DEST%"
+goto here
 :sub
 cd malhandaero
 :here

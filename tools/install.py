@@ -19,6 +19,26 @@ def step(msg: str) -> None:
     print(f"\n▶ {msg}", flush=True)
 
 
+def _win_shortcuts() -> None:
+    """바탕 화면에 「말한대로 켜기」「말한대로 자동 시작」 바로가기를 둔다. 폴더를 열 일이 없게."""
+    ps = r"""
+$sh = New-Object -ComObject WScript.Shell
+$desk = [Environment]::GetFolderPath('Desktop')
+foreach ($pair in @(@('말한대로 켜기', 'run.bat'), @('말한대로 자동 시작', 'autostart.bat'))) {
+  $lnk = $sh.CreateShortcut((Join-Path $desk ($pair[0] + '.lnk')))
+  $lnk.TargetPath = Join-Path '%s' $pair[1]
+  $lnk.WorkingDirectory = '%s'
+  $lnk.IconLocation = 'shell32.dll,138'
+  $lnk.Save()
+}
+""" % (str(ROOT).replace("'", "''"), str(ROOT).replace("'", "''"))
+    try:
+        subprocess.run(["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", ps], check=True, capture_output=True, timeout=60)
+        print("· 바탕 화면에 「말한대로 켜기」「말한대로 자동 시작」 바로가기를 만들었어요.")
+    except Exception:
+        print("· 바탕 화면 바로가기는 만들지 못했어요. 폴더의 run.bat / autostart.bat을 쓰면 돼요.")
+
+
 def main() -> int:
     if sys.version_info < (3, 10):
         print(f"Python 3.10 이상이 필요해요. 지금은 {sys.version.split()[0]}입니다.\nhttps://www.python.org/downloads/ 에서 새 버전을 설치해 주세요.")
@@ -69,6 +89,12 @@ def main() -> int:
             encoding="utf-8",
         )
         print(f"   만들었어요. 가족 코드: {code}   (잊으면 .env 파일 첫 줄에 있어요)")
+
+    if os.name == "nt":
+        _win_shortcuts()
+    if "onedrive" in str(ROOT).lower():
+        print("\n! 이 폴더가 OneDrive 안에 있어요. 동기화 때문에 느려지거나 자료 파일이 잠길 수 있으니, "
+              "가능하면 OneDrive 밖(예: C:\\Users\\이름\\malhandaero)으로 옮기고 install을 한 번 더 실행해 주세요.")
 
     print("\n설치가 끝났어요.")
     if shutil.which("claude"):
