@@ -86,6 +86,20 @@ Claude Code가 없으면 `.env`에 `ANTHROPIC_API_KEY`를 넣어 API 키로 쓸 
 마이크, 설치, 공유는 브라우저가 HTTPS에서만 허용합니다. 아래 "집 밖에서 쓰기"를 따라 HTTPS 주소를 만들면 열립니다.
 http 주소에서는 마이크 허용을 브라우저가 기억하지 않아 매번 묻기 때문에, 말하기 버튼을 막아 두었습니다.
 
+## 같은 와이파이에서 폰 앱으로 쓰기 (Tailscale 없이)
+
+http 주소는 폰이 앱 설치·공유 받기·말하기를 막습니다. 폰 Chrome에 주소 하나를 예외로 등록하면 풀립니다(1분, 실기기 확인됨).
+
+1. 폰 Chrome 주소창에 `chrome://flags/#unsafely-treat-insecure-origin-as-secure`
+2. 칸에 PC 주소(예: `http://10.10.111.97:8000`)를 넣고 「사용 가능(Enabled)」 → Chrome 다시 시작
+3. 다시 그 주소를 열면 「홈 화면에 추가」 대신 **「설치」**가 뜹니다
+
+| 1 | 2 |
+|---|---|
+| ![](docs/img/phone-chrome-flag.jpg) | ![](docs/img/phone-install-prompt.jpg) |
+
+같은 와이파이에서만 되고, PC 주소가 바뀌면 다시 등록합니다. 집 밖에서도 쓰려면 아래 Tailscale.
+
 ## 집 밖에서 쓰기 (HTTPS 주소)
 
 집 PC를 켜 둔 채 밖에서 휴대폰으로 쓰는 방법입니다. 이 주소로 열면 말하기 버튼, 홈 화면 설치,

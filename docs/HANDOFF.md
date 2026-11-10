@@ -79,7 +79,7 @@ chmod +x malhandaero/*.sh malhandaero/*.command
 | 네이버 캘린더 연결(남편 쪽) | 5판 이전에 "인터넷 연결 확인" 오류. 인증서 묶음(certifi) 지정으로 수정했으나 **실제 네이버 서버에서 미확인**. 실패하면 문구의 대괄호 안 사유를 받을 것 |
 | 5판의 목록 중심 화면, QR 연결, 더블클릭 실행 | 헤드리스 브라우저와 자동 시험으로만 확인. 실제 기기 의견 아직 없음 |
 | 음성 파일 변환 | Mac: whisper 미설치 상태(설치 때 실패) → Gemini 키 넣으면 됨(30판). Windows: whisper 켜짐. **Gemini로 m4a 변환은 11/10 오후 구글 503(수요 폭주)로 미확인** — 503 풀린 뒤 「다시 뽑기」 한 번이 남음 |
-| Windows 설치·실행 | **11/10 실기기 통과**: 처음 설치.bat → clone → install(whisper 포함) → run → QR → 폰 접속 → Claude Code로 추출 ✓. bat에 한글 있으면 cmd가 줄을 깨뜨림(ASCII로 수정). Gemini 추출은 모델명(2.5→3.8)·503 겪음 |
+| Windows 설치·실행 | **11/10 실기기 통과** (Tailscale 없이 폰 설치도 통과: Chrome 플래그 예외 등록 → 「설치」 뜸, 캡처 docs/img): 처음 설치.bat → clone → install(whisper 포함) → run → QR → 폰 접속 → Claude Code로 추출 ✓. bat에 한글 있으면 cmd가 줄을 깨뜨림(ASCII로 수정). Gemini 추출은 모델명(2.5→3.8)·503 겪음 |
 | Gemini 연결(28~31판) | 키·모델·주소는 통하나 **11/10 오후 내내 503**으로 성공 응답을 못 봄. **결정: 1차 배포는 Claude Code 연동판으로.** Gemini는 코드에 남기되 문서에서 '실험적'으로 내림 |
 | 켠 채 새 판 받기(9판) | 샌드박스 e2e(원격에 커밋 → `/api/update` → 새 코드로 재시작)는 통과. 폰에서 「업데이트」 버튼으로 9→10판 적용 확인(11/10 08:40) |
 

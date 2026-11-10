@@ -47,7 +47,11 @@ Mac은 `xcode-select --install`(git) 뒤 python.org에서 Python, App Store에�
 
 A만으로는 주소가 http라서 폰에 「설치」가 안 되고 공유 목록에도 안 떠요. 폰 Chrome에 주소 하나만 예외로 등록하면 돼요(1분).
 폰 Chrome 주소창에 `chrome://flags/#unsafely-treat-insecure-origin-as-secure` → 칸에 PC 주소(예: `http://10.10.111.97:8000`) 입력 → Enabled → Chrome 다시 시작 → 「홈 화면에 추가」.
-앱 안 「휴대폰 연결」에도 같은 안내와 복사 버튼이 있어요. 단 같은 와이파이에서만 되고, PC 주소가 바뀌면 다시 등록해요.
+앱 안 「휴대폰에서 쓰기」에도 같은 안내와 복사 버튼이 있어요. 단 같은 와이파이에서만 되고, PC 주소가 바뀌면 다시 등록해요.
+
+| 1. 플래그 화면에 주소 넣고 「사용 가능」 | 2. 다시 열면 「설치」가 떠요 |
+|---|---|
+| ![폰 Chrome 플래그 화면](img/phone-chrome-flag.jpg) | ![설치 안내가 뜬 화면](img/phone-install-prompt.jpg) |
 
 ## B. (선택) 집 밖에서도 쓰기 — Tailscale, 추가 5분
 
