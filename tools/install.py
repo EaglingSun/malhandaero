@@ -51,13 +51,13 @@ def main() -> int:
     if env.exists():
         print("   이미 있어서 그대로 둡니다.")
     else:
-        import secrets
-
-        rand = f"{secrets.randbelow(10000):04d}"
-        try:
-            code = input(f"   폰과 가족이 들어올 때 쓸 코드를 정해 주세요 (그냥 Enter = {rand}): ").strip() or rand
-        except EOFError:
-            code = rand
+        code = ""
+        while not code:
+            try:
+                code = input("   폰과 가족이 들어올 때 쓸 코드를 정해 주세요 (숫자나 짧은 말, 기억하기 쉬운 것): ").strip()
+            except EOFError:
+                code = "1234"
+                break
         env.write_text(
             "# 말한대로 설정. 바꾼 뒤에는 서버를 껐다 켜 주세요.\n"
             f"MALHAN_FAMILY_CODE={code}\n\n"
@@ -68,7 +68,7 @@ def main() -> int:
             "# GEMINI_API_KEY=\n",
             encoding="utf-8",
         )
-        print(f"   만들었어요. 가족 코드: {code}   (같은 와이파이의 다른 사람이 못 들어오게 막는 열쇠예요. .env에서 바꿀 수 있어요)")
+        print(f"   만들었어요. 가족 코드: {code}   (잊으면 .env 파일 첫 줄에 있어요)")
 
     print("\n설치가 끝났어요.")
     if shutil.which("claude"):
