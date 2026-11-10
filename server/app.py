@@ -740,7 +740,8 @@ def month(ym: str | None = None, user=Depends(current_user)):
         "ym": first.strftime("%Y-%m"), "today": t.isoformat(), "days": days,
         "elapsed_days": len(elapsed), "active_days": active, "streak": streak,
         "done_total": sum(d["done"] for d in days), "left_total": sum(d["left"] for d in days),
-        "score": round(100 * sum(d["score"] for d in elapsed) / (5 * len(elapsed))) if elapsed else 0,
+        # 한 줄을 안 켠 사람은 만점이 4점이라 분모도 4로 — 켜고 안 켜고가 지수에 불리하지 않게
+        "score": round(100 * sum(d["score"] for d in elapsed) / ((5 if _diary_on(uid) else 4) * len(elapsed))) if elapsed else 0,
         "post_url": os.environ.get("MALHAN_POST_URL", "").strip(),
     }
 

@@ -390,7 +390,9 @@ def test_month_view_scores_days_and_streak(monkeypatch):
     assert day["done"] == 3 and day["left"] == 1 and day["mood"] == "😊" and day["closed"] is False
     assert day["score"] == 4                     # 넣음 1 + 마침 2(3건) + 한 줄 1
     assert m["active_days"] == 1 and m["streak"] == 1 and m["done_total"] == 3 and m["left_total"] == 1
-    assert m["score"] == round(100 * 4 / (5 * m["elapsed_days"]))
+    assert m["score"] == round(100 * 4 / (4 * m["elapsed_days"]))          # 한 줄을 안 켰으면 만점 4
+    client.post("/api/settings/diary", json={"enabled": True})
+    assert client.get("/api/month").json()["score"] == round(100 * 4 / (5 * m["elapsed_days"]))
     assert appmod.day_score(0, 0, False, False) == 0 and appmod.day_score(1, 1, True, True) == 4
     assert client.get("/api/month?ym=2020-13").status_code == 400
     assert client.get("/api/month?ym=2020-02").json()["days"][-1]["date"] == "2020-02-29"

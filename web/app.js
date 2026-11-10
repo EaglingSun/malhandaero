@@ -710,8 +710,10 @@
         c.title = d.date + (d.note ? " — " + d.note : "");
         g.appendChild(c);
       });
-      $("m-pct").textContent = m.score; $("m-active").textContent = m.active_days; $("m-elapsed").textContent = m.elapsed_days;
-      $("m-streak").textContent = m.streak; $("m-done").textContent = m.done_total; $("m-left").textContent = m.left_total;
+      var lv = m.score >= 80 ? ["🌳", "무럭무럭이에요"] : m.score >= 60 ? ["🌷", "활짝 피었어요"] : m.score >= 40 ? ["🌿", "쑥쑥 자라요"] : m.score >= 15 ? ["🌱", "싹이 텄어요"] : ["🫘", "씨앗이에요"];
+      $("m-face").textContent = lv[0]; $("m-level").textContent = lv[1];
+      $("m-line").textContent = "이달 " + m.active_days + "일 함께했어요" + (m.streak >= 2 ? " · 🔥 " + m.streak + "일째" : "");
+      $("m-sub").textContent = m.done_total ? "마친 일 " + m.done_total + "개" + (m.left_total ? " · 남은 일 " + m.left_total + "개" : "") : "";
       var like = $("m-like"); like.hidden = !m.post_url; if (m.post_url) like.href = m.post_url;
     }).catch(fail("in-msg"));
   }
