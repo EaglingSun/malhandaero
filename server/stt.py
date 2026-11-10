@@ -38,7 +38,7 @@ def _model():
 def transcribe(path: Path) -> str:
     if not available():
         raise SttUnavailable(
-            "이 서버에는 음성 인식이 설치되어 있지 않아요. 'pip install faster-whisper' 후 다시 넣어 주세요."
+            "이 PC에 음성 인식이 아직 없어요. 설치(install)를 한 번 더 실행하면 들어가요. 그동안은 녹음 앱에서 글로 바꾼 뒤 공유해 주세요."
         )
     segments, _info = _model().transcribe(str(path), language="ko", vad_filter=True)
     return "\n".join(s.text.strip() for s in segments if s.text.strip())

@@ -120,7 +120,7 @@ def main(argv: list[str]) -> int:
         say(f"업데이트하지 못했어요: {e}. 지금 버전으로 켭니다.")
         return 0
 
-    if not VENV_PY.exists() or "requirements.txt" in changed:
+    if not VENV_PY.exists() or any(c in changed for c in ("requirements.txt", "requirements-stt.txt", "tools/install.py")):
         try:
             install()
         except subprocess.CalledProcessError:

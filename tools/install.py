@@ -29,11 +29,24 @@ def main() -> int:
         subprocess.check_call([sys.executable, "-m", "venv", str(VENV)])
     print("   준비됨")
 
-    step("2/3 필요한 것 내려받기 (1~2분)")
+    step("2/4 필요한 것 내려받기 (1~2분)")
     subprocess.check_call([str(PY), "-m", "pip", "install", "--quiet", "--disable-pip-version-check", "-r", str(ROOT / "requirements.txt")])
     print("   준비됨")
 
-    step("3/3 설정 파일 만들기 (.env)")
+    step("3/4 녹음 파일을 글로 바꾸는 음성 인식 (한 번만, 2~5분)")
+    if os.environ.get("MALHAN_STT", "1") == "0" or "--no-stt" in sys.argv:
+        print("   건너뜀 (MALHAN_STT=0). 글·사진·말하기는 그대로 됩니다.")
+    else:
+        try:
+            subprocess.check_call([str(PY), "-m", "pip", "install", "--quiet", "--disable-pip-version-check", "-r", str(ROOT / "requirements-stt.txt")])
+            print("   음성 인식 모델을 미리 받아 둡니다 (약 500MB, 처음 한 번)…")
+            r = subprocess.run([str(PY), "-c", "from faster_whisper import WhisperModel; WhisperModel('small', device='cpu', compute_type='int8')"],
+                               capture_output=True, text=True, timeout=1800)
+            print("   준비됨" if r.returncode == 0 else "   모델은 처음 녹음을 넣을 때 받습니다 (지금은 못 받았어요).")
+        except Exception:
+            print("   음성 인식은 설치하지 못했어요. 녹음 파일 말고 글·사진·말하기는 다 됩니다. 나중에 다시 설치하면 켜집니다.")
+
+    step("4/4 설정 파일 만들기 (.env)")
     env = ROOT / ".env"
     if env.exists():
         print("   이미 있어서 그대로 둡니다.")

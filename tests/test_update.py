@@ -47,7 +47,7 @@ def test_pulls_new_version_and_tells_what_changed(repos, capsys, monkeypatch):
 
 def test_reinstalls_when_requirements_change_and_warns_about_manifest(repos, capsys, monkeypatch):
     origin, work, mine = repos
-    (work / "requirements.txt").write_text("fastapi\nsegno\n"); (work / "web" / "manifest.webmanifest").write_text("{}")
+    (work / "requirements-stt.txt").write_text("faster-whisper\n"); (work / "web" / "manifest.webmanifest").write_text("{}")   # 음성 인식 묶음이 바뀌어도 재설치
     sh(work, "add", "-A"); sh(work, "commit", "-qm", "2판"); sh(work, "push", "-q", "origin", "main")
     installed = []
     monkeypatch.setattr(update, "install", lambda: installed.append(1))
