@@ -108,7 +108,7 @@ chmod +x malhandaero/*.sh malhandaero/*.command
 ## 7. 사용 환경 메모
 
 - 시험 PC: Windows 노트북(`말한대로 처음 설치.bat`로 설치, Claude Code 있음). `.env`의 `MALHAN_AI=gemini`·`MALHAN_STT=gemini` 줄은 지워 Claude Code로 되돌릴 것. 사용자 '테스트'(코드 1234)는 시험용
-- Tailscale 테일넷 `barreleye-neon.ts.net`. 회사 Windows: `https://sun-pc.barreleye-neon.ts.net` (11/10 회사망에서 열림 확인). 집 Mac: `https://<Mac 기기 이름>.barreleye-neon.ts.net` (기기 이름은 폰 Tailscale 앱 목록에서)
+- Tailscale 테일넷 `barreleye-neon.ts.net`. 회사 Windows: `https://sun-pc.barreleye-neon.ts.net` (11/10 회사망에서 열림 확인). 집 Mac: `https://todo.barreleye-neon.ts.net` (11/10 사용자 언급)
 - 서버: 집 Mac. `말한대로 켜기.command`로 실행. Tailscale 켜져 있으면 https 주소 자동. 덮개를 닫으면 끊김
 - 사용자 본인은 구글 캘린더(올리기: Sun 기본 캘린더, 읽기: '팀 공유 일정' 공유 캘린더), 남편은 네이버 캘린더로 연결하려 함
 - 구글 OAuth 클라이언트는 사용자가 만들어 `.env`에 넣어 둠. 리디렉션 주소에 Tailscale 주소가 들어 있으므로 기기 이름을 바꾸면 구글 쪽도 고쳐야 함
