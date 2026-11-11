@@ -89,6 +89,7 @@ records(id, user_id, addon, type, input_id, data, date, status, created_at)
 | D-21 | 말하기는 화면이 바뀌거나 전화가 오면 그때까지 들은 말을 바로 보내고(`keepalive`), 들은 말은 `localStorage`에 두었다가 앱이 꺼졌으면 다음에 열 때 보낸다 | 안드로이드는 화면이 가려지면 음성 인식을 끊고 자료를 버린다 | 11/11 | 유효 |
 | D-22 | 포스터의 「말한대로 셋업 가이드」 버튼은 GitHub Pages에 올린 `docs/START.html`(`https://eaglingsun.github.io/malhandaero/docs/START.html`)을 연다. Pages는 `main` 가지 최상위 폴더를 낸다 (이전: GitHub의 `docs/START.md` 화면) | 받은 사람이 그림까지 든 안내를 브라우저에서 바로 본다 | 11/11 | 유효 |
 | D-23 | 구글 캘린더 연결은 설치 안내에서 「선택」이 아니라 꼭 하는 단계로 안내한다. 연결하지 않아도 할 일 저장은 막지 않는다(D-06 그대로). 네이버는 「캘린더 자세히」에 둔다 (이전: ② 구글 캘린더 연결 (선택)) | 구글 캘린더를 쓰는 사람이 많다 | 11/11 | 유효 |
+| D-24 | 달력 화면 맨 아래에 공모 게시글 「좋아요 누르러 가기」 배너를 모든 설치본에 기본으로 보인다. 주소는 `server/app.py`의 `POST_URL_DEFAULT`. `.env`의 `MALHAN_POST_URL`로 바꾸고, 빈 값으로 적으면 숨긴다 (이전: `MALHAN_POST_URL`을 적은 설치본에만 식물 카드 안의 링크로) | 「오늘」 화면은 복잡해서 달력 아래에 둔다 · 공모 기간에 쓰는 사람이 글을 바로 찾게 | 11/11 | 유효 |
 
 ## 6. 문서 지도
 

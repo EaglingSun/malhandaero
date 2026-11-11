@@ -147,6 +147,7 @@ Tailscale(무료)로 PC와 폰을 연결해요. 내 Tailscale에 들어온 기�
 - 설정은 설치 폴더의 `.env`에 있어요. 항목 설명은 `.env.example`에 있어요.
     - `MALHAN_FAMILY_CODE=` 줄이 로그인 코드예요. 잊으면 여기서 봐요.
     - 바꾼 뒤에는 「말한대로 켜기」로 다시 켜요.
+- 달력 화면 아래의 「좋아요 누르러 가기」 배너를 숨기려면 `.env`에 `MALHAN_POST_URL=`을 값 없이 적고 다시 켜요.
 - 다시 설치하려면 `setup-windows.bat`(Mac은 `setup-mac.command`)를 한 번 더 더블클릭해요.
     - 음성 인식이 빠졌을 때 등에 써요.
 

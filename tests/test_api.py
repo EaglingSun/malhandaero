@@ -511,3 +511,30 @@ def test_day_summary_can_be_cleared_but_note_stays(monkeypatch):
     assert client.delete("/api/day/close").json()["summary"] == ""
     d = client.get("/api/day").json()
     assert d["summary"] == "" and d["note"] == "잘 버텼다" and d["mood"] == "😌"
+
+
+def test_post_url_defaults_to_contest_post_and_empty_setting_hides_it(monkeypatch):
+    monkeypatch.delenv("MALHAN_POST_URL", raising=False)
+    join("좋아요")
+    want = "https://gw.suresofttech.com/app/board/411/post/4301"
+    assert appmod.POST_URL_DEFAULT == want
+    assert client.get("/api/me").json()["post_url"] == want
+    assert client.get("/api/month").json()["post_url"] == want
+    monkeypatch.setenv("MALHAN_POST_URL", "")          # 빈 값으로 적으면 배너를 숨긴다
+    assert client.get("/api/me").json()["post_url"] == ""
+    assert client.get("/api/month").json()["post_url"] == ""
+
+
+def test_like_banner_is_last_thing_in_month_tab():
+    import re
+    from pathlib import Path
+    web = Path(appmod.__file__).resolve().parent.parent / "web"
+    html = (web / "index.html").read_text(encoding="utf-8")
+    month = html.split('id="tab-month"')[1].split('id="tab-inputs"')[0]
+    card = month[month.index('id="m-score"'):month.index('id="m-like"')]
+    # card는 카드의 여는 <div 뒤에서 시작한다. 닫는 태그가 하나 더 많아야 카드가 배너 앞에서 닫힌 것이다
+    assert card.count("</div>") == card.count("<div") + 1, "좋아요 배너가 식물 카드 안에 있어요. 카드 밖 맨 아래에 둬요"
+    assert re.search(r'<a id="m-like" class="likebar" href="#" target="_blank" rel="noopener" hidden>', month)
+    after = month[month.index('id="m-like"'):].split("</a>", 1)[1]
+    assert re.fullmatch(r"\s*</div>\s*<div\s*", after), "배너 뒤에 다른 것이 있어요"
+    assert ".likebar" in (web / "style.css").read_text(encoding="utf-8")

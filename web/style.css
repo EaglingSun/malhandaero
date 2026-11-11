@@ -236,8 +236,13 @@ ul.details { margin: 0; padding: 0 0 0 18px; font-size: 14px; color: var(--muted
 .grow-text b { font-size: 18px; }
 .grow-text span { font-size: 14px; }
 .grow-sub { color: var(--muted, #6b7280); font-size: 13px !important; }
-.card.grow a.like { grid-column: 1 / -1; }
-a.like { display: block; text-align: center; margin-top: 8px; padding: 10px; border-radius: 12px; background: var(--mint); color: #063; text-decoration: none; font-weight: 600; }
+/* 달력 화면 맨 아래 좋아요 배너 */
+a.likebar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 14px; padding: 14px 16px; border-radius: 16px; background: linear-gradient(135deg, #12b58a, #0f9d78); color: #fff; text-decoration: none; box-shadow: 0 8px 20px rgba(18,181,138,.28); }
+a.likebar[hidden] { display: none; }
+a.likebar span { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+a.likebar b { font-size: 16px; }
+a.likebar small { font-size: 13px; opacity: .9; }
+a.likebar i { flex: none; font-style: normal; font-weight: 700; font-size: 14px; background: #fff; color: #0f8f6c; padding: 8px 12px; border-radius: 999px; }
 
 /* 새 버전 알림 띠 */
 .upbar { position: fixed; left: 12px; right: 12px; bottom: calc(150px + env(safe-area-inset-bottom)); z-index: 7;

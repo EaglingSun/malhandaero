@@ -17,6 +17,12 @@ from pydantic import BaseModel
 from . import calsync, db, extract, llm, stt, transcript, updater
 
 ROOT = Path(__file__).resolve().parent.parent
+# 달력 화면 아래 「좋아요 누르러 가기」 배너가 여는 공모 게시글. .env에 MALHAN_POST_URL= 을 빈 값으로 적으면 배너를 숨긴다
+POST_URL_DEFAULT = "https://gw.suresofttech.com/app/board/411/post/4301"
+
+
+def post_url() -> str:
+    return os.environ.get("MALHAN_POST_URL", POST_URL_DEFAULT).strip()
 WEB = ROOT / "web"
 PORT = int(os.environ.get("MALHAN_PORT", "8000"))
 TZ = ZoneInfo(os.environ.get("MALHAN_TZ", "Asia/Seoul"))
@@ -226,7 +232,7 @@ def me(user=Depends(current_user)):
         "label": app_label(),
         "update": dict(UPDATE_AVAILABLE) if UPDATE_AVAILABLE else None,
         "diary": _diary_on(user["id"]),
-        "post_url": os.environ.get("MALHAN_POST_URL", "").strip(),
+        "post_url": post_url(),
         "calendar": bool(calsync.get_link(user["id"])),   # 항목 줄의 「연결된 캘린더에 넣기」 단추를 처음부터 보이게
     }
 
@@ -818,7 +824,7 @@ def month(ym: str | None = None, user=Depends(current_user)):
         "done_total": sum(d["done"] for d in days), "left_total": sum(d["left"] for d in days),
         # 한 줄을 안 켠 사람은 만점이 4점이라 분모도 4로 — 켜고 안 켜고가 지수에 불리하지 않게
         "score": round(100 * sum(d["score"] for d in elapsed) / ((5 if _diary_on(uid) else 4) * len(elapsed))) if elapsed else 0,
-        "post_url": os.environ.get("MALHAN_POST_URL", "").strip(),
+        "post_url": post_url(),
         "calendar": bool(calsync.get_link(user["id"])),   # 항목 줄의 「연결된 캘린더에 넣기」 단추를 처음부터 보이게
     }
 
