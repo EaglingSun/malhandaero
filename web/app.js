@@ -451,8 +451,18 @@
   $("photo").addEventListener("change", sendFiles);
 
   var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  var MIC_MAX_MS = 60 * 60 * 1000;   // 말하기 최대 1시간 (회의 녹음 대용)
+  function micClock() {
+    var s = Math.floor((Date.now() - mic.startedAt) / 1000), m = Math.floor(s / 60);
+    return (m < 10 ? "0" : "") + m + ":" + (s % 60 < 10 ? "0" : "") + (s % 60);
+  }
+  function micShow(text) {
+    // 들은 말은 5줄쯤 보이는 상자에 두고, 길어지면 스크롤해 늘 끝이 보이게
+    var box = $("mic-msg"); box.classList.add("live"); box.textContent = text || "듣고 있어요…"; box.scrollTop = box.scrollHeight;
+  }
+  function micIdle() { clearInterval(mic.timer); $("mic-msg").classList.remove("live"); micIdle(); }
   function micDone(text) {
-    mic.on = false; $("btn-mic").classList.remove("rec"); micLabel("말하기", "누르고 말하면 끝");
+    micIdle();
     if (!text.trim()) { say("mic-msg", "들린 말이 없었어요. 다시 눌러 말해 주세요."); return; }
     say("mic-msg", "");
     var fd = new FormData(); fd.append("kind", "memo"); fd.append("title", "말로 한 메모"); fd.append("text", text);
@@ -461,7 +471,7 @@
   function micStartSpeech() {
     // 안드로이드 Chrome의 음성 인식은 말을 잠깐 쉬거나 1분쯤 지나면 스스로 끝난다. 사람이 끝내기 전엔 다시 켜서 이어 듣는다.
     var r = new SR(); r.lang = "ko-KR"; r.continuous = true; r.interimResults = true; mic.text = ""; mic.live = ""; mic.rec = r;
-    mic.acc = mic.acc || ""; mic.stopAsked = false; mic.restarts = mic.restarts || 0;
+    mic.acc = mic.acc || ""; mic.stopAsked = false;
     $("paste-form").hidden = true;
     r.onresult = function (e) {
       // 안드로이드 Chrome은 매번 전체 결과를 다시 주고(resultIndex 0), 중간 결과가 조금씩 자라며 반복된다.
@@ -483,18 +493,17 @@
       if (live && (live.indexOf(lastF) === 0 && lastF)) { fin[fin.length - 1] = live; live = ""; }   // 중간 문장이 확정 문장을 늘인 것
       else if (live && lastF.indexOf(live) === 0) live = "";
       mic.text = fin.join(" "); mic.live = live;
-      say("mic-msg", (mic.acc + " " + mic.text + " " + live).trim() || "듣고 있어요…");
+      micShow((mic.acc + " " + mic.text + " " + live).trim());
     };
     r.onerror = function (e) { if (e.error === "not-allowed" || e.error === "audio-capture") { mic.stopAsked = true; say("mic-msg", "마이크를 쓸 수 있게 허용해 주세요.", true); } };
     r.onend = function () {
       if (!mic.on) return;
       var got = (mic.text + " " + (mic.live || "")).trim();
       mic.acc = (mic.acc + " " + got).trim();
-      if (!mic.stopAsked && mic.restarts < 30) {          // 사람이 끝내기 전이면 이어 듣는다 (최대 30번 ≈ 30분)
-        mic.restarts += 1;
+      if (!mic.stopAsked && Date.now() - mic.startedAt < MIC_MAX_MS) {   // 사람이 끝내기 전이면 이어 듣는다 (최대 1시간)
         try { micStartSpeech(); return; } catch (err) {}
       }
-      var all = mic.acc; mic.acc = ""; mic.restarts = 0;
+      var all = mic.acc; mic.acc = "";
       micDone(all);
     };
     r.start();
@@ -505,7 +514,7 @@
       mic.media.ondataavailable = function (e) { if (e.data.size) mic.chunks.push(e.data); };
       mic.media.onstop = function () {
         stream.getTracks().forEach(function (t) { t.stop(); });
-        mic.on = false; $("btn-mic").classList.remove("rec"); micLabel("말하기", "누르고 말하면 끝"); say("mic-msg", "");
+        micIdle(); say("mic-msg", "");
         var fd = new FormData(); fd.append("kind", "memo"); fd.append("title", "말로 한 메모");
         fd.append("file", new Blob(mic.chunks, { type: mic.media.mimeType || "audio/webm" }), "memo.webm");
         send(fd, "들었어요. 글로 바꾸는 중이에요.");
@@ -522,13 +531,19 @@
         ? "이 주소에서 말하기를 쓰려면 아래 「앱으로 설치하기」에서 주소를 예외로 등록해 주세요 (한 번만). 설치한 앱에서는 바로 돼요."
         : "말하기는 폰 Chrome으로 열어 「앱으로 설치하기」를 하면 돼요. 이 브라우저에서는 글 붙여넣기나 사진을 써 주세요.", true); return;
     }
-    mic.on = true; mic.rec = null; mic.media = null; mic.acc = ""; mic.restarts = 0; mic.stopAsked = false;
-    $("btn-mic").classList.add("rec"); micLabel("다 말했어요", "듣고 있어요…"); say("mic-msg", "듣고 있어요…");
+    mic.on = true; mic.rec = null; mic.media = null; mic.acc = ""; mic.stopAsked = false; mic.startedAt = Date.now();
+    clearInterval(mic.timer);
+    mic.timer = setInterval(function () {   // 녹음 시간 표시, 1시간이 되면 스스로 끝낸다
+      if (!mic.on) { clearInterval(mic.timer); return; }
+      micLabel("다 말했어요", "듣는 중 " + micClock());
+      if (Date.now() - mic.startedAt >= MIC_MAX_MS) { mic.stopAsked = true; if (mic.rec) mic.rec.stop(); else if (mic.media) mic.media.stop(); }
+    }, 1000);
+    $("btn-mic").classList.add("rec"); micLabel("다 말했어요", "듣는 중 00:00"); micShow("");
     try {
       if (SR) micStartSpeech();
-      else if (navigator.mediaDevices && window.MediaRecorder && state.me && state.me.stt) micStartRecord().catch(function () { mic.on = false; $("btn-mic").classList.remove("rec"); micLabel("말하기", "누르고 말하면 끝"); say("mic-msg", "마이크를 쓸 수 있게 허용해 주세요.", true); });
-      else { mic.on = false; $("btn-mic").classList.remove("rec"); micLabel("말하기", "누르고 말하면 끝"); say("mic-msg", "이 브라우저에서는 말하기를 쓸 수 없어요. 글 붙여넣기를 써 주세요.", true); }
-    } catch (e) { mic.on = false; $("btn-mic").classList.remove("rec"); micLabel("말하기", "누르고 말하면 끝"); say("mic-msg", "마이크를 켜지 못했어요.", true); }
+      else if (navigator.mediaDevices && window.MediaRecorder && state.me && state.me.stt) micStartRecord().catch(function () { micIdle(); say("mic-msg", "마이크를 쓸 수 있게 허용해 주세요.", true); });
+      else { micIdle(); say("mic-msg", "이 브라우저에서는 말하기를 쓸 수 없어요. 글 붙여넣기를 써 주세요.", true); }
+    } catch (e) { micIdle(); say("mic-msg", "마이크를 켜지 못했어요.", true); }
   });
 
   /* ---------- 넣은 것 ---------- */
