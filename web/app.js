@@ -535,7 +535,8 @@
     clearInterval(mic.timer);
     mic.timer = setInterval(function () {   // 녹음 시간 표시, 1시간이 되면 스스로 끝낸다
       if (!mic.on) { clearInterval(mic.timer); return; }
-      micLabel("다 말했어요", "듣는 중 " + micClock());
+      var left = MIC_MAX_MS - (Date.now() - mic.startedAt);
+      micLabel("다 말했어요", "듣는 중 " + micClock() + (left <= 10 * 60 * 1000 ? " · " + Math.ceil(left / 60000) + "분 뒤 끝나요" : ""));   // 50분부터 1시간 제한 안내
       if (Date.now() - mic.startedAt >= MIC_MAX_MS) { mic.stopAsked = true; if (mic.rec) mic.rec.stop(); else if (mic.media) mic.media.stop(); }
     }, 1000);
     $("btn-mic").classList.add("rec"); micLabel("다 말했어요", "듣는 중 00:00"); micShow("");
