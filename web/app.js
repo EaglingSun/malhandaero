@@ -421,7 +421,7 @@
   /* ---------- 넣기 창 ---------- */
   function sheet(open) {
     $("sheet").hidden = !open; $("btn-add").setAttribute("aria-expanded", String(open));
-    if (!open && mic.on) { if (mic.rec) mic.rec.stop(); else if (mic.media) mic.media.stop(); }
+    if (!open && mic.on) { mic.stopAsked = true; if (mic.rec) mic.rec.stop(); else if (mic.media) mic.media.stop(); }
   }
   $("btn-add").addEventListener("click", function () { sheet(true); });
   $("sheet-close").addEventListener("click", function () { sheet(false); });
@@ -459,7 +459,9 @@
     send(fd, "들었어요. 적어 두는 중이에요.");
   }
   function micStartSpeech() {
+    // 안드로이드 Chrome의 음성 인식은 말을 잠깐 쉬거나 1분쯤 지나면 스스로 끝난다. 사람이 끝내기 전엔 다시 켜서 이어 듣는다.
     var r = new SR(); r.lang = "ko-KR"; r.continuous = true; r.interimResults = true; mic.text = ""; mic.live = ""; mic.rec = r;
+    mic.acc = mic.acc || ""; mic.stopAsked = false; mic.restarts = mic.restarts || 0;
     $("paste-form").hidden = true;
     r.onresult = function (e) {
       // 안드로이드 Chrome은 매번 전체 결과를 다시 주고(resultIndex 0), 중간 결과가 조금씩 자라며 반복된다.
@@ -481,10 +483,20 @@
       if (live && (live.indexOf(lastF) === 0 && lastF)) { fin[fin.length - 1] = live; live = ""; }   // 중간 문장이 확정 문장을 늘인 것
       else if (live && lastF.indexOf(live) === 0) live = "";
       mic.text = fin.join(" "); mic.live = live;
-      say("mic-msg", (mic.text + " " + live).trim() || "듣고 있어요…");
+      say("mic-msg", (mic.acc + " " + mic.text + " " + live).trim() || "듣고 있어요…");
     };
-    r.onerror = function (e) { if (e.error === "not-allowed") say("mic-msg", "마이크를 쓸 수 있게 허용해 주세요.", true); };
-    r.onend = function () { if (mic.on) micDone((mic.text + " " + (mic.live || "")).trim()); };
+    r.onerror = function (e) { if (e.error === "not-allowed" || e.error === "audio-capture") { mic.stopAsked = true; say("mic-msg", "마이크를 쓸 수 있게 허용해 주세요.", true); } };
+    r.onend = function () {
+      if (!mic.on) return;
+      var got = (mic.text + " " + (mic.live || "")).trim();
+      mic.acc = (mic.acc + " " + got).trim();
+      if (!mic.stopAsked && mic.restarts < 30) {          // 사람이 끝내기 전이면 이어 듣는다 (최대 30번 ≈ 30분)
+        mic.restarts += 1;
+        try { micStartSpeech(); return; } catch (err) {}
+      }
+      var all = mic.acc; mic.acc = ""; mic.restarts = 0;
+      micDone(all);
+    };
     r.start();
   }
   function micStartRecord() {
@@ -503,14 +515,14 @@
   }
   function micLabel(b, small) { $("btn-mic").innerHTML = ""; var x = el("b", "", b); var y = el("small", "", small); $("btn-mic").appendChild(x); $("btn-mic").appendChild(y); }
   $("btn-mic").addEventListener("click", function () {
-    if (mic.on) { if (mic.rec) mic.rec.stop(); else if (mic.media) mic.media.stop(); return; }
+    if (mic.on) { mic.stopAsked = true; if (mic.rec) mic.rec.stop(); else if (mic.media) mic.media.stop(); return; }
     if (!window.isSecureContext) {
       var isChrome = /Chrome\//.test(navigator.userAgent) && !/SamsungBrowser|EdgA|OPR|Whale|NAVER|KAKAOTALK|FB_IAB|Instagram/i.test(navigator.userAgent);
       say("mic-msg", isChrome
         ? "이 주소에서 말하기를 쓰려면 아래 「앱으로 설치하기」에서 주소를 예외로 등록해 주세요 (한 번만). 설치한 앱에서는 바로 돼요."
         : "말하기는 폰 Chrome으로 열어 「앱으로 설치하기」를 하면 돼요. 이 브라우저에서는 글 붙여넣기나 사진을 써 주세요.", true); return;
     }
-    mic.on = true; mic.rec = null; mic.media = null;
+    mic.on = true; mic.rec = null; mic.media = null; mic.acc = ""; mic.restarts = 0; mic.stopAsked = false;
     $("btn-mic").classList.add("rec"); micLabel("다 말했어요", "듣고 있어요…"); say("mic-msg", "듣고 있어요…");
     try {
       if (SR) micStartSpeech();
