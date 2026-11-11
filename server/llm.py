@@ -32,7 +32,7 @@ import subprocess
 import tempfile
 from pathlib import Path
 
-CLI_TIMEOUT = int(os.environ.get("MALHAN_CLI_TIMEOUT", "900"))  # 초. Claude Code는 부를 때마다 새로 떠서 API보다 느리고, 긴 회의록(opus)은 5~10분도 걸린다
+CLI_TIMEOUT = int(os.environ.get("MALHAN_CLI_TIMEOUT", "1800"))  # 초. Claude Code는 부를 때마다 새로 떠서 API보다 느리고, 긴 회의록(opus)은 5~10분도 걸린다
 HTTP_TIMEOUT = int(os.environ.get("MALHAN_HTTP_TIMEOUT", "600"))  # 초. Gemini 등 바깥 API. 긴 회의록은 1~3분 걸릴 수 있다
 
 
