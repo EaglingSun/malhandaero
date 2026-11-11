@@ -30,6 +30,7 @@
     var init = { method: opts.method || "GET", credentials: "same-origin", headers: {} };
     if (opts.json !== undefined) { init.headers["Content-Type"] = "application/json"; init.body = JSON.stringify(opts.json); }
     if (opts.form) init.body = opts.form;
+    if (opts.keepalive) init.keepalive = true;   // 화면이 닫혀도 보내기를 끝까지
     return fetch(path, init).then(function (r) {
       return r.json().catch(function () { return {}; }).then(function (body) {
         if (!r.ok) { var e = new Error(body.detail || "지금은 연결이 안 돼요. 잠시 뒤에 다시 해 주세요."); e.status = r.status; throw e; }
@@ -63,6 +64,7 @@
       var q = new URLSearchParams(location.search).get("shared");
       if (q) { say("in-msg", q === "0" ? "받을 내용이 없었어요." : q + "건 받았어요. 듣고 적어 둘게요."); history.replaceState(null, "", "/"); }
       if (params.get("link") === "ok") { history.replaceState(null, "", "/"); say("in-msg", "이 기기를 연결했어요."); }
+      micSendDraft();   // 지난번 말하다 앱이 꺼졌으면 그때까지 들은 말을 보낸다
       var cal = new URLSearchParams(location.search).get("cal");
       if (cal) {
         history.replaceState(null, "", "/"); $("cal-box").hidden = false; loadCal();
@@ -429,10 +431,10 @@
   document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !$("sheet").hidden) sheet(false); });
 
   /* ---------- 넣기: 글, 파일, 말하기 ---------- */
-  function send(form, okText) {
+  function send(form, okText, keepalive) {
     form.append("on", state.today);
     say("in-msg", "보내고 있어요…");
-    return api("/api/inputs", { method: "POST", form: form }).then(function () { say("in-msg", okText); sheet(false); refresh(); }).catch(fail("in-msg"));
+    return api("/api/inputs", { method: "POST", form: form, keepalive: keepalive }).then(function () { say("in-msg", okText); sheet(false); refresh(); }).catch(fail("in-msg"));
   }
   $("btn-paste").addEventListener("click", function () { var f = $("paste-form"); f.hidden = !f.hidden; if (!f.hidden) $("paste-text").focus(); });
   $("paste-form").addEventListener("submit", function (ev) {
@@ -460,13 +462,33 @@
     // 들은 말은 5줄쯤 보이는 상자에 두고, 길어지면 스크롤해 늘 끝이 보이게
     var box = $("mic-msg"); box.classList.add("live"); box.textContent = text || "듣고 있어요…"; box.scrollTop = box.scrollHeight;
   }
-  function micIdle() { clearInterval(mic.timer); $("mic-msg").classList.remove("live"); micIdle(); }
-  function micDone(text) {
+  function micIdle() {
+    mic.on = false; clearInterval(mic.timer); $("mic-msg").classList.remove("live");
+    $("btn-mic").classList.remove("rec"); micLabel("말하기", "누르고 말하면 끝");
+  }
+  var MIC_DRAFT = "mh_mic_draft";   // 듣는 동안 모은 말. 앱이 갑자기 꺼져도 다음에 열 때 보낸다
+  function micKeep(text) { try { if (text) localStorage.setItem(MIC_DRAFT, text); else localStorage.removeItem(MIC_DRAFT); } catch (e) {} }
+  function micDone(text, note) {
     micIdle();
-    if (!text.trim()) { say("mic-msg", "들린 말이 없었어요. 다시 눌러 말해 주세요."); return; }
+    if (!text.trim()) { micKeep(""); say("mic-msg", "들린 말이 없었어요. 다시 눌러 말해 주세요."); return; }
     say("mic-msg", "");
     var fd = new FormData(); fd.append("kind", "memo"); fd.append("title", "말로 한 메모"); fd.append("text", text);
-    send(fd, "들었어요. 적어 두는 중이에요.");
+    send(fd, note || "들었어요. 적어 두는 중이에요.", true).then(function () { micKeep(""); });
+  }
+  function micFlush(note) {
+    // 화면이 바뀌거나 전화가 오면 안드로이드가 듣기를 끊고 자료를 버릴 수 있다. 그 전에 여기까지 모은 말을 바로 보낸다.
+    if (!mic.on) return;
+    mic.stopAsked = true; mic.on = false;
+    if (mic.rec) { var all = (mic.acc + " " + mic.text + " " + (mic.live || "")).trim(); mic.acc = ""; try { mic.rec.abort(); } catch (e) {} micDone(all, note); }
+    else if (mic.media) { try { mic.media.stop(); } catch (e) {} }   // onstop이 보낸다
+  }
+  document.addEventListener("visibilitychange", function () { if (document.hidden) micFlush("화면이 바뀌어 여기까지 보냈어요. 이어 말하려면 다시 눌러 주세요."); });
+  window.addEventListener("pagehide", function () { micFlush("화면이 바뀌어 여기까지 보냈어요."); });
+  function micSendDraft() {
+    var d = ""; try { d = localStorage.getItem(MIC_DRAFT) || ""; } catch (e) {}
+    if (!d.trim()) return; micKeep("");
+    var fd = new FormData(); fd.append("kind", "memo"); fd.append("title", "말로 한 메모"); fd.append("text", d);
+    send(fd, "지난번 말하다 끊긴 것을 보냈어요.");
   }
   function micStartSpeech() {
     // 안드로이드 Chrome의 음성 인식은 말을 잠깐 쉬거나 1분쯤 지나면 스스로 끝난다. 사람이 끝내기 전엔 다시 켜서 이어 듣는다.
@@ -493,7 +515,8 @@
       if (live && (live.indexOf(lastF) === 0 && lastF)) { fin[fin.length - 1] = live; live = ""; }   // 중간 문장이 확정 문장을 늘인 것
       else if (live && lastF.indexOf(live) === 0) live = "";
       mic.text = fin.join(" "); mic.live = live;
-      micShow((mic.acc + " " + mic.text + " " + live).trim());
+      var sofar = (mic.acc + " " + mic.text + " " + live).trim();
+      micShow(sofar); micKeep(sofar);
     };
     r.onerror = function (e) { if (e.error === "not-allowed" || e.error === "audio-capture") { mic.stopAsked = true; say("mic-msg", "마이크를 쓸 수 있게 허용해 주세요.", true); } };
     r.onend = function () {
