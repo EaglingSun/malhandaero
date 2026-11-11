@@ -496,3 +496,18 @@ def test_done_on_past_day_stays_on_that_day_and_scope_can_change():
     far = client.patch(f"/api/items/{it['id']}", json={"status": "done", "done_date": "2099-01-01"}).json()
     assert far["done_at"] == appmod.today().isoformat()
     assert client.patch(f"/api/items/{it['id']}", json={"scope": "회사"}).json()["scope"] == "회사"
+
+
+def test_day_summary_can_be_cleared_but_note_stays(monkeypatch):
+    """미리 쓴 하루 마무리를 지워도 오늘 한 줄(기분·메모)은 남는다."""
+    join("마무리")
+    monkeypatch.setattr(appmod.llm, "complete", lambda *a, **k: "오늘은 보고서를 보냈어요.")
+    client.post("/api/settings/diary", json={"enabled": True})
+    client.post("/api/day/note", json={"note": "잘 버텼다", "mood": "😌"})
+    it = client.post("/api/items", json={"text": "보고서 보내기"}).json()
+    client.patch(f"/api/items/{it['id']}", json={"status": "done"})
+    assert client.post("/api/day/close").json()["summary"]
+    assert client.get("/api/day").json()["summary"]
+    assert client.delete("/api/day/close").json()["summary"] == ""
+    d = client.get("/api/day").json()
+    assert d["summary"] == "" and d["note"] == "잘 버텼다" and d["mood"] == "😌"

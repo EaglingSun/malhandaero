@@ -316,6 +316,7 @@
       say("note-msg", "");
     }
     $("btn-sum").textContent = d.summary ? "마무리 다시 쓰기" : "오늘은 여기까지";
+    $("btn-sum-clear").hidden = !d.summary;
     renderNeedMe(d.need_me || []);
     renderBriefs(d.briefs || []);
     $("pending").hidden = !d.pending_inputs; if (d.pending_inputs) $("pending").textContent = pendingText(d.pending || []);
@@ -408,7 +409,11 @@
     $("btn-sum").disabled = true; $("sum-text").textContent = "오늘 하루를 정리하고 있어요…";
     api("/api/day/close?date=" + state.date, { method: "POST" }).then(function (r) { $("sum-text").textContent = r.summary || r.note || ""; })
       .catch(function (e) { $("sum-text").textContent = e.message; })
-      .then(function () { $("btn-sum").disabled = false; $("btn-sum").textContent = "마무리 다시 쓰기"; });
+      .then(function () { $("btn-sum").disabled = false; $("btn-sum").textContent = "마무리 다시 쓰기"; $("btn-sum-clear").hidden = false; });
+  });
+  $("btn-sum-clear").addEventListener("click", function () {
+    // 미리 써 둔 마무리를 지운다. 오늘 한 줄(기분·메모)은 그대로
+    api("/api/day/close?date=" + state.date, { method: "DELETE" }).then(function () { $("sum-text").textContent = ""; $("btn-sum").textContent = "오늘은 여기까지"; $("btn-sum-clear").hidden = true; }).catch(fail("in-msg"));
   });
 
   var mic = { on: false, rec: null, text: "", media: null, chunks: [] };

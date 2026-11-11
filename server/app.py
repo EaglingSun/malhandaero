@@ -1304,6 +1304,15 @@ def close_day(date_: str | None = Query(None, alias="date"), user=Depends(curren
     return {"summary": summary}
 
 
+@app.delete("/api/day/close")
+def clear_day_summary(date_: str | None = Query(None, alias="date"), user=Depends(current_user)):
+    """미리 써 둔 마무리 글을 지운다. 오늘 한 줄(note·mood)은 남긴다."""
+    ds = parse_date(date_).isoformat()
+    with db.session() as con:
+        con.execute("UPDATE day_logs SET summary = '' WHERE user_id = ? AND date = ?", (user["id"], ds))
+    return {"summary": ""}
+
+
 # ---------- 화면 파일 ----------
 @app.get("/")
 def index():
