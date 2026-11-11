@@ -87,7 +87,7 @@ records(id, user_id, addon, type, input_id, data, date, status, created_at)
 | D-19 | 캘린더에 넣을지는 기본 규칙(시각 있는 일만 / 모든 일) 위에 항목별 「캘린더에 넣기 / 빼기」(`items.cal_pin`)가 우선한다 | 시각 있는 일은 거의 다 넣지만, 시각 없는 일은 넣을 것과 안 넣을 것이 갈린다 | 11/11 | 유효 |
 | D-20 | 지난 날짜 화면에서 끝냄 체크/해제는 그 날짜 기준(`done_date`)으로 남는다 (이전: 해제하면 오늘 할 일로) | 어제 한 일을 어제 한 일로 고칠 수 있어야 한다 | 11/11 | 유효 |
 | D-21 | 말하기는 화면이 바뀌거나 전화가 오면 그때까지 들은 말을 바로 보내고(`keepalive`), 들은 말은 `localStorage`에 두었다가 앱이 꺼졌으면 다음에 열 때 보낸다 | 안드로이드는 화면이 가려지면 음성 인식을 끊고 자료를 버린다 | 11/11 | 유효 |
-| D-22 | 포스터의 「시작 안내」는 GitHub Pages에 올린 `docs/START.html`(`https://eaglingsun.github.io/malhandaero/docs/START.html`)을 연다. Pages는 `main` 가지 최상위 폴더를 낸다 (이전: GitHub의 `docs/START.md` 화면) | 받은 사람이 그림까지 든 안내를 브라우저에서 바로 본다 | 11/11 | 유효 |
+| D-22 | 포스터의 「말한대로 셋업 가이드」 버튼은 GitHub Pages에 올린 `docs/START.html`(`https://eaglingsun.github.io/malhandaero/docs/START.html`)을 연다. Pages는 `main` 가지 최상위 폴더를 낸다 (이전: GitHub의 `docs/START.md` 화면) | 받은 사람이 그림까지 든 안내를 브라우저에서 바로 본다 | 11/11 | 유효 |
 | D-23 | 구글 캘린더 연결은 설치 안내에서 「선택」이 아니라 꼭 하는 단계로 안내한다. 연결하지 않아도 할 일 저장은 막지 않는다(D-06 그대로). 네이버는 「캘린더 자세히」에 둔다 (이전: ② 구글 캘린더 연결 (선택)) | 구글 캘린더를 쓰는 사람이 많다 | 11/11 | 유효 |
 
 ## 6. 문서 지도
@@ -100,7 +100,7 @@ records(id, user_id, addon, type, input_id, data, date, status, created_at)
 | `docs/POSTER.html` | 홍보 — 앱의 가치 | 홍보 문구와 실제 화면 캡처(`docs/img/screens/`, `tools/shoot_screens.py`로 찍고 `tools/build_poster.py`로 넣음) |
 | `docs/STYLE.html` | 디자인 덱 — 포스터의 색 · 글꼴 · 부품 견본 | 색 값(`:root`) |
 | `docs/START.md` | 설치 · 운영 안내 | 5단계 이름과 순서, 안 될 때, 설정(`.env`) 안내 |
-| `docs/START.html` | START.md를 그림까지 넣어 만든 한 파일. 앱의 `/start`, 포스터의 「시작 안내」(GitHub Pages) | 없음 — 손으로 고치지 않는다(G-08) |
+| `docs/START.html` | START.md를 그림까지 넣어 만든 한 파일. 앱의 `/start`, 포스터의 「말한대로 셋업 가이드」 버튼(GitHub Pages). 모양(카드 · 번호 · 목차)은 `tools/build_start_html.py`가 입힌다 | 없음 — 손으로 고치지 않는다(G-08) |
 | `docs/DESIGN.md` | 설계 — 무엇을 왜 만드는가 | 약속 표, 입력 종류, 처리 규칙, 날짜 규칙, 화면, 더하기 |
 | `docs/ARCHITECTURE.md` | 구조 · 결정 · 문서 지도 | 이 파일 전부 |
 | `docs/MINUTES_FORMAT.md` | 회의록 형식 | 회의록 규칙과 수치(G-06) |

@@ -1,21 +1,47 @@
 <!DOCTYPE html>
-<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>말한대로 시작하기</title><style>
-:root { --sky:#eaf6ff; --ink:#223244; --muted:#64788c; --line:#dce8f2; --mint:#12b58a; --mint-soft:#dff7ef; --sun:#ffe066; }
-* { box-sizing:border-box } body { margin:0; background:linear-gradient(var(--sky),#fff 520px); color:var(--ink); font-family:"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif; font-size:17px; line-height:1.7; word-break:keep-all; }
-main { max-width:860px; margin:0 auto; padding:40px 20px 60px; }
-h1 { font-size:34px; margin:0 0 6px } h2 { font-size:24px; margin:44px 0 10px; padding-top:18px; border-top:1.5px solid var(--line) } h2:first-of-type { border:0; padding-top:0 }
-p { margin:8px 0 } ol, ul { padding-left:24px } li { margin:6px 0 }
-code { font-family:ui-monospace,Menlo,Consolas,monospace; font-size:14.5px; background:#f1f6fa; padding:1px 6px; border-radius:6px }
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>말한대로 셋업 가이드</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&display=swap" rel="stylesheet"><style>
+:root { --sky:#eaf6ff; --ink:#223244; --muted:#64788c; --line:#dce8f2; --mint:#12b58a; --mint-soft:#dff7ef; --sun:#ffe066;
+  --font-display:"Jua","Gowun Dodum","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --font-body:"Gowun Dodum","Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif; }
+* { box-sizing:border-box } body { margin:0; background:linear-gradient(var(--sky),#fff 520px); background-color:#fff; color:var(--ink); font-family:var(--font-body); font-size:17px; line-height:1.7; word-break:keep-all; overflow-wrap:anywhere; -webkit-font-smoothing:antialiased; }
+main { max-width:980px; margin:0 auto; padding:36px 18px 64px; display:flex; flex-direction:column; gap:18px; }
+.top { align-self:flex-start; margin:0; font-family:var(--font-display); font-size:16px; color:var(--mint); background:#fff; border:1.5px solid var(--mint); padding:3px 14px; border-radius:999px }
+.intro h1 { font-family:var(--font-display); font-weight:400; font-size:40px; line-height:1.2; margin:0 0 10px }
+.intro p { margin:4px 0; font-size:18px }
+.intro td a { text-decoration:none }
+.toc { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-top:12px }
+.toc b { font-family:var(--font-display); font-weight:400; color:var(--muted); margin-right:2px }
+.toc a { background:#fff; border:1.5px solid var(--line); border-radius:999px; padding:3px 13px; font-size:15px; font-weight:400; color:var(--ink); text-decoration:none }
+.card, h1.more { scroll-margin-top:12px }
+h1.more { font-family:var(--font-display); font-weight:400; font-size:28px; margin:22px 0 0 }
+.card { background:#fff; border:1.5px solid var(--line); border-radius:22px; padding:22px 24px 20px; box-shadow:0 10px 30px rgba(60,120,170,.08) }
+.card h2 { font-family:var(--font-display); font-weight:400; font-size:25px; line-height:1.3; margin:0 0 12px; display:flex; align-items:center; flex-wrap:wrap; gap:4px 10px }
+.card h2 small { font-family:var(--font-body); font-size:15px; color:var(--muted) }
+.card.sub h2 { font-size:21px }
+.num { flex:none; width:36px; height:36px; border-radius:50%; background:var(--sun); display:inline-grid; place-items:center; font-size:20px }
+p { margin:8px 0 } ul { padding-left:22px; margin:8px 0 } li { margin:7px 0 }
+ol { list-style:none; counter-reset:step; padding-left:0; margin:10px 0 }
+ol > li { counter-increment:step; position:relative; padding-left:36px }
+ol > li::before { content:counter(step); position:absolute; left:0; top:2px; width:25px; height:25px; border-radius:50%; background:var(--mint-soft); color:#0f8f6c; font-family:var(--font-display); font-size:14px; display:grid; place-items:center }
+li > ul { list-style:none; padding-left:0; margin:4px 0 2px }
+li > ul > li { position:relative; padding-left:14px; margin:3px 0; color:#4a5d70; font-size:16px }
+li > ul > li::before { content:"·"; position:absolute; left:2px; color:var(--mint); font-weight:700 }
+li > ul > li.dl { padding-left:0 } li > ul > li.dl::before { content:none }
+main > * { min-width:0; max-width:100% }
+a { color:#0f8f6c; font-weight:700 }
+a.btn { display:inline-block; margin:4px 0; background:var(--mint); color:#fff; font-family:var(--font-display); font-weight:400; font-size:18px; padding:10px 24px; border-radius:999px; text-decoration:none; box-shadow:0 8px 18px rgba(18,181,138,.28) }
+code { font-family:ui-monospace,Menlo,Consolas,monospace; font-size:14.5px; background:#f1f6fa; padding:1px 6px; border-radius:6px; color:var(--ink) }
 table { border-collapse:collapse; width:100%; margin:12px 0; font-size:15.5px } th,td { border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top } th { background:#f4f8fb }
-blockquote { margin:14px 0; padding:12px 16px; background:var(--mint-soft); border-radius:14px } blockquote p { margin:0 }
+blockquote { margin:14px 0; padding:12px 16px; background:#fff8d9; border-left:5px solid var(--sun); border-radius:14px } blockquote p { margin:2px 0 }
+p.ok { margin:14px 0 6px; padding:10px 14px; background:var(--mint-soft); border-radius:14px }
 img { max-width:280px; width:100%; border:1.5px solid var(--line); border-radius:18px; display:block }
 td img { max-width:260px }
 strong { color:#0f8f6c }
-hr { border:0; height:0; margin:0 }
-.top { color:var(--muted); font-size:14px; margin-bottom:24px }
-@media (max-width:600px) { main { padding:24px 14px 48px } h1 { font-size:28px } table { font-size:14px } }
-</style></head><body><main><p class="top">말한대로 · 시작 안내</p><h1 id="말한대로-셋업-가이드">말한대로 셋업 가이드</h1>
-<p><strong>PC</strong>는 켜 두는 서버, <strong>쓰는 건 폰</strong>. 아래 <strong>5단계(15분)</strong>만 따라 하면 쓸 수 있어요. 「더 자세히」에서 <a href="#알아-둘-것">알아 둘 것</a>은 꼭 읽고, 나머지는 막혔을 때만 보세요.</p>
+@media (max-width:600px) { main { padding:24px 12px 48px } .intro h1 { font-size:30px } .card { padding:18px 16px 16px; border-radius:18px } .card h2 { font-size:22px } table { font-size:14px } th,td { padding:7px 8px } }
+</style></head><body><main><p class="top">말한대로 · 시작 안내</p><section class="intro"><h1 id="말한대로-셋업-가이드">말한대로 셋업 가이드</h1>
+<p>PC에서 파일 하나를 받아 더블클릭하면 설치가 끝나요. 그다음 캘린더와 폰을 연결해요.</p>
+<p>아래 <strong>5단계(15분)</strong>를 따라 하세요. PC는 켜 두는 서버이고, 쓰는 건 폰이에요.</p>
+<p>「더 자세히」의 <a href="#알아-둘-것">알아 둘 것</a>은 꼭 읽어 주세요. 나머지는 막혔을 때만 보면 돼요.</p>
 <table>
 <thead>
 <tr>
@@ -26,67 +52,100 @@ hr { border:0; height:0; margin:0 }
 </thead>
 <tbody>
 <tr>
-<td>① PC에 설치 (Claude 연동은 자동)</td>
+<td><a href="#①-pc에-설치--claude-연동은-자동이에요">① PC에 설치 (Claude 연동은 자동)</a></td>
 <td>PC</td>
 <td>5분</td>
 </tr>
 <tr>
-<td>② 구글 캘린더 연결</td>
+<td><a href="#②-구글-캘린더-연결--pc-브라우저에서-1분">② 구글 캘린더 연결</a></td>
 <td>PC 브라우저</td>
 <td>1분</td>
 </tr>
 <tr>
-<td>③ 폰에 앱으로 설치</td>
+<td><a href="#③-폰에-앱으로-설치--폰-chrome에서-3분">③ 폰에 앱으로 설치</a></td>
 <td>폰 Chrome</td>
 <td>3분</td>
 </tr>
 <tr>
-<td>④ 할 일 넣어 보기</td>
+<td><a href="#④-할-일-넣어-보기--1분">④ 할 일 넣어 보기</a></td>
 <td>폰</td>
 <td>1분</td>
 </tr>
 <tr>
-<td>⑤ 회사 밖에서도 쓰기 (선택)</td>
+<td><a href="#⑤-회사-밖에서도-쓰기--tailscale-5분-선택">⑤ 회사 밖에서도 쓰기 (선택)</a></td>
 <td>PC + 폰</td>
 <td>5분</td>
 </tr>
 </tbody>
-</table>
-<hr />
-<h2 id="①-pc에-설치--claude-연동은-자동이에요">① PC에 설치 — Claude 연동은 자동이에요</h2>
+</table><nav class="toc"><b>더 자세히</b><a href="#알아-둘-것">알아 둘 것</a><a href="#밖에서-쓸-때-지킬-것">밖에서 쓸 때 지킬 것</a><a href="#같이-쓸-사람-폰-연결하기">같이 쓸 사람 폰 연결하기</a><a href="#캘린더-자세히">캘린더 자세히</a><a href="#pc에-로그인하면-알아서-켜지게">PC에 로그인하면 알아서 켜지게</a><a href="#업데이트">업데이트</a><a href="#안-될-때">안 될 때</a></nav></section>
+<section class="card step"><h2 id="①-pc에-설치--claude-연동은-자동이에요"><span class="num">1</span> PC에 설치 <small>Claude 연동은 자동이에요</small></h2>
 <ol>
-<li>설치 파일을 <a href="https://github.com/EaglingSun/malhandaero/releases/latest">여기</a>에서 받아 실행해요.</li>
-<li>Windows: <code>setup-windows.bat</code> 더블클릭 — Git·Python·Claude Code가 없으면 알아서 깔아요. 설치 위치는 <code>C:\Users\이름\malhandaero</code></li>
-<li>Mac: <code>setup-mac.command</code> 우클릭 → 열기 — Python은 <a href="https://www.python.org/downloads/">python.org</a>에서 먼저. 설치 파일을 둔 곳의 <code>malhandaero</code> 폴더에 들어가요</li>
-<li>검은 창에서 <strong>로그인 코드</strong>를 하나 정해요 (예: 1234). 폰에서 들어올 때 한 번 쓰고, 잊으면 <code>.env</code>의 <code>MALHAN_FAMILY_CODE=</code> 줄에 있어요.</li>
-<li>2~5분 뒤 서버가 켜지고 PC 브라우저가 <code>http://localhost:8000</code>으로 열려요. Windows 방화벽 창이 뜨면 「액세스 허용」.</li>
+<li>내 PC에 맞는 설치 파일을 받아요. 누르면 바로 받아져요.<ul>
+<li class="dl"><strong><a class="btn" href="https://github.com/EaglingSun/malhandaero/releases/latest/download/setup-windows.bat">Windows 설치 파일 받기</a></strong></li>
+<li class="dl"><strong><a class="btn" href="https://github.com/EaglingSun/malhandaero/releases/latest/download/setup-mac.command">Mac 설치 파일 받기</a></strong></li>
+<li>Mac은 <a href="https://www.python.org/downloads/">Python</a>을 먼저 깔아요.</li>
+</ul>
+</li>
+<li>받은 파일을 더블클릭해요. Mac은 우클릭 → 열기.<ul>
+<li>검은 설치 창이 떠요. Windows는 필요한 프로그램(Git·Python·Claude Code)을 알아서 깔아요.</li>
+<li>Mac은 Claude Code만 알아서 깔아요. "git이 필요해요"가 나오면 터미널에서 <code>git</code>을 한 번 입력해 안내대로 설치하고 다시 실행해요.</li>
+<li>브라우저나 Windows가 파일을 막으면 「유지」나 「추가 정보 → 실행」을 눌러요.</li>
+</ul>
+</li>
+<li>설치 창에 「로그인할 때 사용할 코드를 정해 주세요」가 나오면 코드를 입력하고 Enter를 눌러요. (예: 1234)<ul>
+<li>이 코드는 폰에서 처음 들어올 때 한 번 써요.</li>
+</ul>
+</li>
+<li>2~5분 기다리면 PC 브라우저에 말한대로가 열려요. (<code>http://localhost:8000</code>)<ul>
+<li>Windows 방화벽 창이 뜨면 「액세스 허용」을 눌러요.</li>
+</ul>
+</li>
 </ol>
-<p><strong>됐는지 확인</strong>: 검은 창에 <code>AI Claude Code</code>가 보이면 연결된 거예요. <code>AI 없음</code>이면 터미널에서 <code>claude</code>를 한 번 실행해 로그인하고, 「말한대로 켜기」로 다시 켜요.</p>
+<p class="ok"><strong>됐는지 확인</strong>: 검은 창에 <code>AI Claude Code</code>가 보이면 AI도 연결됐어요.</p>
+<p><code>AI 없음</code>이면 <a href="#안-될-때">안 될 때</a>의 "AI가 연결되지 않았어요"를 보세요.</p>
 <blockquote>
-<p><strong>Claude 구독(Pro 이상)이 없어도 쓸 수 있어요.</strong> 녹음과 글에서 할 일을 자동으로 뽑는 기능만 쓸 수 없어요. 직접 적기·캘린더·하루 마무리는 똑같이 쓸 수 있어요.</p>
+<p>Claude 구독(Pro 이상)이 없으면 녹음과 글에서 할 일·회의록을 자동으로 만드는 기능은 쓸 수 없어요.</p>
+<p>직접 적기·캘린더·하루 마무리만 쓸 수 있어요. 다른 AI로 쓰는 방법이 필요하면 게시글 댓글로 요청해 주세요. 추가해 드릴게요.</p>
 </blockquote>
-<p>다음부터는 바탕 화면 「말한대로 켜기」(Mac은 <code>start.command</code>)를 더블클릭해요. PC를 켤 때 자동으로 켜지게 하려면 <a href="#pc에-로그인하면-알아서-켜지게">자동 시작</a>을 보세요.</p>
-<hr />
-<h2 id="②-구글-캘린더-연결--pc-브라우저에서-1분">② 구글 캘린더 연결 — PC 브라우저에서 1분</h2>
-<p><strong>꼭 연결해 두세요.</strong> 연결하면 날짜 정한 할 일이 캘린더에 올라가고, 캘린더의 회의를 「할 일로」 가져올 수 있어요.</p>
+<ul>
+<li>다음부터는 바탕 화면 「말한대로 켜기」를 더블클릭해요. (Mac은 <code>start.command</code>)</li>
+<li>PC를 켤 때 같이 켜지게 하려면 <a href="#pc에-로그인하면-알아서-켜지게">자동 시작</a>을 보세요.</li>
+</ul></section>
+<section class="card step"><h2 id="②-구글-캘린더-연결--pc-브라우저에서-1분"><span class="num">2</span> 구글 캘린더 연결 <small>PC 브라우저에서 1분</small></h2>
+<p><strong>꼭 연결해 두세요.</strong> 날짜를 정한 할 일이 캘린더에 올라가고, 캘린더의 회의를 「할 일로」 가져올 수 있어요.</p>
 <ol>
 <li>방금 열린 PC 브라우저(<code>http://localhost:8000</code>)에서 이름과 코드를 넣고 들어가요.</li>
 <li>맨 아래 「캘린더 연결」 → 「구글 계정으로 연결」 → 구글 로그인.</li>
 <li>"확인되지 않은 앱" 화면이 나오면 <strong>고급 → 말한대로(으)로 이동 → 허용</strong>.</li>
 <li>돌아오면 「할 일을 올릴 캘린더」에 기본 캘린더가 잡혀 있어요. 다른 캘린더를 쓰려면 골라요.</li>
 </ol>
-<p><strong>됐는지 확인</strong>: 「오늘」 화면 위에 「캘린더 일정」이 떠요. 폰에서도 보여요.
-구글 연결 버튼은 PC의 localhost에서만 눌러요. 네이버 캘린더를 쓴다면 <a href="#캘린더-자세히">캘린더 자세히</a>.</p>
-<hr />
-<h2 id="③-폰에-앱으로-설치--폰-chrome에서-3분">③ 폰에 앱으로 설치 — 폰 Chrome에서 3분</h2>
+<p class="ok"><strong>됐는지 확인</strong>: 「오늘」 화면 위에 「캘린더 일정」이 떠요. 폰에서도 보여요.</p>
+<ul>
+<li>구글 연결 버튼은 PC의 localhost에서만 눌러요.</li>
+<li>네이버 캘린더를 쓴다면 <a href="#캘린더-자세히">캘린더 자세히</a>를 보세요.</li>
+</ul></section>
+<section class="card step"><h2 id="③-폰에-앱으로-설치--폰-chrome에서-3분"><span class="num">3</span> 폰에 앱으로 설치 <small>폰 Chrome에서 3분</small></h2>
 <p>폰과 PC가 <strong>같은 와이파이</strong>여야 해요.</p>
 <ol>
-<li>검은 창에 있는 <strong>폰에서 열 주소</strong>(<code>http://10.x.x.x:8000</code>)를 폰 <strong>Chrome</strong> 주소창에 입력하고, 이름과 로그인 코드를 넣어 들어가요. (네이버·삼성 브라우저로 열렸으면 화면의 「Chrome으로 열기」를 눌러요)</li>
+<li>검은 창에 있는 <strong>폰에서 열 주소</strong>(<code>http://10.x.x.x:8000</code>)를 폰 <strong>Chrome</strong> 주소창에 입력해요.<ul>
+<li>이름과 로그인 코드를 넣고 들어가요.</li>
+<li>네이버·삼성 브라우저로 열렸으면 화면의 「Chrome으로 열기」를 눌러요.</li>
+</ul>
+</li>
 <li>위에 뜨는 띠 「먼저 앱으로 설치하면…」의 <strong>설치하기</strong>를 눌러요.</li>
-<li>「설치가 안 돼요 (http 주소라서)」를 펼쳐 <strong>주소 복사</strong>를 눌러요. 새 탭 주소창에 <code>chrome://flags/#unsafely-treat-insecure-origin-as-secure</code>를 입력하고, 입력칸에 복사한 주소를 붙여넣어요. 옆의 선택을 <strong>Enabled</strong>로 바꾸고 <strong>Relaunch</strong>를 눌러요. (한 번만 하면 돼요. PC 주소가 바뀌면 다시 해요)</li>
-<li>Chrome이 다시 열리면 <strong>「지금 설치」</strong>를 눌러요(또는 Chrome 메뉴 ⋮ → 「설치 및 바로가기 만들기」).</li>
+<li>「설치가 안 돼요 (http 주소라서)」를 펼쳐 <strong>주소 복사</strong>를 눌러요.<ul>
+<li>새 탭 주소창에 <code>chrome://flags/#unsafely-treat-insecure-origin-as-secure</code>를 입력해요.</li>
+<li>입력칸에 복사한 주소를 붙여넣고, 옆의 선택을 <strong>Enabled</strong>로 바꿔요.</li>
+<li><strong>Relaunch</strong>를 눌러요. 한 번만 하면 되고, PC 주소가 바뀌면 다시 해요.</li>
+</ul>
+</li>
+<li>Chrome이 다시 열리면 <strong>「지금 설치」</strong>를 눌러요. (또는 Chrome 메뉴 ⋮ → 「설치 및 바로가기 만들기」)</li>
 </ol>
-<p><strong>됐는지 확인</strong>: 홈 화면에 초록 아이콘이 생기고, 녹음 앱의 공유 목록에 「말한대로」가 나와요. 말하기 버튼도 쓸 수 있어요.</p>
+<p class="ok"><strong>됐는지 확인</strong>: 홈 화면에 초록 아이콘이 생겨요.</p>
+<ul>
+<li>녹음 앱의 공유 목록에 「말한대로」가 나와요.</li>
+<li>말하기 버튼도 쓸 수 있어요.</li>
+</ul>
 <table>
 <thead>
 <tr>
@@ -103,9 +162,8 @@ hr { border:0; height:0; margin:0 }
 </table>
 <blockquote>
 <p>⑤의 https 주소로 들어가면 위 3번은 건너뛰어요.</p>
-</blockquote>
-<hr />
-<h2 id="④-할-일-넣어-보기--1분">④ 할 일 넣어 보기 — 1분</h2>
+</blockquote></section>
+<section class="card step"><h2 id="④-할-일-넣어-보기--1분"><span class="num">4</span> 할 일 넣어 보기 <small>1분</small></h2>
 <p>홈 화면 아이콘으로 열어서:</p>
 <table>
 <thead>
@@ -133,39 +191,95 @@ hr { border:0; height:0; margin:0 }
 </tr>
 </tbody>
 </table>
-<p>할 일마다 <strong>오늘 · 나중 · 안 함</strong> 중 하나만 누르면 돼요. 못 끝낸 일은 다음 날로 넘어가요.</p>
-<hr />
-<h2 id="⑤-회사-밖에서도-쓰기--tailscale-5분-선택">⑤ 회사 밖에서도 쓰기 — Tailscale, 5분 (선택)</h2>
-<p><strong>이 단계를 하면 내 PC가 말한대로 서버가 돼서, PC를 켜 두면 퇴근 뒤나 출장지 어디서나 폰으로 쓸 수 있어요.</strong> 하지 않으면 폰이 PC와 같은 와이파이(회사 안)에 있을 때만 쓸 수 있어요. 어느 쪽이든 PC가 켜져 있는 동안에만 돼요.</p>
+<ul>
+<li>할 일마다 <strong>오늘 · 나중 · 안 함</strong> 중 하나만 누르면 돼요.</li>
+<li>못 끝낸 일은 다음 날로 넘어가요.</li>
+</ul></section>
+<section class="card step"><h2 id="⑤-회사-밖에서도-쓰기--tailscale-5분-선택"><span class="num">5</span> 회사 밖에서도 쓰기 <small>Tailscale, 5분 (선택)</small></h2>
+<p><strong>이 단계는 내 PC를 밖에서도 열리는 말한대로 서버로 만들어요.</strong></p>
+<ul>
+<li>하면: 퇴근 뒤나 출장지에서도 폰으로 써요.</li>
+<li>안 하면: 폰이 PC와 같은 와이파이(회사 안)에 있을 때만 써요.</li>
+<li>어느 쪽이든 PC가 켜져 있는 동안에만 돼요.</li>
+</ul>
 <p>Tailscale(무료)로 PC와 폰을 연결해요. 내 Tailscale에 들어온 기기에서만 열려요.</p>
 <ol>
-<li><a href="https://tailscale.com/download">tailscale.com/download</a>에서 <strong>PC와 폰에 설치</strong>하고 <strong>같은 계정</strong>(구글 등)으로 로그인. Windows는 <code>winget install --id Tailscale.Tailscale -e</code>, Mac은 App Store.</li>
+<li><a href="https://tailscale.com/download">tailscale.com/download</a>에서 <strong>PC와 폰에 설치</strong>하고 <strong>같은 계정</strong>(구글 등)으로 로그인해요.<ul>
+<li>Windows는 <code>winget install --id Tailscale.Tailscale -e</code>, Mac은 App Store.</li>
+</ul>
+</li>
 <li>처음 한 번: <a href="https://login.tailscale.com/admin/dns">login.tailscale.com/admin/dns</a>에서 <strong>MagicDNS</strong>와 <strong>HTTPS Certificates</strong>를 켜요.</li>
-<li>PC에서 말한대로를 껐다 켜요. Tailscale이 켜져 있으면 검은 창에 <code>https://내PC이름.○○○.ts.net</code> 주소가 떠요.</li>
-<li>폰(Tailscale 켠 상태)에서 그 주소로 들어가 「앱으로 설치하기」. https라 플래그 없이 바로 설치돼요.</li>
+<li>PC에서 말한대로를 껐다 켜요.<ul>
+<li>Tailscale이 켜져 있으면 검은 창에 <code>https://내PC이름.○○○.ts.net</code> 주소가 떠요.</li>
+</ul>
+</li>
+<li>폰(Tailscale 켠 상태)에서 그 주소로 들어가 「앱으로 설치하기」를 눌러요.<ul>
+<li>https라 플래그 없이 바로 설치돼요.</li>
+</ul>
+</li>
 </ol>
-<p><strong>됐는지 확인</strong>: 와이파이를 끄고 LTE로 그 주소가 열리면 잘 된 거예요.</p>
-<p>막히면 앱 맨 아래 「휴대폰에서 쓰기」(폰에서는 「앱으로 설치하기」)를 열고 「다른 사람과 같이 쓰기」에서 <strong>도우미 글 복사</strong>를 눌러, 복사한 글을 Claude나 ChatGPT에 붙여넣어요. 팀원·가족 폰은 <a href="#같이-쓸-사람-폰-연결하기">같이 쓸 사람 폰 연결하기</a>를 보세요.</p>
-<hr />
-<h1 id="더-자세히">더 자세히</h1>
-<h2 id="알아-둘-것">알아 둘 것</h2>
+<p class="ok"><strong>됐는지 확인</strong>: 와이파이를 끄고 LTE로 그 주소가 열리면 잘 된 거예요.</p>
 <ul>
-<li>기록은 내 PC에만 저장돼요. AI(기본은 내 PC의 Claude Code)에는 할 일을 뽑을 때와 하루 마무리 글을 쓸 때만 보내요. 이때 넣은 글·사진, 내 할 일 목록, 오늘 한 줄이 가요.</li>
+<li>막히면 앱 맨 아래 「휴대폰에서 쓰기」(폰에서는 「앱으로 설치하기」)를 열어요.<ul>
+<li>「다른 사람과 같이 쓰기」에서 <strong>도우미 글 복사</strong>를 눌러요.</li>
+<li>복사한 글을 Claude나 ChatGPT에 붙여넣어요.</li>
+</ul>
+</li>
+<li>팀원·가족 폰은 <a href="#같이-쓸-사람-폰-연결하기">같이 쓸 사람 폰 연결하기</a>를 보세요.</li>
+</ul></section>
+<h1 id="더-자세히" class="more">더 자세히</h1>
+<section class="card sub"><h2 id="알아-둘-것">알아 둘 것</h2>
+<ul>
+<li>기록은 내 PC에만 저장돼요.</li>
+<li>AI(기본은 내 PC의 Claude Code)에는 할 일을 뽑을 때와 하루 마무리 글을 쓸 때만 보내요.<ul>
+<li>이때 넣은 글·사진, 내 할 일 목록, 오늘 한 줄이 가요.</li>
+</ul>
+</li>
 <li>PC에 음성 인식이 설치되지 않았고 <code>.env</code>에 Gemini 키가 있으면 녹음 파일은 Gemini가 들어요.</li>
 <li>회사 회의는 회사 보안 규정을 따르세요.</li>
-<li>음성·사진 원본은 글로 바꾼 뒤 지워요. 글은 「넣은 것」에서 직접 지울 때까지 남아요.</li>
-<li><strong>내 기록 전부</strong>(할 일·회의록·하루 마무리·캘린더 연결)는 설치 폴더의 <code>data/</code>에 있어요. 복사하면 백업, 지우면 초기화.</li>
-<li>설정은 설치 폴더의 <code>.env</code>에 있어요. <code>MALHAN_FAMILY_CODE=</code> 줄이 로그인 코드이고, 바꾸면 「말한대로 켜기」로 다시 켜요. 항목 설명은 <code>.env.example</code>.</li>
-<li>다시 설치하고 싶을 때(음성 인식이 빠졌을 때 등)는 <code>setup-windows.bat</code>(Mac은 <code>setup-mac.command</code>)를 한 번 더 더블클릭해요.</li>
+<li>음성·사진 원본은 글로 바꾼 뒤 지워요.<ul>
+<li>글은 「넣은 것」에서 직접 지울 때까지 남아요.</li>
 </ul>
-<h2 id="밖에서-쓸-때-지킬-것">밖에서 쓸 때 지킬 것</h2>
+</li>
+<li>내 기록(할 일·회의록·하루 마무리·캘린더 연결)은 모두 설치 폴더의 <code>data/</code>에 있어요.<ul>
+<li>복사하면 백업이고, 지우면 처음 상태로 돌아가요.</li>
+</ul>
+</li>
+<li>설치 폴더는 Windows <code>C:\Users\이름\malhandaero</code>, Mac은 설치 파일을 둔 곳의 <code>malhandaero</code>예요.</li>
+<li>설정은 설치 폴더의 <code>.env</code>에 있어요. 항목 설명은 <code>.env.example</code>에 있어요.<ul>
+<li><code>MALHAN_FAMILY_CODE=</code> 줄이 로그인 코드예요. 잊으면 여기서 봐요.</li>
+<li>바꾼 뒤에는 「말한대로 켜기」로 다시 켜요.</li>
+</ul>
+</li>
+<li>다시 설치하려면 <code>setup-windows.bat</code>(Mac은 <code>setup-mac.command</code>)를 한 번 더 더블클릭해요.<ul>
+<li>음성 인식이 빠졌을 때 등에 써요.</li>
+</ul>
+</li>
+</ul></section>
+<section class="card sub"><h2 id="밖에서-쓸-때-지킬-것">밖에서 쓸 때 지킬 것</h2>
 <ul>
-<li>PC가 켜져 있고 말한대로가 떠 있어야 해요. 회사 PC를 퇴근 때 끄면 그동안은 안 열려요. 늘 켜 둘 수 있는 컴퓨터에 설치하거나, 「자동 시작」을 등록하고 끄지 마세요.</li>
-<li>Mac은 덮개를 닫으면 잠들어요. 시스템 설정 → 배터리 → 전원 어댑터에서 "디스플레이가 꺼져 있을 때 자동으로 잠자기 방지"를 켜요. Windows는 설정 → 시스템 → 전원의 절전을 "안 함"으로 해요.</li>
-<li>밖에서 쓰는 주소를 만들지 않으려면 <code>tools\run.bat --local</code>(Mac <code>tools/run.sh --local</code>)로 켜요. 전에 열어 둔 주소도 같이 닫혀요(이 PC의 Tailscale serve 설정이 모두 지워져요. 말한대로만 쓰고 있다면 상관없어요).</li>
+<li>PC가 켜져 있고 말한대로가 떠 있어야 해요.<ul>
+<li>회사 PC를 퇴근 때 끄면 그동안은 안 열려요.</li>
+<li>늘 켜 둘 수 있는 컴퓨터에 설치하거나, 「자동 시작」을 등록하고 끄지 마세요.</li>
 </ul>
-<h2 id="같이-쓸-사람-폰-연결하기">같이 쓸 사람 폰 연결하기</h2>
-<p>팀원이나 가족과 같이 쓸 수 있어요. 목록은 사람마다 따로예요. QR은 앱의 「휴대폰에서 쓰기 → 다른 사람과 같이 쓰기」에 있고, 찍으면 이름만 정하고 들어와요. 밖에서도 쓸 사람은 <strong>Tailscale을 먼저</strong> 하고 QR을 찍어요. 앱이 Tailscale까지 대신 해 주지는 않아요.</p>
+</li>
+<li>Mac은 덮개를 닫으면 잠들어요.<ul>
+<li>시스템 설정 → 배터리 → 전원 어댑터에서 "디스플레이가 꺼져 있을 때 자동으로 잠자기 방지"를 켜요.</li>
+</ul>
+</li>
+<li>Windows는 설정 → 시스템 → 전원의 절전을 "안 함"으로 해요.</li>
+<li>밖에서 쓰는 주소를 만들지 않으려면 <code>tools\run.bat --local</code>(Mac <code>tools/run.sh --local</code>)로 켜요.<ul>
+<li>전에 열어 둔 주소도 같이 닫혀요.</li>
+<li>이 PC의 Tailscale serve 설정이 모두 지워져요. 말한대로만 쓰고 있다면 상관없어요.</li>
+</ul>
+</li>
+</ul></section>
+<section class="card sub"><h2 id="같이-쓸-사람-폰-연결하기">같이 쓸 사람 폰 연결하기</h2>
+<p>팀원이나 가족과 같이 쓸 수 있어요. 목록은 사람마다 따로예요.</p>
+<ul>
+<li>QR은 앱의 「휴대폰에서 쓰기 → 다른 사람과 같이 쓰기」에 있어요. 찍으면 이름만 정하고 들어와요.</li>
+<li>밖에서도 쓸 사람은 <strong>Tailscale을 먼저</strong> 하고 QR을 찍어요. 앱이 Tailscale까지 대신 해 주지는 않아요.</li>
+</ul>
 <table>
 <thead>
 <tr>
@@ -192,33 +306,92 @@ hr { border:0; height:0; margin:0 }
 </tr>
 </tbody>
 </table>
-<p>초대 순서: 내가 <a href="https://login.tailscale.com/admin/users">login.tailscale.com/admin/users</a>의 <strong>Invite external users</strong>로 초대 링크를 카카오톡 등으로 보내요. 받은 사람은 링크를 열어 본인 계정으로 수락하고, 폰에 Tailscale을 깔아 그 계정으로 로그인한 뒤 연결을 켜요. 그 폰의 Tailscale 기기 목록에 내 PC 이름이 보이면 된 거예요.</p>
+<p>초대 순서:</p>
+<ol>
+<li>내가 <a href="https://login.tailscale.com/admin/users">login.tailscale.com/admin/users</a>의 <strong>Invite external users</strong>로 초대 링크를 만들어 카카오톡 등으로 보내요.</li>
+<li>받은 사람은 링크를 열어 본인 계정으로 수락해요.</li>
+<li>받은 사람 폰에 Tailscale을 깔고, 그 계정으로 로그인한 뒤 연결을 켜요.</li>
+<li>그 폰의 Tailscale 기기 목록에 내 PC 이름이 보이면 된 거예요.</li>
+</ol>
 <p>로그인 코드는 「들어올 때 쓰는 코드 바꾸기」에서 바꿀 수 있어요.</p>
 <blockquote>
-<p>주의: 한 사람의 Claude Code 로그인으로 여러 명이 쓰는 공용 서버는 구독 약관에 맞지 않아요. 여럿이 같이 쓸 땐 AI가 PC 주인의 구독을 쓴다는 점을 알고, 팀이면 각자 PC에 설치하는 쪽을 권해요.</p>
-</blockquote>
-<h2 id="캘린더-자세히">캘린더 자세히</h2>
+<p>주의: 한 사람의 Claude Code 로그인으로 여러 명이 쓰는 공용 서버는 구독 약관에 맞지 않아요.</p>
+<p>여럿이 같이 쓸 땐 AI가 PC 주인의 구독을 쓴다는 점을 알아 두세요. 팀이면 각자 PC에 설치하는 쪽을 권해요.</p>
+</blockquote></section>
+<section class="card sub"><h2 id="캘린더-자세히">캘린더 자세히</h2>
 <ul>
-<li>기본은 <strong>시각을 정한 일만</strong> 캘린더에 넣어요(캘린더가 복잡해지지 않게). 「캘린더에 자동으로 넣을 일」에서 "날짜가 정해진 모든 일"로 바꿀 수 있어요. 시각 없는 일도 하나씩 넣고 싶으면 그 할 일을 펼쳐 <strong>「연결된 캘린더에 넣기」</strong>, 반대로 빼고 싶으면 「연결된 캘린더에서 빼기」를 눌러요. 한 번 정한 일은 그 선택이 설정보다 우선해요.</li>
-<li>할 일을 고치면 캘린더도 바뀌고, 나중으로 미루거나 지우면 캘린더에서도 빠져요. 「할 일로」 가져온 일은 고치거나 지워도 캘린더의 일정이 바뀌지 않아요.</li>
-<li>연결 정보(네이버 비밀번호, 구글 토큰)는 이 PC의 <code>data/</code>에만 저장돼요. 「연결 끊기」를 해도 캘린더의 일정은 그대로 있고, 같은 캘린더로 다시 연결하면 중복 없이 이어져요.</li>
+<li>기본은 <strong>시각을 정한 일만</strong> 캘린더에 넣어요. 캘린더가 복잡해지지 않게요.<ul>
+<li>「캘린더에 자동으로 넣을 일」에서 "날짜가 정해진 모든 일"로 바꿀 수 있어요.</li>
 </ul>
-<p><strong>네이버 캘린더 (2분)</strong>: 네이버 로그인 → 내정보 → 보안설정 → 2단계 인증 켜기 → 같은 화면 <strong>애플리케이션 비밀번호 관리</strong>에서 하나 만들기(종류 "직접 입력", 이름 "말한대로") → 앱의 「캘린더 연결 → 네이버」에 아이디와 그 비밀번호.</p>
-<p><strong>본인 구글 클라이언트로 쓰기 (선택, 10분)</strong>: 내장 등록은 PC의 localhost에서만 연결을 받아요. 폰(https 주소)에서도 연결 버튼을 누르고 싶을 때만 해요. <a href="https://console.cloud.google.com">console.cloud.google.com</a>에서 프로젝트를 만들어 "Google Calendar API"를 켜고, OAuth 동의 화면(외부, 앱 이름 "말한대로")을 <strong>프로덕션으로 게시</strong>한 뒤 OAuth 클라이언트 ID(웹 애플리케이션)를 만들어요. 승인된 리디렉션 URI에는 <code>http://localhost:8000/api/calendar/google/callback</code>과 <code>https://내PC이름.○○○.ts.net/api/calendar/google/callback</code>을 넣어요. <code>.env</code>에 <code>MALHAN_GOOGLE_CLIENT_ID=…</code>, <code>MALHAN_GOOGLE_CLIENT_SECRET=…</code>을 적고 다시 켜요.</p>
-<h2 id="pc에-로그인하면-알아서-켜지게">PC에 로그인하면 알아서 켜지게</h2>
-<ul>
-<li>Windows: 바탕 화면 「말한대로 자동 시작」 더블클릭. 로그인하면 최소화된 창으로 켜져요. 해제는 명령 프롬프트에서 <code>tools\autostart.bat remove</code>.</li>
-<li>Mac: <code>autostart-on.command</code> 더블클릭. 창 없이 돌고 출력은 <code>data/server.log</code>. 해제는 <code>autostart-off.command</code>.</li>
+</li>
+<li>시각 없는 일을 하나씩 넣으려면 그 할 일을 펼쳐 <strong>「연결된 캘린더에 넣기」</strong>를 눌러요.<ul>
+<li>빼려면 「연결된 캘린더에서 빼기」를 눌러요.</li>
+<li>한 번 정한 일은 그 선택이 설정보다 우선해요.</li>
 </ul>
-<p>자동 시작은 PC 브라우저를 열지 않아요. 켤 때 브라우저가 열리는 게 싫으면 <code>.env</code>에 <code>MALHAN_OPEN_BROWSER=0</code>.</p>
-<h2 id="업데이트">업데이트</h2>
+</li>
+<li>할 일을 고치면 캘린더도 바뀌어요. 나중으로 미루거나 지우면 캘린더에서도 빠져요.<ul>
+<li>「할 일로」 가져온 일은 고치거나 지워도 캘린더의 일정이 바뀌지 않아요.</li>
+</ul>
+</li>
+<li>연결 정보(네이버 비밀번호, 구글 토큰)는 이 PC의 <code>data/</code>에만 저장돼요.<ul>
+<li>「연결 끊기」를 해도 캘린더의 일정은 그대로 있어요.</li>
+<li>같은 캘린더로 다시 연결하면 중복 없이 이어져요.</li>
+</ul>
+</li>
+</ul>
+<p><strong>네이버 캘린더 (2분)</strong></p>
+<ol>
+<li>네이버 로그인 → 내정보 → 보안설정 → 2단계 인증을 켜요.</li>
+<li>같은 화면 <strong>애플리케이션 비밀번호 관리</strong>에서 하나 만들어요. (종류 "직접 입력", 이름 "말한대로")</li>
+<li>앱의 「캘린더 연결 → 네이버」에 아이디와 그 비밀번호를 넣어요.</li>
+</ol>
+<p><strong>본인 구글 클라이언트로 쓰기 (선택, 10분)</strong></p>
+<p>내장 등록은 PC의 localhost에서만 연결을 받아요. 폰(https 주소)에서도 연결 버튼을 누르고 싶을 때만 해요.</p>
+<ol>
+<li><a href="https://console.cloud.google.com">console.cloud.google.com</a>에서 프로젝트를 만들고 "Google Calendar API"를 켜요.</li>
+<li>OAuth 동의 화면(외부, 앱 이름 "말한대로")을 <strong>프로덕션으로 게시</strong>해요.</li>
+<li>OAuth 클라이언트 ID(웹 애플리케이션)를 만들고, 승인된 리디렉션 URI에 아래 둘을 넣어요.<ul>
+<li><code>http://localhost:8000/api/calendar/google/callback</code></li>
+<li><code>https://내PC이름.○○○.ts.net/api/calendar/google/callback</code></li>
+</ul>
+</li>
+<li><code>.env</code>에 <code>MALHAN_GOOGLE_CLIENT_ID=…</code>, <code>MALHAN_GOOGLE_CLIENT_SECRET=…</code>을 적고 다시 켜요.</li>
+</ol></section>
+<section class="card sub"><h2 id="pc에-로그인하면-알아서-켜지게">PC에 로그인하면 알아서 켜지게</h2>
 <ul>
-<li><strong>새 기능은 「업데이트」 버튼으로 받아요.</strong> 개발자가 더한 새 기능은 화면 맨 아래 「업데이트」를 누르면 받아져요. 쓰는 중에 「새 버전이 있어요 · 지금 적용」 띠가 뜨면 눌러도 돼요. 켤 때와 새벽 4시에도 받아요.</li>
-<li>기록(<code>data/</code>)과 설정(<code>.env</code>)은 바뀌지 않아요. 인터넷이 안 되면 지금 버전으로 켜져요. 자동 업데이트를 끄려면 <code>.env</code>에 <code>MALHAN_AUTO_UPDATE=0</code>.</li>
-<li>폴더 안 파일을 손으로 고치면 업데이트가 건너뛰어요(덮어쓰지 않음). 켤 때 "직접 고친 파일이 있어서…"가 나오면 그 뜻이에요.</li>
+<li>Windows: 바탕 화면 「말한대로 자동 시작」을 더블클릭해요.<ul>
+<li>로그인하면 최소화된 창으로 켜져요.</li>
+<li>해제는 명령 프롬프트에서 <code>tools\autostart.bat remove</code>.</li>
+</ul>
+</li>
+<li>Mac: <code>autostart-on.command</code>를 더블클릭해요.<ul>
+<li>창 없이 돌고 출력은 <code>data/server.log</code>에 남아요.</li>
+<li>해제는 <code>autostart-off.command</code>.</li>
+</ul>
+</li>
+<li>자동 시작은 PC 브라우저를 열지 않아요.<ul>
+<li>직접 켤 때도 브라우저가 열리지 않게 하려면 <code>.env</code>에 <code>MALHAN_OPEN_BROWSER=0</code>을 적어요.</li>
+</ul>
+</li>
+</ul></section>
+<section class="card sub"><h2 id="업데이트">업데이트</h2>
+<ul>
+<li>개발자가 더한 새 기능은 화면 맨 아래 <strong>「업데이트」</strong> 버튼을 누르면 받아져요.<ul>
+<li>쓰는 중에 「새 버전이 있어요 · 지금 적용」 띠가 뜨면 눌러도 돼요.</li>
+<li>켤 때와 새벽 4시에도 받아요.</li>
+</ul>
+</li>
+<li>기록(<code>data/</code>)과 설정(<code>.env</code>)은 바뀌지 않아요. 인터넷이 안 되면 지금 버전으로 켜져요.<ul>
+<li>자동 업데이트를 끄려면 <code>.env</code>에 <code>MALHAN_AUTO_UPDATE=0</code>을 적어요.</li>
+</ul>
+</li>
+<li>폴더 안 파일을 손으로 고치면 업데이트가 건너뛰어요. 덮어쓰지 않아요.<ul>
+<li>켤 때 "직접 고친 파일이 있어서…"가 나오면 그 뜻이에요.</li>
+</ul>
+</li>
 <li>필요한 기능은 <strong>게시글 댓글</strong>로 알려 주세요. 업데이트해 드릴게요.</li>
-</ul>
-<h2 id="안-될-때">안 될 때</h2>
+</ul></section>
+<section class="card sub"><h2 id="안-될-때">안 될 때</h2>
 <table>
 <thead>
 <tr>
@@ -264,4 +437,4 @@ hr { border:0; height:0; margin:0 }
 <td>폰 Tailscale 켜짐? PC 켜짐? <code>tailscale serve --bg 8000</code> 직접 실행</td>
 </tr>
 </tbody>
-</table></main></body></html>
+</table></section></main></body></html>
