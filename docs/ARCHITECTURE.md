@@ -98,7 +98,7 @@ records(id, user_id, addon, type, input_id, data, date, status, created_at)
 | 문서 | 역할 | 이 문서가 기준인 내용 |
 |---|---|---|
 | `README.md` | 저장소 첫 화면 | 앱 한 줄 소개, 설치 파일 주소, 파일별 설명(「개발」 표) |
-| `docs/POSTER.html` | 홍보 — 앱의 가치 | 홍보 문구와 실제 화면 캡처(`docs/img/screens/`, `tools/shoot_screens.py`로 찍고 `tools/build_poster.py`로 넣음). 게시판에 붙일 그림은 `tools/cut_poster.py`가, 움직이는 그림(말하기→할 일)은 `tools/shoot_gif.py`가 `docs/img/poster/`에 만든다(커밋하지 않음). 공모 게시글에 실제로 넣은 조각은 `docs/img/board/`에 둔다. 폭은 1100px이고, 설치 단추 셋은 링크를 걸 수 있게 한 장씩 따로 잘랐다. 포스터를 고치면 다시 잘라 넣는다 |
+| `docs/POSTER.html` | 홍보 — 앱의 가치 | 홍보 문구와 실제 화면 캡처(`docs/img/screens/`, `tools/shoot_screens.py`로 찍고 `tools/build_poster.py`로 넣음). 게시판에 붙일 그림은 `tools/cut_poster.py`가, 움직이는 그림(말하기→할 일)은 `tools/shoot_gif.py`가 `docs/img/poster/`에 만든다(커밋하지 않음). 공모 게시글에 실제로 넣은 조각은 `tools/cut_board.py`가 `docs/img/board/`에 자른다(커밋한다). 이 조각은 폭이 1100px이고, 설치 단추 셋은 링크를 걸 수 있게 한 장씩 따로 자른다. 포스터를 고치면 `python tools/cut_board.py`를 다시 돌린다 |
 | `docs/STYLE.html` | 디자인 덱 — 포스터의 색 · 글꼴 · 부품 견본 | 색 값(`:root`) |
 | `docs/START.md` | 설치 · 운영 안내 | 5단계 이름과 순서, 안 될 때, 설정(`.env`) 안내 |
 | `docs/START.html` | START.md를 그림까지 넣어 만든 한 파일. 앱의 `/start`, 포스터의 「말한대로 셋업 가이드」 버튼(GitHub Pages). 모양(카드 · 번호 · 목차)은 `tools/build_start_html.py`가 입힌다 | 없음 — 손으로 고치지 않는다(G-08) |
