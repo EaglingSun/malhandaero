@@ -1,9 +1,11 @@
 """docs/POSTER.html을 게시판에 붙일 그림으로 잘라 docs/img/poster/에 둔다.
 
-    python tools/cut_poster.py            # 폭 900px, 2배 선명도
+    python tools/cut_poster.py            # 세 장: 설치 칸 위 전부 / 설치 칸 / 그 아래 전부 (폭 900px, 2배 선명도)
+    python tools/cut_poster.py --split    # 칸(section)마다 한 장 (기능 칸은 화면마다)
     python tools/cut_poster.py --width 760
 
-칸(section)마다 한 장, 맨 끝 footer는 마지막 칸에 붙인다. 게시판은 그림을 순서대로 붙이면 되므로 파일 이름 앞에 번호를 둔다.
+설치 칸(#start)의 다운로드 단추는 그림에선 눌리지 않으므로, 게시글엔 설치 칸 그림 아래에 링크를 글로 적는다.
+게시판은 그림을 순서대로 붙이면 되므로 파일 이름 앞에 번호를 둔다.
 playwright와 Chrome이 필요하다(tools/shoot_screens.py와 같다).
 """
 import argparse
@@ -22,6 +24,7 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--width", type=int, default=900)
     ap.add_argument("--scale", type=int, default=2)
+    ap.add_argument("--split", action="store_true", help="칸마다 한 장으로 잘게")
     a = ap.parse_args()
     try:
         from playwright.sync_api import sync_playwright
@@ -56,6 +59,16 @@ def main() -> int:
             print(f)
 
         pad = 14
+        if not a.split:
+            start = pg.query_selector("main.wrap > section#start")
+            if not start:
+                print("설치 칸(section#start)을 찾지 못했어요. --split 로 잘라 주세요."); return 1
+            top = secs[0].bounding_box(); sb = start.bounding_box()
+            fb = pg.query_selector("main.wrap > footer").bounding_box()
+            shot("top", top["y"], sb["y"] - top["y"])
+            shot("install", sb["y"], sb["height"])
+            shot("bottom", sb["y"] + sb["height"], fb["y"] + fb["height"] - sb["y"] - sb["height"])
+            b.close(); return 0
         for i, sec in enumerate(secs):
             name = NAMES[i] if i < len(NAMES) else f"sec{i}"
             box = sec.bounding_box()
