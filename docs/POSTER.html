@@ -36,12 +36,13 @@ mark { background: linear-gradient(transparent 55%, var(--sun) 55%); color: inhe
 .name img.ic { width: 26px; height: 26px; border-radius: 7px; vertical-align: -7px; margin-right: 6px; }
 .name { align-self: flex-start; padding-left: 8px; font-family: var(--font-display); font-size: 17px; color: var(--mint); background: var(--paper); border: 1.5px solid var(--mint); padding: 4px 14px; border-radius: 999px; }
 .q { font-size: 21px; color: var(--muted); margin: 0; }
-.gather { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
-.gather span { font-size: 14px; padding: 6px 12px; border-radius: 999px; background: #fff; border: 1.5px dashed #b9cbdb; color: var(--muted); white-space: nowrap; }
-.gather em { font-style: normal; display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; }
-.gather i { font-style: normal; font-size: 22px; color: var(--mint); }
-.gather span:nth-child(odd) { transform: rotate(-1.5deg); } .gather span:nth-child(even) { transform: rotate(1.2deg); }
-.gather b { font-size: 15px; padding: 7px 16px; border-radius: 999px; background: var(--mint); color: #fff; white-space: nowrap; box-shadow: 0 6px 16px rgba(18,181,138,.25); }
+.gather { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; max-width: 30em; }
+.gather span { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 16px; background: #fff; border: 1.5px solid var(--line); line-height: 1.3; }
+.gather span i { font-style: normal; font-size: 24px; flex: none; }
+.gather span b { display: block; font-size: 16px; }
+.gather span small { display: block; font-size: 13px; color: var(--muted); }
+.gather p { grid-column: 1 / -1; margin: 0; font-size: 14px; color: var(--muted); text-align: center; }
+.gather em { grid-column: 1 / -1; font-style: normal; text-align: center; font-family: var(--font-display); font-size: 19px; padding: 10px 14px; border-radius: 16px; background: var(--mint); color: #fff; box-shadow: 0 6px 16px rgba(18,181,138,.25); }
 h1 { font-size: clamp(38px, 6.6vw, 66px); line-height: 1.16; }
 .lead { margin: 0; font-size: 20px; max-width: 28em; }
 .lead b { color: var(--mint); }
@@ -202,6 +203,7 @@ footer { font-size: 13px; color: var(--muted); }
   .duo { max-width: 100%; }
   .wrap { padding-top: 28px; gap: 40px; }
   .hero, .shot, .shot.wide { grid-template-columns: 1fr; gap: 20px; }
+  .gather span { padding: 10px; gap: 8px; } .gather span i { font-size: 20px; } .gather span b { font-size: 15px; } .gather span small { font-size: 12px; }
   .shot:nth-child(even) { direction: ltr; }
   .shot.wide .duo { max-width: 100%; }
   .three { grid-template-columns: 1fr; }
@@ -216,8 +218,12 @@ footer { font-size: 13px; color: var(--muted); }
       <span class="name"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAIAAADdvvtQAAAEsUlEQVR4Xu3bzW3bQBCGYSZwBXEHtm/uxmWlGN9SSm62O3APQUCAECRLHvLb3ZmdeZ+z/jh8uVwl8o9ff34vwFE/jz4R+I+AICEgSAgIEgKChIAgISBICAgSAoKEgCAhIEgICBICgoSAICEgSAgIEgKChIAgISBICAgSAoKEgCAhIEgICBICgoSAICEgSAgIEgKChIAgISBICAgSAoKEgCAhIEgICBICguROeraHz+c3j7cd5/7v07g3k00TUPpuNtuRTlFS9IDqdHNpipLiBlQ5nTPrKGIuSEE30dRzY0EKJWJA1HNNwMnEuoUFHFA00W5ngVYg6rGLM6soAcWZyCyCTCxEQEFmMZ0IcwsREOblH1CEy2he7tNzDsj9+BPwnaFnQL5HnonjJD0DQgJuATleNCl5zdMtIORAQJD4BOS13ubmMlWfgJAGAUHiEJDLShvH48tHvw8zfrYOAVW21tO1ocEIaJzTbtI0RECDXBaToyECGuFaK48vH7NnRED+pm6IgLqz9GF5TEwE1JexjPfXh76foxsC6ih9PctCQN1UqIeAeilSDwF1YawnB/ZAjdnrmXfjfIqAfOSoh1tYY8blJ009BNRSwXoIqJma9RBQG2XrIaAGKtdDQCpjPYnxNf44ez2ZvnadyRyQ/QR3lbiezLew3j9fN9aZu560AfX++Tr1bBLewnr/fJ16TmUL6MbP15tsdKgn8yb69tk1nvsbjK+Qft+TcwWynF3LY64xPrdUPXk20caze/jPiu2vX02SPdCu635vDfbH7/oYOSQJaFn2nTx7E3YF68lzC1vtOoXGhowP2/XWmeRZgXo0RD3fyhZQw3WIeiwSBtSkIeoxyhmQ2BD12KUN6HBDxnqwyhzQgYbs9ZT92nUmeUB7GzKink3+gJo3RD2nSgTUsCHqKXcL2+jnXn+FfKqsQCulAOW5idUK6HBD1HNNuYAON4QvVQxob0MsPzcUDcjeEPXcVjcgS0PU863SAd1uiHosHAK6//tk+WTDrKGc5vL++jBpPeNnezfsPEV22RCMHFYgZOIT0PiVtgKXqfoEhDQICBK3gFzW28S85ukWEHLwDMjrosnHcZKeAS2L55Gn4VhPiL/K8D3+2blPz3kFwuxCBOR+GU0qwtxCBMRm6IAI9YTYA22CTGQKcWYV63/j17l8Pr9NcRZdxElnFeUWdirajOIIOJmIAbEl+lLAepYl2C3sch3idhb8coq1B7q0XXYFS4q55JyJHtDld7T0JU3RzWaagM5K6prRXKfQV9BNtCPq2YWA+BcECQF9sc2C3Xx7oB64bR3GCkQ9kuoBsfaISgdEPbq6AVFPExU30aTTULkViHraqhUQ9TRXKCDq6aFKQNTTSf5NNOl0lXwFop7eMgdEPQOkDYh6xki4ByKdkbKtQNQzWKqAqGe8PAFRj4skAVGPl+k30aTja+4ViHrcTRwQ9UQwa0DUE8SsASEIAoKEgCAhIEgICBICgoSAICEgSAgIEgKChIAgISBICAgSAoKEgCAhIEgICBICgoSAICEgSAgIEgKChIAgISBICAgSAoKEgCAhIEgICBICgoSAICEgSAgIEgKChIAgISBI/gFxEErqgq/4+wAAAABJRU5ErkJggg==" alt="" class="ic">말한대로</span>
       <p class="q">회의록은 AI가 써 주는데, <b>내 할 일</b>은 아직 여기저기 흩어져 있지 않나요?</p>
       <div class="gather">
-        <span>📅 3시 고객 미팅</span><span>📝 회의에서 맡은 일</span><span>📞 통화로 약속한 것</span><span>💬 메신저로 온 부탁</span><span>📷 안내문 사진</span><span>💭 아, 우유</span>
-        <em><i>→</i><b>오늘 할 일, 한 화면</b></em>
+        <span><i>📅</i><div><b>캘린더 일정</b><small>오늘 일정이 할 일 위에</small></div></span>
+        <span><i>📝</i><div><b>회의에서 맡은 일</b><small>녹음 앱에서 바로 공유</small></div></span>
+        <span><i>📞</i><div><b>통화로 한 약속</b><small>녹음 앱에서 바로 공유</small></div></span>
+        <span><i>💭</i><div><b>머릿속 할 일</b><small>말 한마디로</small></div></span>
+        <p>메신저 부탁 · 그 밖의 요청은 말하거나 사진을 찍으면 알아서 추가돼요</p>
+        <em>↓ 전부 「오늘 할 일」 한 화면에</em>
       </div>
       <h1>말만 하세요.<br><mark>기억은 제가</mark> 할게요</h1>
       <p class="lead">통화·회의 녹음을 폰에서 <b>공유 한 번</b>. 챙길 일은 할 일로 · 회의는 회의록으로 · 일정은 캘린더로.</p>
@@ -232,7 +238,7 @@ footer { font-size: 13px; color: var(--muted); }
 
   <section class="sec">
     <span class="badge">하루는 이렇게</span>
-    <h2>아침 회의부터 퇴근길 통화까지, 한 번도 적지 않았어요</h2>
+    <h2>아침 회의부터 퇴근길 통화까지, 다 이 앱 하나로 관리해요</h2>
     <ol class="three five day">
       <li><strong>09:00 출근</strong><span>캘린더의 오늘 회의가 할 일 위에 떠 있어요. 「할 일로」 한 번.</span></li>
       <li><strong>10:40 회의 끝</strong><span>녹음 앱에서 「공유 → 말한대로」. 회의록과 내 할 일 3개가 와 있어요.</span></li>
