@@ -6,3 +6,4 @@ __pycache__/
 .venv/
 *.bak
 docs/img/poster/*.png
+docs/img/poster/*.gif
