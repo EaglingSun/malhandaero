@@ -36,6 +36,12 @@ mark { background: linear-gradient(transparent 55%, var(--sun) 55%); color: inhe
 .name img.ic { width: 26px; height: 26px; border-radius: 7px; vertical-align: -7px; margin-right: 6px; }
 .name { align-self: flex-start; padding-left: 8px; font-family: var(--font-display); font-size: 17px; color: var(--mint); background: var(--paper); border: 1.5px solid var(--mint); padding: 4px 14px; border-radius: 999px; }
 .q { font-size: 21px; color: var(--muted); margin: 0; }
+.gather { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.gather span { font-size: 14px; padding: 6px 12px; border-radius: 999px; background: #fff; border: 1.5px dashed #b9cbdb; color: var(--muted); white-space: nowrap; }
+.gather em { font-style: normal; display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; }
+.gather i { font-style: normal; font-size: 22px; color: var(--mint); }
+.gather span:nth-child(odd) { transform: rotate(-1.5deg); } .gather span:nth-child(even) { transform: rotate(1.2deg); }
+.gather b { font-size: 15px; padding: 7px 16px; border-radius: 999px; background: var(--mint); color: #fff; white-space: nowrap; box-shadow: 0 6px 16px rgba(18,181,138,.25); }
 h1 { font-size: clamp(38px, 6.6vw, 66px); line-height: 1.16; }
 .lead { margin: 0; font-size: 20px; max-width: 28em; }
 .lead b { color: var(--mint); }
@@ -197,6 +203,7 @@ footer { font-size: 13px; color: var(--muted); }
   .wrap { padding-top: 28px; gap: 40px; }
   .hero, .shot, .shot.wide { grid-template-columns: 1fr; gap: 20px; }
   .shot:nth-child(even) { direction: ltr; }
+  .shot.wide .duo { max-width: 100%; }
   .three { grid-template-columns: 1fr; }
 }
 </style>
@@ -208,6 +215,10 @@ footer { font-size: 13px; color: var(--muted); }
     <div class="pitch">
       <span class="name"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAIAAADdvvtQAAAEsUlEQVR4Xu3bzW3bQBCGYSZwBXEHtm/uxmWlGN9SSm62O3APQUCAECRLHvLb3ZmdeZ+z/jh8uVwl8o9ff34vwFE/jz4R+I+AICEgSAgIEgKChIAgISBICAgSAoKEgCAhIEgICBICgoSAICEgSAgIEgKChIAgISBICAgSAoKEgCAhIEgICBICgoSAICEgSAgIEgKChIAgISBICAgSAoKEgCAhIEgICBICguROeraHz+c3j7cd5/7v07g3k00TUPpuNtuRTlFS9IDqdHNpipLiBlQ5nTPrKGIuSEE30dRzY0EKJWJA1HNNwMnEuoUFHFA00W5ngVYg6rGLM6soAcWZyCyCTCxEQEFmMZ0IcwsREOblH1CEy2he7tNzDsj9+BPwnaFnQL5HnonjJD0DQgJuATleNCl5zdMtIORAQJD4BOS13ubmMlWfgJAGAUHiEJDLShvH48tHvw8zfrYOAVW21tO1ocEIaJzTbtI0RECDXBaToyECGuFaK48vH7NnRED+pm6IgLqz9GF5TEwE1JexjPfXh76foxsC6ih9PctCQN1UqIeAeilSDwF1YawnB/ZAjdnrmXfjfIqAfOSoh1tYY8blJ009BNRSwXoIqJma9RBQG2XrIaAGKtdDQCpjPYnxNf44ez2ZvnadyRyQ/QR3lbiezLew3j9fN9aZu560AfX++Tr1bBLewnr/fJ16TmUL6MbP15tsdKgn8yb69tk1nvsbjK+Qft+TcwWynF3LY64xPrdUPXk20caze/jPiu2vX02SPdCu635vDfbH7/oYOSQJaFn2nTx7E3YF68lzC1vtOoXGhowP2/XWmeRZgXo0RD3fyhZQw3WIeiwSBtSkIeoxyhmQ2BD12KUN6HBDxnqwyhzQgYbs9ZT92nUmeUB7GzKink3+gJo3RD2nSgTUsCHqKXcL2+jnXn+FfKqsQCulAOW5idUK6HBD1HNNuYAON4QvVQxob0MsPzcUDcjeEPXcVjcgS0PU863SAd1uiHosHAK6//tk+WTDrKGc5vL++jBpPeNnezfsPEV22RCMHFYgZOIT0PiVtgKXqfoEhDQICBK3gFzW28S85ukWEHLwDMjrosnHcZKeAS2L55Gn4VhPiL/K8D3+2blPz3kFwuxCBOR+GU0qwtxCBMRm6IAI9YTYA22CTGQKcWYV63/j17l8Pr9NcRZdxElnFeUWdirajOIIOJmIAbEl+lLAepYl2C3sch3idhb8coq1B7q0XXYFS4q55JyJHtDld7T0JU3RzWaagM5K6prRXKfQV9BNtCPq2YWA+BcECQF9sc2C3Xx7oB64bR3GCkQ9kuoBsfaISgdEPbq6AVFPExU30aTTULkViHraqhUQ9TRXKCDq6aFKQNTTSf5NNOl0lXwFop7eMgdEPQOkDYh6xki4ByKdkbKtQNQzWKqAqGe8PAFRj4skAVGPl+k30aTja+4ViHrcTRwQ9UQwa0DUE8SsASEIAoKEgCAhIEgICBICgoSAICEgSAgIEgKChIAgISBICAgSAoKEgCAhIEgICBICgoSAICEgSAgIEgKChIAgISBICAgSAoKEgCAhIEgICBICgoSAICEgSAgIEgKChIAgISBI/gFxEErqgq/4+wAAAABJRU5ErkJggg==" alt="" class="ic">말한대로</span>
       <p class="q">회의록은 AI가 써 주는데, <b>내 할 일</b>은 아직 여기저기 흩어져 있지 않나요?</p>
+      <div class="gather">
+        <span>📅 3시 고객 미팅</span><span>📝 회의에서 맡은 일</span><span>📞 통화로 약속한 것</span><span>💬 메신저로 온 부탁</span><span>📷 안내문 사진</span><span>💭 아, 우유</span>
+        <em><i>→</i><b>오늘 할 일, 한 화면</b></em>
+      </div>
       <h1>말만 하세요.<br><mark>기억은 제가</mark> 할게요</h1>
       <p class="lead">통화·회의 녹음을 폰에서 <b>공유 한 번</b>. 챙길 일은 할 일로 · 회의는 회의록으로 · 일정은 캘린더로.</p>
       <div class="cta-row">
