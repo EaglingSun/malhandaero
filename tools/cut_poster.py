@@ -15,7 +15,7 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 POSTER = ROOT / "docs" / "POSTER.html"
 OUT = ROOT / "docs" / "img" / "poster"
 
-NAMES = ["hero", "day", "features", "pc", "install", "tools", "close"]
+NAMES = ["hero", "day", "features", "ways", "pc", "install", "tools", "close"]
 
 
 def main() -> int:
