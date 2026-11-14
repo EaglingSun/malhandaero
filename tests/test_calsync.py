@@ -308,6 +308,15 @@ def test_google_events_listing(fake, monkeypatch):
     client.patch(f"/api/items/{it['id']}", json={"plan_time": "09:00"})
     assert "ev1" in FakeCalendars.events                                                   # 쓰기는 여전히 primary로
     assert client.post("/api/calendar/source", json={"id": ""}).json()["read_source"]["id"] == ""
+    # 가져올 캘린더를 여러 개: 두 캘린더의 일정이 시각순으로 합쳐진다 (고객 미팅은 cal_ref로 빠짐). 상태에는 read_sources 목록
+    st = client.post("/api/calendar/source", json={"ids": [{"id": "primary", "name": "Sun"}, {"id": "team@group.calendar.google.com", "name": "팀 공유 일정"}]}).json()
+    assert [c["name"] for c in st["read_sources"]] == ["Sun", "팀 공유 일정"]
+    assert [e["title"] for e in client.get("/api/calendar/events", params={"date": "2099-05-05"}).json()["events"]] == ["팀 주간 회의", "휴가"]
+    # 예전 한 개짜리 설정(read_calendar_id)도 그대로 읽힌다
+    from server import db as _db2
+    uid = _db2.connect().execute("SELECT id FROM users WHERE name='구글일정'").fetchone()["id"]
+    calsync.update_config(uid, read_calendars=None, read_calendar_id="team@group.calendar.google.com", read_calendar_name="팀 공유 일정")
+    assert client.get("/api/calendar").json()["read_sources"] == [{"id": "team@group.calendar.google.com", "name": "팀 공유 일정"}]
     # 올릴 캘린더를 공유 캘린더로 바꾸면, 앞으로 할 일은 거기로 올라간다
     FakeCalendars.events.clear()
     st = client.post("/api/calendar/target", json={"id": "team@group.calendar.google.com", "name": "팀 공유 일정"}).json()
@@ -359,3 +368,24 @@ def test_builtin_google_client_only_links_from_localhost(monkeypatch):
     assert r.status_code == 303 and "client_id=builtin-id" in r.headers["location"] and "localhost%3A8000%2Fapi%2Fcalendar%2Fgoogle%2Fcallback" in r.headers["location"]
     monkeypatch.setenv("MALHAN_GOOGLE_CLIENT_ID", "own"); monkeypatch.setenv("MALHAN_GOOGLE_CLIENT_SECRET", "own-s")
     assert not client.get("/api/calendar").json()["google_local_only"]                 # 본인 클라이언트면 어디서나
+
+
+def test_read_calendars_and_dedupe(monkeypatch):
+    from server import calsync
+    # 새 키 / 예전 키(구글·네이버) / 아무것도 없음
+    assert calsync.read_calendars({"read_calendars": [{"id": "a", "name": "A"}, {"id": "", "name": "빈 것"}]}) == [{"id": "a", "name": "A"}]
+    assert calsync.read_calendars({"read_calendar_id": "team", "read_calendar_name": "팀"}) == [{"id": "team", "name": "팀"}]
+    assert calsync.read_calendars({"read_calendar_url": "https://cal/x/", "read_calendar_name": ""}) == [{"id": "https://cal/x/", "name": ""}]
+    assert calsync.read_calendars({}) == []
+    # 두 캘린더에 같은 일정(uid)이 있으면 한 번만, 말한대로가 넣은 것은 빼고, 시각 있는 것 먼저
+    calls = []
+    class N:
+        def __init__(self, *a): pass
+        def events(self, url, day):
+            calls.append(url)
+            return {"u1": [{"ref": "1", "title": "주간 회의", "time": "10:00", "uid": "same"}, {"ref": "2", "title": "휴가", "time": None, "uid": "h"}],
+                    "u2": [{"ref": "3", "title": "주간 회의", "time": "10:00", "uid": "same"}, {"ref": "4", "title": "보낸 것", "time": "09:00", "uid": "x@malhandaero"}]}[url]
+    monkeypatch.setattr(calsync, "Naver", N)
+    link = {"provider": "naver", "config": {"user": "u", "password": "p", "calendar_url": "u1", "read_calendars": [{"id": "u1", "name": ""}, {"id": "u2", "name": ""}]}}
+    from datetime import date
+    assert [e["title"] for e in calsync.day_events(link, date(2099, 5, 5))] == ["주간 회의", "휴가"] and calls == ["u1", "u2"]

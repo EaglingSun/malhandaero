@@ -740,9 +740,12 @@
     $("cal-err").textContent = c.status || "";
     $("cal-mode").value = c.mode || "timed";
     function ensure(sel, id, name) { if (id && !Array.prototype.some.call(sel.options, function (o) { return o.value === id; })) { var o = document.createElement("option"); o.value = id; o.textContent = name || id; sel.appendChild(o); } }
-    var src = $("cal-source"), tgt = $("cal-target"), rs = c.read_source || {}, wt = c.write_target || {};
-    ensure(tgt, wt.id, wt.name); tgt.value = wt.id || ""; ensure(src, rs.id, rs.name); src.value = rs.id || "";
-    say("cal-source-msg", "올리기: " + (wt.name || "기본 캘린더") + " · 가져오기: " + (rs.id ? (rs.name || rs.id) : "올리는 캘린더와 같게") + (linked ? "  — 다른 캘린더를 쓰려면 목록을 불러와 고르세요." : ""));
+    var tgt = $("cal-target"), wt = c.write_target || {};
+    ensure(tgt, wt.id, wt.name); tgt.value = wt.id || "";
+    state.calReads = c.read_sources || [];
+    renderSources();
+    var names = state.calReads.map(function (r) { return r.name || r.id; });
+    say("cal-source-msg", "올리기: " + (wt.name || "기본 캘린더") + " · 가져오기: " + (names.length ? names.join(" · ") : "올리는 캘린더와 같게") + (linked ? "  — 다른 캘린더를 쓰려면 목록을 불러와 고르세요." : ""));
     var isLocal = ["localhost", "127.0.0.1", "[::1]"].indexOf(location.hostname) >= 0;
     var needPc = c.google_ready && c.google_local_only && !isLocal;
     $("google-go").hidden = !c.google_ready || needPc;
@@ -767,29 +770,41 @@
   $("cal-mode").addEventListener("change", function () {
     api("/api/calendar/mode", { method: "POST", json: { mode: $("cal-mode").value } }).then(renderCal).catch(function (e) { $("cal-err").textContent = e.message; });
   });
+  // 가져올 캘린더 체크 목록: 서버가 아는 목록(state.calSources) + 이미 고른 것(state.calReads)을 합쳐 보여 준다
+  function renderSources() {
+    var box = $("cal-sources"), all = (state.calSources || []).slice(), picked = state.calReads || [];
+    picked.forEach(function (r) { if (!all.some(function (c) { return c.id === r.id; })) all.push({ id: r.id, name: r.name || r.id }); });
+    box.textContent = "";
+    if (!all.length) { box.textContent = "목록을 불러오면 여기서 고를 수 있어요."; return; }
+    all.forEach(function (c) {
+      var lab = document.createElement("label"), cb = document.createElement("input");
+      cb.type = "checkbox"; cb.value = c.id; cb.dataset.name = c.name; cb.checked = picked.some(function (r) { return r.id === c.id; });
+      lab.appendChild(cb); lab.appendChild(document.createTextNode(" " + c.name + (c.primary ? " (기본)" : "")));
+      box.appendChild(lab);
+    });
+  }
   function loadSources() {
     state.calSourcesLoaded = true;
     say("cal-source-msg", "캘린더 목록을 읽고 있어요…");
     api("/api/calendar/sources").then(function (r) {
-      var src = $("cal-source"), tgt = $("cal-target"), keep = src.value, keepT = tgt.value; src.textContent = ""; tgt.textContent = "";
-      var o0 = document.createElement("option"); o0.value = ""; o0.textContent = "올리는 캘린더와 같게"; src.appendChild(o0);
+      var tgt = $("cal-target"), keepT = tgt.value; tgt.textContent = "";
       r.sources.forEach(function (c) {
-        var o = document.createElement("option"); o.value = c.id; o.textContent = c.name + (c.primary ? " (기본)" : ""); src.appendChild(o);
         var t = document.createElement("option"); t.value = c.id; t.textContent = c.name + (c.primary ? " (기본)" : ""); tgt.appendChild(t);
       });
-      src.value = keep; tgt.value = keepT;
+      tgt.value = keepT;
       if (!tgt.value) { var prim = r.sources.filter(function (c) { return c.primary; })[0]; if (prim) tgt.value = prim.id; }   // 아직 안 골랐으면 기본 캘린더가 보이게
+      state.calSources = r.sources; renderSources();
       say("cal-source-msg", r.sources.length + "개 캘린더를 찾았어요. 골라 주세요.");
     }).catch(function (e) { state.calSourcesLoaded = false; say("cal-source-msg", e.message, true); });
   }
   $("cal-source-load").addEventListener("click", loadSources);
+  $("cal-sources").addEventListener("change", function () {
+    var ids = Array.prototype.map.call($("cal-sources").querySelectorAll("input:checked"), function (cb) { return { id: cb.value, name: cb.dataset.name || "" }; });
+    api("/api/calendar/source", { method: "POST", json: { ids: ids } }).then(function (c) { renderCal(c); refresh(); }).catch(function (e) { say("cal-source-msg", e.message, true); });
+  });
   $("cal-target").addEventListener("change", function () {
     var t = $("cal-target"), name = t.options[t.selectedIndex] ? t.options[t.selectedIndex].textContent.replace(" (기본)", "") : "";
     api("/api/calendar/target", { method: "POST", json: { id: t.value, name: name } }).then(function (c) { renderCal(c); refresh(); }).catch(function (e) { say("cal-source-msg", e.message, true); });
-  });
-  $("cal-source").addEventListener("change", function () {
-    var src = $("cal-source"), name = src.options[src.selectedIndex] ? src.options[src.selectedIndex].textContent.replace(" (기본)", "") : "";
-    api("/api/calendar/source", { method: "POST", json: { id: src.value, name: src.value ? name : "" } }).then(function (c) { renderCal(c); refresh(); }).catch(function (e) { say("cal-source-msg", e.message, true); });
   });
   $("cal-unlink").addEventListener("click", function () {
     api("/api/calendar", { method: "DELETE" }).then(renderCal).catch(function (e) { $("cal-err").textContent = e.message; });

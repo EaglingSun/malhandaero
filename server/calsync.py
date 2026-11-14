@@ -462,14 +462,36 @@ def wants(link: dict, row) -> bool:
 OURS = "말한대로에서 보냄"
 
 
+def read_calendars(cfg: dict) -> list[dict]:
+    """일정을 읽어 올 캘린더들 [{id, name}]. 비어 있으면 올리는 캘린더와 같게.
+    예전 한 개짜리 설정(read_calendar_id / read_calendar_url)도 그대로 읽는다."""
+    cals = cfg.get("read_calendars")
+    if isinstance(cals, list):
+        return [c for c in cals if isinstance(c, dict) and c.get("id")]
+    one = cfg.get("read_calendar_id") or cfg.get("read_calendar_url")
+    return [{"id": one, "name": cfg.get("read_calendar_name") or ""}] if one else []
+
+
 def day_events(link: dict, day: date) -> list[dict]:
-    """연결된 캘린더의 그날 일정. 말한대로가 넣은 일정은 뺀다."""
+    """연결된 캘린더(여러 개 가능)의 그날 일정. 말한대로가 넣은 일정은 빼고, 같은 일정이 두 캘린더에 있으면 한 번만."""
     cfg = link["config"]
+    ids = [c["id"] for c in read_calendars(cfg)]
     if link["provider"] == "naver":
-        evs = Naver(cfg["user"], cfg["password"]).events(cfg.get("read_calendar_url") or cfg["calendar_url"], day)
+        nv = Naver(cfg["user"], cfg["password"])
+        evs = [e for u in (ids or [cfg["calendar_url"]]) for e in nv.events(u, day)]
     else:
-        evs = Google(cfg["refresh_token"]).events(day, cfg.get("read_calendar_id") or "primary")
-    return [e for e in evs if OURS not in (e.get("description") or "") and not (e.get("uid") or "").endswith("@malhandaero")]
+        g = Google(cfg["refresh_token"])
+        evs = [e for c in (ids or [cfg.get("write_calendar_id") or "primary"]) for e in g.events(day, c)]
+    out, seen = [], set()
+    for e in evs:
+        if OURS in (e.get("description") or "") or (e.get("uid") or "").endswith("@malhandaero"):
+            continue
+        key = e.get("uid") or (e.get("title"), e.get("time"))
+        if key in seen:
+            continue
+        seen.add(key); out.append(e)
+    out.sort(key=lambda e: (e.get("time") is None, e.get("time") or ""))   # 시각 있는 것 먼저(시각순), 종일 일정은 뒤에
+    return out
 
 
 def _remove(link: dict, ref: str) -> None:

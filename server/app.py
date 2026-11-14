@@ -1035,7 +1035,8 @@ def _calendar_state(user_id: int) -> dict:
         cfg = link["config"]
         out.update(provider=link["provider"], mode=link["mode"], status=link["status"],
                    label=cfg.get("calendar_name") or cfg.get("user") or "",
-                   read_source={"id": cfg.get("read_calendar_id") or cfg.get("read_calendar_url") or "", "name": cfg.get("read_calendar_name") or ""},
+                   read_sources=calsync.read_calendars(cfg),
+                   read_source=(calsync.read_calendars(cfg) or [{"id": "", "name": ""}])[0],   # 예전 화면용(첫 번째 것)
                    write_target={"id": cfg.get("write_calendar_id") or cfg.get("calendar_url") or "", "name": cfg.get("calendar_name") or ""})
     return out
 
@@ -1182,21 +1183,29 @@ def calendar_sources(user=Depends(current_user)):
 
 
 class ReadSource(BaseModel):
-    id: str = ""      # 구글: 캘린더 ID / 네이버: 캘린더 주소. 비우면 쓰는 캘린더와 같게
+    id: str = ""      # 구글: 캘린더 ID / 네이버: 캘린더 주소
+    name: str = ""
+
+
+class ReadSources(BaseModel):
+    ids: list[ReadSource] | None = None   # 여러 개. 비우면 올리는 캘린더와 같게
+    id: str = ""                          # 예전 방식: 한 개
     name: str = ""
 
 
 @app.post("/api/calendar/source")
-def calendar_set_source(body: ReadSource, user=Depends(current_user)):
-    """일정을 읽어 올 캘린더를 정한다. 올리는 캘린더는 그대로다."""
+def calendar_set_source(body: ReadSources, user=Depends(current_user)):
+    """일정을 읽어 올 캘린더(들)를 정한다. 올리는 캘린더는 그대로다."""
     link = calsync.get_link(user["id"])
     if not link:
         raise HTTPException(400, "먼저 캘린더를 연결해 주세요.")
-    sid = body.id.strip()
-    if link["provider"] == "naver":
-        calsync.update_config(user["id"], read_calendar_url=sid or None, read_calendar_name=body.name.strip()[:60] if sid else "")
-    else:
-        calsync.update_config(user["id"], read_calendar_id=sid or None, read_calendar_name=body.name.strip()[:60] if sid else "")
+    picks = body.ids if body.ids is not None else ([ReadSource(id=body.id, name=body.name)] if body.id.strip() else [])
+    cals, seen = [], set()
+    for c in picks:
+        cid = c.id.strip()
+        if cid and cid not in seen:
+            seen.add(cid); cals.append({"id": cid, "name": c.name.strip()[:60]})
+    calsync.update_config(user["id"], read_calendars=cals, read_calendar_id=None, read_calendar_url=None, read_calendar_name="")
     return _calendar_state(user["id"])
 
 

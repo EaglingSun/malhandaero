@@ -280,3 +280,9 @@ ol.steps { margin: 4px 0; padding-left: 20px; display: flex; flex-direction: col
   .sheet-body { max-width: 640px; border-radius: 22px; bottom: auto; top: 10vh; max-height: 80vh; }   /* PC에선 아래서 올라오지 않고 가운데 창으로 */
   .card { padding: 20px; }
 }
+
+/* 가져올 캘린더 체크 목록 */
+.checks { display: flex; flex-direction: column; gap: 6px; margin: 4px 0 12px; font-size: 15px; color: var(--ink); }
+.checks label { display: flex; align-items: center; gap: 8px; font-weight: 500; }
+.checks input { width: 18px; height: 18px; accent-color: var(--mint); }
+#cal-box label small { display: block; font-weight: 400; color: var(--muted); font-size: 13px; }
