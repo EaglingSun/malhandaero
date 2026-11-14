@@ -1,7 +1,7 @@
 """게시글 맨 위에 붙일 움직이는 그림: 「말하기」 → 들은 말 → 오늘 화면에 할 일.
 
 실행: python tools/shoot_gif.py [out.gif]      (playwright + Chrome + Pillow 필요)
-결과: docs/img/poster/talk.gif (390×844, 약 12초). 보기용 자료는 tools/shoot_screens.py와 같고 실제 data/는 건드리지 않는다.
+결과: docs/img/poster/talk.gif (390×844, 약 20초). 말하기 → 할 일, 이어서 넣은 것의 통화 요약·회의록까지. 보기용 자료는 tools/shoot_screens.py와 같고 실제 data/는 건드리지 않는다.
 브라우저 음성 인식은 headless에서 안 되므로 듣는 화면은 글자를 한 어절씩 넣어 흉내 내고, AI 추출은 정해진 답으로 바꿔 끼운다.
 """
 import io
@@ -94,9 +94,24 @@ def main() -> None:
         try:
             pg.click("#s-new >> text=모두 넣기", timeout=1500); pg.wait_for_timeout(900)
             pg.evaluate("window.scrollTo(0,0)")
-            frame(2600)                                                # 오늘 할 일에 들어감
+            frame(2200)                                                # 오늘 할 일에 들어감
         except Exception:
             pass
+        # 넣은 것: 통화 녹음이 요약·할 일로, 회의 녹취가 회의록으로
+        pg.click('.tabs button[data-tab="inputs"]'); pg.wait_for_timeout(800)
+        pg.evaluate("window.scrollTo(0,0)")
+        frame(1600)                                                    # 넣은 것 목록
+        pg.locator("li", has_text="통화 남편").locator("text=열어 보기").first.click(); pg.wait_for_timeout(900)
+        pg.evaluate("""() => { const h=[...document.querySelectorAll('#input-detail h3, #input-detail strong, #input-detail h4')].find(e=>e.textContent.includes('여기서 나온 내 일')); if(h){window.scrollTo(0, h.getBoundingClientRect().top + window.scrollY - 150);} }""")
+        frame(2600)                                                    # 통화 → 요약 + 내 일(근거 문장)
+        pg.click('.tabs button[data-tab="inputs"]'); pg.wait_for_timeout(600)
+        try:
+            pg.click("text=목록으로", timeout=1500); pg.wait_for_timeout(500)
+        except Exception:
+            pass
+        pg.locator("li", has_text="통화 무당이").locator("text=열어 보기").first.click(); pg.wait_for_timeout(900)
+        pg.evaluate("var m=document.querySelector('.minutes'); if(m){window.scrollTo(0, m.getBoundingClientRect().top + window.scrollY - 64);}")
+        frame(2800)                                                    # 회의록
         br.close()
 
     OUT.parent.mkdir(parents=True, exist_ok=True)
