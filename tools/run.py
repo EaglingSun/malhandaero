@@ -184,6 +184,7 @@ def serve() -> None:
     args = [sys.executable, "-m", "uvicorn", "server.app:app", "--host", "0.0.0.0", "--port", str(PORT), "--log-level", "warning"]
     if "--no-browser" not in sys.argv and os.environ.get("MALHAN_OPEN_BROWSER", "1") != "0":
         _open_browser_when_ready(port_free)
+    restarted = False
     while True:
         started = time.time()
         try:
@@ -193,6 +194,8 @@ def serve() -> None:
         if code != updater.RESTART_CODE:
             if time.time() - started < 5 and not port_free():
                 print(f"\n! 포트 {PORT}를 다른 말한대로 창이 쓰고 있어요. 이 창은 닫을게요.")
+            elif restarted and time.time() - started < 30:
+                print("\n! 업데이트한 버전이 켜지지 않았어요. 이 창을 닫고 「말한대로 켜기」를 다시 눌러 주세요 (켤 때 설치를 다시 해요).")
             sys.exit(code)
         # 다시 켜기 전에 포트가 비기를 기다린다 (옛 프로세스가 아직 닫히는 중일 수 있다)
         for _ in range(60):
@@ -202,11 +205,18 @@ def serve() -> None:
         else:
             print(f"\n! 포트 {PORT}가 비지 않아요. 다른 말한대로 창을 닫고 run을 다시 켜 주세요.")
             sys.exit(1)
+        # 켜져 있는 동안 받은 업데이트가 설치를 바라면 서버가 꺼진 지금 한다 (Windows에서 쓰는 중인 파일은 바꿀 수 없다)
+        #   새 프로세스로 부른다: 이 run.py가 쥐고 있는 updater는 옛 코드일 수 있다
+        if (ROOT / ".malhan-needs-install").exists():
+            ok = subprocess.call([sys.executable, "-c", "import sys; from server import updater; sys.exit(0 if updater.install_if_marked() else 1)"], cwd=ROOT) == 0
+            if not ok:
+                print("  설치가 되지 않았어요. 그대로 켜 보고, 안 켜지면 창을 닫고 「말한대로 켜기」를 다시 눌러 주세요.", flush=True)
         try:
             ver = updater.git("rev-parse", "--short", "HEAD")
         except Exception:
             ver = "?"
         print(f"\n업데이트한 버전({ver})으로 다시 켭니다…\n", flush=True)
+        restarted = True
 
 
 if __name__ == "__main__":

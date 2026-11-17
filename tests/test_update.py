@@ -93,3 +93,31 @@ def test_adopt_failure_leaves_no_half_repo(capsys, monkeypatch, tmp_path):
     monkeypatch.delenv("MALHAN_AUTO_UPDATE", raising=False)
     assert update.main([]) == 0
     assert "연결하지 못했어요" in capsys.readouterr().out and not (plain / ".git").exists() and (plain / "x.txt").read_text() == "x"
+
+
+def test_in_app_update_defers_install_until_server_is_off(repos, capsys, monkeypatch):
+    """화면의 「업데이트」는 켜진 서버 안에서 돈다: 설치는 표시만 남기고, 서버가 꺼진 뒤(run.py / 다음 켜기) 한다."""
+    origin, work, mine = repos
+    marker = mine / ".malhan-needs-install"
+    monkeypatch.setattr(update, "NEEDS_INSTALL", marker)
+    (work / "requirements.txt").write_text("fastapi\nhttpx\n"); sh(work, "commit", "-qam", "httpx 추가"); sh(work, "push", "-q", "origin", "main")
+    installed = []
+    monkeypatch.setattr(update, "install", lambda: installed.append(1))
+    assert update.main(["--defer-install"]) == 0
+    assert installed == [] and marker.exists() and "다시 켤 때 설치" in capsys.readouterr().out
+    assert update.install_if_marked() and installed == [1] and not marker.exists()   # run.py가 서버를 끈 뒤 부른다
+    # 표시가 남은 채 꺼졌으면 다음 켜기(tools/update.py)가 먼저 설치한다
+    marker.write_text("x")
+    assert update.main([]) == 0 and installed == [1, 1] and not marker.exists()
+
+
+def test_install_failure_keeps_marker_for_next_start(repos, monkeypatch):
+    origin, work, mine = repos
+    marker = mine / ".malhan-needs-install"
+    monkeypatch.setattr(update, "NEEDS_INSTALL", marker)
+    marker.write_text("x")
+
+    def boom():
+        raise subprocess.CalledProcessError(1, "pip")
+    monkeypatch.setattr(update, "install", boom)
+    assert update.install_if_marked() is False and marker.exists()

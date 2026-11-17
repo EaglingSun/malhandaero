@@ -7,3 +7,4 @@ __pycache__/
 *.bak
 docs/img/poster/*.png
 docs/img/poster/*.gif
+.malhan-needs-install

@@ -14,7 +14,7 @@
    ├─ AI        server/llm.py      claude(기본) | codex | api | gpt | gemini | ollama | openai | fake
    ├─ 음성 인식 server/stt.py      faster-whisper(로컬) | gemini | 없음
    ├─ 캘린더    server/calsync.py  구글(OAuth) · 네이버(CalDAV)
-   └─ 업데이트  server/updater.py  git fast-forward → 필요 시 재설치 → 다시 켬
+   └─ 업데이트  server/updater.py  git fast-forward → 다시 켬(서버가 꺼진 사이 필요 시 설치)
 ```
 
 - 화면은 `web/`의 빌드 없는 PWA. 서버가 `/`, `/start`(`docs/START.html`), `/manifest.webmanifest`, `/sw.js`와 `/api/*`를 낸다.
@@ -56,8 +56,10 @@ records(id, user_id, addon, type, input_id, data, date, status, created_at)
 - 업데이트는 세 곳에서 부른다: 켜기 전(`tools/update.py`), 화면의 「업데이트」(`POST /api/update`), 매일 새벽 4시. 한 시간마다 새 버전이 있는지 확인해 「지금 적용」 띠를 띄운다.
 - 받는 순서: `git fetch` → fast-forward만 → requirements가 바뀌면 재설치 → manifest가 바뀌면 폰 앱 재설치 안내.
 - 처음 한 번, `.git`이 없는 폴더면 저장소에 연결한다(init → fetch → 강제 checkout). 이때만 폴더의 코드 파일을 저장소 것으로 덮어쓴다. `data/` · `.env`는 그대로.
-- 켜져 있는 동안 받았으면 서버를 `RESTART_CODE(3)`로 끝내고 `tools/run.py`가 새 코드로 다시 켠다. 처리 중인 입력이 있으면 끝날 때까지 기다린다.
-- 추적 중인 파일을 고치다 만 것이 있으면 건너뛴다(덮어쓰지 않음). 인터넷이 안 되거나 받지 못해도 지금 코드로 켠다. 재설치가 실패했을 때만 켜지 않고 멈춘다.
+- 켜져 있는 동안 받았으면 서버를 `RESTART_CODE(3)`로 끝내고 `tools/run.py`가 새 코드로 다시 켠다. 처리 중인 입력이 있으면 끝날 때까지 기다리되 최대 3분(`RESTART_WAIT_MAX`), 넘으면 그냥 다시 켜고 켜진 뒤 처음부터 다시 처리한다(`resume_pending`).
+- 켜진 서버 안에서는 설치하지 않는다(Windows는 쓰는 중인 파일을 못 바꾼다). requirements가 바뀌면 `.malhan-needs-install` 표시만 남기고, 서버가 꺼진 뒤 `run.py`가(새 프로세스로 — 바깥 루프는 옛 코드일 수 있다), 놓치면 다음 켜기의 `tools/update.py`가 설치한다. 여기서 설치가 실패하면 그대로 켜 보고, 다음 켜기에서 다시 시도한다.
+- 화면은 `/api/me`의 `boot`(서버 프로세스마다 새 값)가 바뀌면 다시 켜진 줄 알고 새로고침한다. 직접 고친 코드로 다시 켤 때는 버전이 같기 때문이다. 직접 고친 코드가 켤 때와 같으면(`_code_print`: HEAD + 고친 내용 + 새 파일 목록) 다시 켜지 않는다.
+- 추적 중인 파일을 고치다 만 것이 있으면 건너뛴다(덮어쓰지 않음). 인터넷이 안 되거나 받지 못해도 지금 코드로 켠다. 켤 때(`tools/update.py`) 재설치가 실패했을 때만 켜지 않고 멈춘다.
 - `MALHAN_LABEL`이 앱 이름에 붙어 PC 두 대가 폰에 두 앱으로 깔린다.
 
 ## 5. 결정
@@ -91,6 +93,7 @@ records(id, user_id, addon, type, input_id, data, date, status, created_at)
 | D-23 | 구글 캘린더 연결은 설치 안내에서 「선택」이 아니라 꼭 하는 단계로 안내한다. 연결하지 않아도 할 일 저장은 막지 않는다(D-06 그대로). 네이버는 「캘린더 자세히」에 둔다 (이전: ② 구글 캘린더 연결 (선택)) | 구글 캘린더를 쓰는 사람이 많다 | 11/11 | 유효 |
 | D-24 | 달력 화면 맨 아래에 공모 게시글 「좋아요 누르러 가기」 배너를 모든 설치본에 기본으로 보인다. 주소는 `server/app.py`의 `POST_URL_DEFAULT`. `.env`의 `MALHAN_POST_URL`로 바꾸고, 빈 값으로 적으면 숨긴다 (이전: `MALHAN_POST_URL`을 적은 설치본에만 식물 카드 안의 링크로) | 「오늘」 화면은 복잡해서 달력 아래에 둔다 · 공모 기간에 쓰는 사람이 글을 바로 찾게 | 11/11 | 유효 |
 | D-25 | 일정을 가져올 캘린더는 여러 개(`config.read_calendars` 목록, 체크 UI). 올리는 캘린더는 한 개 그대로. 같은 일정이 두 캘린더에 있으면 uid로 한 번만, 시각 있는 것 먼저. 예전 한 개짜리 키(`read_calendar_id/url`)도 읽고, 다시 저장하면 새 키로 옮긴다. 하나도 안 고르면 올리는 캘린더(`write_calendar_id`, 이전엔 늘 primary)에서 읽는다 | 내 캘린더·팀 공유·가족처럼 보는 캘린더가 보통 2~3개 | 11/14 | 유효 |
+| D-26 | 「업데이트」로 다시 켜기: 설치는 서버가 꺼진 뒤(표시 파일), 화면은 `boot` 값으로 새로 켜진 것을 알아봄, 처리 중 녹음은 최대 3분만 기다림, 직접 고친 코드가 그대로면 다시 켜지 않음 (이전: 켜진 채 설치, 버전 비교, 끝날 때까지 기다림, 직접 고친 코드가 있으면 늘 다시 켬) | 업데이트 뒤 다시 켜지지 않거나 화면이 「시간이 걸려요」에 멈추던 것 | 11/17 | 유효 |
 
 ## 6. 문서 지도
 

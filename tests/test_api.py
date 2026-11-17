@@ -538,3 +538,40 @@ def test_like_banner_is_last_thing_in_month_tab():
     after = month[month.index('id="m-like"'):].split("</a>", 1)[1]
     assert re.fullmatch(r"\s*</div>\s*<div\s*", after), "배너 뒤에 다른 것이 있어요"
     assert ".likebar" in (web / "style.css").read_text(encoding="utf-8")
+
+
+def test_update_button_does_not_restart_for_unchanged_local_code(monkeypatch):
+    """직접 고친 코드가 켤 때와 같으면 「업데이트」를 눌러도 다시 켜지 않는다. 바뀌었으면 다시 켜고, 화면은 boot 값으로 알아본다."""
+    from server import app as appmod
+    from server import updater
+    join("업데이트시험")
+    calls = []
+    monkeypatch.setattr(updater, "restart_soon", lambda *a, **k: calls.append(1))
+    monkeypatch.setattr(appmod, "pending_count", lambda *a: 0)   # 다른 시험이 남긴 입력과 상관없이
+
+    def fake_main(argv):
+        updater._reset(); updater.RESULT["local"] = True; updater.RESULT["messages"].append("직접 고친 파일이 있어서")
+        return 0
+    monkeypatch.setattr(updater, "main", fake_main)
+    monkeypatch.setattr(appmod, "_code_print", lambda: appmod.BOOT_CODE)
+    r = client.post("/api/update").json()
+    assert r["restarting"] is False and calls == []
+    monkeypatch.setattr(appmod, "_code_print", lambda: "changed")
+    r = client.post("/api/update").json()
+    assert r["restarting"] is True and calls == [1] and "직접 고친 코드로 다시 켤게요." in r["messages"]
+    assert client.get("/api/me").json()["boot"] == appmod.BOOT_ID
+
+
+
+def test_restart_waits_for_pending_but_not_forever(monkeypatch):
+    """처리 중인 녹음이 끝나지 않아도 RESTART_WAIT_MAX가 지나면 다시 켠다 (켜진 뒤 resume_pending이 다시 처리)."""
+    import time
+    from server import app as appmod
+    from server import updater
+    calls = []
+    monkeypatch.setattr(updater, "restart_soon", lambda *a, **k: calls.append(1))
+    monkeypatch.setattr(appmod, "pending_count", lambda *a: 1)   # 영영 안 끝나는 녹음
+    monkeypatch.setattr(appmod, "RESTART_WAIT_MAX", 0.3)
+    appmod._restart_when_idle(poll=0.05)
+    time.sleep(0.6)
+    assert calls == [1]

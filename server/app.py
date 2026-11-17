@@ -229,6 +229,7 @@ def me(user=Depends(current_user)):
         "ai": llm.mode(),
         "stt": stt.available(),
         "version": _version(),
+        "boot": BOOT_ID,
         "label": app_label(),
         "update": dict(UPDATE_AVAILABLE) if UPDATE_AVAILABLE else None,
         "diary": _diary_on(user["id"]),
@@ -298,6 +299,20 @@ def _version() -> str:
         return ""
 
 
+def _code_print() -> str:
+    """지금 디스크의 코드 지문: HEAD + 직접 고친 내용. 켤 때 값과 다르면 다시 켤 이유가 있다."""
+    import hashlib
+    try:
+        return updater.git("rev-parse", "HEAD") + hashlib.sha1((updater.git("diff", "HEAD") + updater.git("status", "--porcelain", "--untracked-files=all")).encode()).hexdigest()
+    except Exception:
+        return ""
+
+
+BOOT_ID = __import__("uuid").uuid4().hex[:8]  # 이 서버 프로세스. 화면은 이 값이 바뀌면 다시 켜진 줄 안다 (버전이 같아도)
+BOOT_CODE = _code_print()
+RESTART_WAIT_MAX = 180  # 처리 중인 녹음을 기다리는 최대 초. 넘으면 그냥 다시 켜고, 켜진 뒤 처음부터 다시 처리한다(resume_pending)
+
+
 _update_lock = __import__("threading").Lock()
 
 
@@ -306,17 +321,19 @@ def _update_now() -> dict:
     if not _update_lock.acquire(blocking=False):
         return {"busy": True, "messages": ["이미 확인하는 중이에요."]}
     try:
-        updater.main([])
+        updater.main(["--defer-install"])
         out = dict(updater.RESULT)
-        # 받은 게 없어도 이 PC에서 직접 고친 코드가 있으면 그 코드로 다시 켠다 (Claude Code로 고친 뒤 폰에서 「업데이트」만 누르면 되게)
-        if out.get("local") and not out["updated"]:
+        # 받은 게 없어도 이 PC에서 직접 고친 코드가 켤 때와 달라졌으면 그 코드로 다시 켠다 (Claude Code로 고친 뒤 폰에서 「업데이트」만 누르면 되게)
+        local_changed = bool(out.get("local")) and _code_print() != BOOT_CODE
+        if local_changed and not out["updated"]:
             out["messages"].append("직접 고친 코드로 다시 켤게요.")
-        out["restarting"] = out["updated"] or bool(out.get("local"))
+        out["restarting"] = out["updated"] or local_changed
+        out["installing"] = updater.NEEDS_INSTALL.exists()   # 다시 켤 때 설치가 끼면 화면이 더 오래 기다린다
         if out["restarting"]:
             n = pending_count()
             out["waiting"] = n
             if n:
-                out["messages"].append(f"처리 중인 녹음 {n}건이 끝나면 새 버전으로 다시 켤게요.")
+                out["messages"].append(f"처리 중인 녹음 {n}건이 끝나면(길어도 {RESTART_WAIT_MAX // 60}분) 새 버전으로 다시 켤게요. 끊긴 것은 켜진 뒤 다시 처리해요.")
                 _restart_when_idle()
             else:
                 updater.restart_soon()
@@ -331,7 +348,8 @@ def _restart_when_idle(poll: float = 5.0) -> None:
     import time
 
     def wait():
-        while pending_count():
+        end = time.time() + RESTART_WAIT_MAX
+        while pending_count() and time.time() < end:
             time.sleep(poll)
         updater.restart_soon(0.5)
 

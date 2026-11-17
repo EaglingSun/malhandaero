@@ -850,12 +850,13 @@
     api("/api/update", { method: "POST" }).then(function (r) {
       say("update-msg", (r.messages || []).join("\n"));
       if (!r.restarting) { b.disabled = false; return; }
-      var was = state.me && state.me.version, tries = 0, limit = r.waiting ? 600 : 30;
-      say("update-msg", (r.waiting ? "업데이트했어요. 처리 중인 녹음 " + r.waiting + "건이 끝나면 다시 켜요.\n" : "업데이트했어요. 다시 켜는 중… (10초쯤)\n") + (r.log || []).map(function (l) { return "· " + l; }).join("\n"));
+      // 버전이 같아도(직접 고친 코드로 다시 켤 때) 서버 프로세스가 바뀌면 다시 켜진 것 — boot 값으로 본다
+      var was = state.me && state.me.boot, tries = 0, limit = (r.waiting || r.installing) ? 180 : 60;   // 2초마다: 기본 2분, 기다리거나 설치하면 6분
+      say("update-msg", (r.waiting ? "업데이트했어요. 처리 중인 녹음 " + r.waiting + "건이 끝나면 다시 켜요.\n" : r.installing ? "업데이트했어요. 새로 설치하고 다시 켜는 중… (1~2분)\n" : "업데이트했어요. 다시 켜는 중… (10초쯤)\n") + (r.log || []).map(function (l) { return "· " + l; }).join("\n"));
       (function poll() {
         setTimeout(function () {
           api("/api/me").then(function (me) {
-            if (me.version && me.version !== was) { location.reload(); return; }
+            if (me.boot && me.boot !== was) { location.reload(); return; }
             if (++tries < limit) poll(); else { say("update-msg", "다시 켜지는 데 시간이 걸려요. 잠시 뒤 새로고침해 주세요.", true); b.disabled = false; }
           }).catch(function () { if (++tries < limit) poll(); else { say("update-msg", "서버가 다시 켜지지 않았어요. PC의 말한대로 창을 확인해 주세요.", true); b.disabled = false; } });
         }, 2000);

@@ -21,6 +21,7 @@ VENV_PY = ROOT / ".venv" / ("Scripts/python.exe" if os.name == "nt" else "bin/py
 REPO_URL = "https://github.com/EaglingSun/malhandaero.git"
 TIMEOUT = 40  # 초. 느린 인터넷에서도 켜기를 오래 막지 않는다
 RESTART_CODE = 3  # 서버가 이 코드로 끝나면 run.py가 새 버전으로 다시 켠다
+NEEDS_INSTALL = ROOT / ".malhan-needs-install"  # 켜져 있는 동안 받은 업데이트가 설치를 바랄 때. 서버가 꺼진 뒤 run.py/update.py가 설치한다
 
 # 마지막 실행 결과. 화면에 보여 주기 위해 남긴다
 RESULT: dict = {"updated": False, "before": "", "after": "", "log": [], "changed": [], "messages": []}
@@ -69,9 +70,25 @@ def install() -> None:
     subprocess.check_call([sys.executable, str(ROOT / "tools" / "install.py")], cwd=ROOT)
 
 
+def install_if_marked() -> bool:
+    """지난번 「업데이트」가 남긴 설치 표시가 있으면 지금 설치한다. 서버가 꺼진 동안에 불러야 파일 잠김(Windows)이 없다."""
+    if not NEEDS_INSTALL.exists():
+        return True
+    try:
+        install()
+    except subprocess.CalledProcessError:
+        say("설치가 끝까지 되지 않았어요. 인터넷을 확인한 뒤 다시 켜 주세요.")
+        return False
+    NEEDS_INSTALL.unlink(missing_ok=True)
+    return True
+
+
 def main(argv: list[str]) -> int:
     _reset()
     print("\n말한대로 업데이트 확인", flush=True)
+    defer = "--defer-install" in argv  # 서버 안에서 부를 때: 켜진 채로 설치하지 않고 표시만 남긴다
+    if not defer and not install_if_marked():
+        return 1
     if "--no-update" in argv or os.environ.get("MALHAN_AUTO_UPDATE") == "0" or _env_file_says_off():
         say("자동 업데이트가 꺼져 있어요. 지금 버전으로 켭니다.")
         return 0
@@ -126,11 +143,15 @@ def main(argv: list[str]) -> int:
         return 0
 
     if not VENV_PY.exists() or any(c in changed for c in ("requirements.txt", "requirements-stt.txt", "tools/install.py")):
-        try:
-            install()
-        except subprocess.CalledProcessError:
-            say("설치가 끝까지 되지 않았어요. 인터넷을 확인한 뒤 다시 켜 주세요.")
-            return 1
+        if defer:
+            NEEDS_INSTALL.write_text(RESULT.get("after", ""), encoding="utf-8")
+            say("필요한 것을 새로 설치해야 해요. 다시 켤 때 설치합니다 (1~2분).")
+        else:
+            try:
+                install()
+            except subprocess.CalledProcessError:
+                say("설치가 끝까지 되지 않았어요. 인터넷을 확인한 뒤 다시 켜 주세요.")
+                return 1
     if "web/manifest.webmanifest" in changed:
         say("! 휴대폰 앱의 모양·공유 설정이 바뀌었어요. 휴대폰에서 말한대로를 지우고 홈 화면에 다시 추가해 주세요.")
     elif any(p.startswith("web/") for p in changed):
